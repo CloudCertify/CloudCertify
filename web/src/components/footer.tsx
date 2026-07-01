@@ -1,4 +1,4 @@
-import { Cloud } from 'lucide-react';
+import { Cloud, Coffee } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -10,9 +10,20 @@ export function Footer() {
           </div>
           <p className='text-black'>CloudCertify</p>
         </div>
-        <p className='text-center text-sm text-black/70 font-medium md:text-left'>
-          &copy; {new Date().getFullYear()} CloudCertify. All rights reserved.
-        </p>
+        <div className='flex flex-col items-center gap-4 md:flex-row md:gap-6'>
+          <a
+            href='https://buymeacoffee.com/snowye'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center gap-2 rounded-[5px] border-2 border-black bg-[#FFDD00] px-4 py-2 text-sm font-black text-black shadow-[2px_2px_0px_0px_#000] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#000] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#000]'
+          >
+            <Coffee className='h-4 w-4' />
+            Buy me a coffee
+          </a>
+          <p className='text-center text-sm text-black/70 font-medium md:text-left'>
+            &copy; {new Date().getFullYear()} CloudCertify. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );
