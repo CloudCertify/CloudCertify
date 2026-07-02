@@ -111,6 +111,7 @@ public class QuizService
                    Images = q.Images,
                    Type = q.Type,
                    SelectCount = q.SelectCount,
+                   Difficulty = q.Difficulty,
                     Answers = q.Answers.OrderBy(a => Guid.NewGuid()).Select(AnswerMapper.ToDto).ToList()
                }).ToList()
            };

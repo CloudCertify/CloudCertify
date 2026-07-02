@@ -29,6 +29,8 @@ public class Question
 
     public string? Explanation { get; set; }
 
+    public QuestionDifficulty Difficulty { get; set; } = QuestionDifficulty.Medium;
+
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     public virtual ICollection<Answer> Answers { get; set; }
@@ -41,4 +43,11 @@ public enum QuestionType
 {
     MultipleChoice,
     MultipleResponse,
+}
+
+public enum QuestionDifficulty
+{
+    Easy,
+    Medium,
+    Hard,
 }

@@ -28,6 +28,10 @@ public class Quiz
 
       public string Slug { get; set; }
 
+      // SHA-256 of the seeded questions file; a mismatch at startup triggers a
+      // full question re-seed for this quiz (see QuizCatalogSeeder).
+      public string? QuestionsHash { get; set; }
+
       public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
      
      public virtual ICollection<Question> Questions { get; set; }

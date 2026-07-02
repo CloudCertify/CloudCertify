@@ -9,6 +9,7 @@ public class QuestionDto
     public string[] Images { get; set; }
     public QuestionType Type { get; set; }
     public int SelectCount { get; set; }
+    public QuestionDifficulty Difficulty { get; set; }
     public ICollection<AnswerDto> Answers { get; set; } = new List<AnswerDto>();
 }
 

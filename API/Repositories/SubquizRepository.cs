@@ -30,6 +30,12 @@ public class SubquizRepository(ApplicationDbContext context) : ISubquizRepositor
             .ToListAsync();
     }
 
+    public async Task UpdateMany(List<Subquiz> subquizzes)
+    {
+        context.Subquiz.UpdateRange(subquizzes);
+        await context.SaveChangesAsync();
+    }
+
     public async Task<List<Subquiz>> GetAllSubquizzes()
     {
         return await context.Subquiz.ToListAsync();

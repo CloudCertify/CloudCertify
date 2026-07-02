@@ -10,4 +10,5 @@ public interface ISubquizRepository
     Task<Subquiz?> GetSubquizById(int subquizId);
     Task<List<Subquiz>> GetSubquizzesByQuizId(int quizId);
     Task<List<Subquiz>> GetAllSubquizzes();
+    Task UpdateMany(List<Subquiz> subquizzes);
 }
