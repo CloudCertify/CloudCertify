@@ -7,3 +7,5 @@ riderModule.iml
 .env
 *.DotSettings
 *.user
+
+/API/External/questions/
