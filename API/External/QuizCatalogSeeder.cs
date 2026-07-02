@@ -240,12 +240,12 @@ public class QuizCatalogSeeder
         },
         new()
         {
-            Title = "AWS Certified Security Specialty (SCS-C02)",
+            Title = "AWS Certified Security Specialty (SCS-C03)",
             Description = "Secure AWS workloads using security services, controls, and best practices.",
             IconName = "lock",
             QuizProvider = QuizProvider.AWS,
             QuizLevel = QuizLevel.Specialist,
-            Slug = "SCS-C02"
+            Slug = "SCS-C03"
         },
         new()
         {
