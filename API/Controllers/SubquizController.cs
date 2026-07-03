@@ -2,6 +2,7 @@ using API.Dto;
 using API.Model.Request;
 using API.Model.Response;
 using API.Services;
+using API.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -31,12 +32,19 @@ public class SubquizController : ControllerBase
     }
 
     /// <summary>
-    /// Start a subquiz session
+    /// Start a subquiz session. Anonymous callers must send an email; a bearer token
+    /// makes the attempt User-owned and any body email is ignored (ADR 0003).
     /// </summary>
     [HttpPost("{subquizId}/start")]
     public async Task<ActionResult<SubquizDetailDto>> StartSubquiz(int quizId, int subquizId, [FromBody] StartQuizRequestDto request)
     {
-        var subquizDetail = await _subquizService.StartSubquiz(quizId, subquizId, request.Email);
+        var userId = AuthenticatedUserReader.UserIdOf(User);
+        if (userId == null && string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest("Email is required for anonymous attempts");
+        }
+
+        var subquizDetail = await _subquizService.StartSubquiz(quizId, subquizId, request.Email, userId);
 
         if (subquizDetail == null)
         {

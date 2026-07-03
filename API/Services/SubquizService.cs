@@ -28,8 +28,13 @@ public class SubquizService
         return subquizzes.Select(MapSubquizToDto).ToList();
     }
 
-    public async Task<SubquizDetailDto?> StartSubquiz(int quizId, int subquizId, string email)
+    /// <summary>
+    /// Starts a Subquiz attempt for a logged-in User (userId) or anonymous visitor (email) —
+    /// exactly one (ADR 0003).
+    /// </summary>
+    public async Task<SubquizDetailDto?> StartSubquiz(int quizId, int subquizId, string? email, int? userId)
     {
+        AttemptIdentity.EnsureValid(email, userId);
         var subquiz = await _subquizRepository.GetSubquizById(subquizId);
 
         if (subquiz == null || subquiz.QuizId != quizId)
@@ -53,7 +58,8 @@ public class SubquizService
 
         var submission = new Submission
         {
-            Email = email,
+            Email = userId == null ? email : null,
+            UserId = userId,
             QuizId = quizId,
             SubquizId = subquizId,
             Finished = false,

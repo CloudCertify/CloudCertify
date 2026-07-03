@@ -29,8 +29,15 @@ public class Submission
     public List<RecordedAnswer> RecordedAnswers { get; set; } = new();
 
     public int Score { get; set; }
-    
-    public string Email { get; set; }
+
+    /// <summary>
+    /// Self-reported email of an Anonymous Submission. Born with exactly one of Email/UserId;
+    /// a Claimed submission keeps its Email for provenance and gains a UserId (ADR 0003).
+    /// </summary>
+    public string? Email { get; set; }
+
+    /// <summary>Owning User for a logged-in attempt, or set later by Claiming. Null when anonymous.</summary>
+    public int? UserId { get; set; }
     
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 }

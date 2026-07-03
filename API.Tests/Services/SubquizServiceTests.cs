@@ -22,7 +22,7 @@ public class SubquizServiceTests
     {
         _subquizzes.Setup(r => r.GetSubquizById(It.IsAny<int>())).ReturnsAsync((Subquiz?)null);
 
-        var result = await CreateService().StartSubquiz(1, 2, "u@e.com");
+        var result = await CreateService().StartSubquiz(1, 2, "u@e.com", null);
 
         Assert.Null(result);
         _submissions.Verify(r => r.Create(It.IsAny<Submission>()), Times.Never);
@@ -34,7 +34,7 @@ public class SubquizServiceTests
         _subquizzes.Setup(r => r.GetSubquizById(2))
             .ReturnsAsync(new Subquiz { Id = 2, QuizId = 99, IsAvailable = true });
 
-        var result = await CreateService().StartSubquiz(1, 2, "u@e.com");
+        var result = await CreateService().StartSubquiz(1, 2, "u@e.com", null);
 
         Assert.Null(result);
     }
@@ -47,7 +47,7 @@ public class SubquizServiceTests
 
         var service = CreateService();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.StartSubquiz(1, 2, "u@e.com"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.StartSubquiz(1, 2, "u@e.com", null));
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class SubquizServiceTests
         _questions.Setup(r => r.GetQuestionsByQuizId(1))
             .ReturnsAsync(new List<Question> { inDomain, otherDomain });
 
-        var result = await CreateService().StartSubquiz(1, 2, "u@e.com");
+        var result = await CreateService().StartSubquiz(1, 2, "u@e.com", null);
 
         Assert.NotNull(result);
         var question = Assert.Single(result!.Questions);

@@ -2,9 +2,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using API;
 using API.External;
+using API.External.OAuth;
 using API.Repositories;
 using API.Services;
+using API.Services.Auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
@@ -66,6 +70,28 @@ builder.Services.AddControllers()
             new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
     });
 
+// Social login (ADR 0003): API-owned OAuth, self-issued 30-day HS256 JWT.
+builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("Auth"));
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwtSecret = builder.Configuration["Auth:JwtSecret"] ?? "";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidIssuer = UserTokenIssuer.Issuer,
+            ValidateAudience = false,
+            IssuerSigningKey = UserTokenIssuer.SymmetricKeyFor(jwtSecret),
+        };
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IOAuthProviderClient, GoogleOAuthClient>();
+builder.Services.AddHttpClient<IOAuthProviderClient, GitHubOAuthClient>();
+builder.Services.AddSingleton<OAuthStateStore>();
+builder.Services.AddSingleton<UserTokenIssuer>();
+builder.Services.AddScoped<SocialLoginService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<ISubquizRepository, SubquizRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
@@ -101,6 +127,8 @@ if (app.Environment.IsDevelopment())
     
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
