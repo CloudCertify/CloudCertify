@@ -3,6 +3,7 @@ using API.Entities;
 using API.Model.Request;
 using API.Model.Response;
 using API.Services;
+using API.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -39,10 +40,20 @@ public class QuizController: ControllerBase
         return Ok(quiz);
     }
     
+    /// <summary>
+    /// Start a quiz attempt. Anonymous callers must send an email; a bearer token
+    /// makes the attempt User-owned and any body email is ignored (ADR 0003).
+    /// </summary>
     [HttpPost("{quizId}/start")]
     public async Task<ActionResult<QuizDetailDto>> StartQuiz(int quizId, [FromBody] StartQuizRequestDto request)
     {
-        var quiz = await _quizService.StartQuiz(quizId, request.Email);
+        var userId = AuthenticatedUserReader.UserIdOf(User);
+        if (userId == null && string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest("Email is required for anonymous attempts");
+        }
+
+        var quiz = await _quizService.StartQuiz(quizId, request.Email, userId);
 
         if (quiz == null)
         {

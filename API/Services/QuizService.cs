@@ -68,8 +68,13 @@ public class QuizService
         return MapQuizToDto(quiz);
     }
     
-     public async Task<QuizDetailDto?> StartQuiz(int quizId, string email)
+     /// <summary>
+     /// Starts an attempt for a logged-in User (userId) or an anonymous visitor (email) —
+     /// exactly one; a token-derived userId wins over any body email (ADR 0003).
+     /// </summary>
+     public async Task<QuizDetailDto?> StartQuiz(int quizId, string? email, int? userId)
      {
+         AttemptIdentity.EnsureValid(email, userId);
          var quiz = await _quizRepository.GetQuizById(quizId);
          
          if (quiz == null)
@@ -88,7 +93,8 @@ public class QuizService
 
           var submission = new Submission
           {
-              Email = email,
+              Email = userId == null ? email : null,
+              UserId = userId,
               QuizId = quizId,
               Finished = false,
               ServedQuestionIds = randomQuestions.Select(q => q.Id).ToList(),

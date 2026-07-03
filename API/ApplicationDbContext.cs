@@ -16,6 +16,8 @@ public class ApplicationDbContext: DbContext
     public DbSet<Answer> Answer { get; set; }
     public DbSet<Submission> Submission { get; set; }
     public DbSet<RecordedAnswer> RecordedAnswer { get; set; }
+    public DbSet<User> User { get; set; }
+    public DbSet<UserProvider> UserProvider { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -94,7 +96,8 @@ public class ApplicationDbContext: DbContext
         modelBuilder.Entity<Submission>(entity =>
         {
             entity.HasKey(s => s.Id);
-            entity.Property(s => s.Email).IsRequired().HasMaxLength(255);
+            // Nullable since social login: logged-in attempts carry UserId instead (ADR 0003).
+            entity.Property(s => s.Email).HasMaxLength(255);
             entity.Property(s => s.Finished).IsRequired();
             entity.Property(s => s.ServedQuestionIds).HasColumnType("integer[]").IsRequired();
             entity.Property(s => s.Score).IsRequired();
@@ -108,12 +111,46 @@ public class ApplicationDbContext: DbContext
                 .WithMany()
                 .HasForeignKey(s => s.SubquizId);
 
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(s => s.UserId);
+
+            // Claiming scans anonymous submissions by email on every login.
+            entity.HasIndex(s => s.Email);
+
             // Recorded Answers belong to the Submission: one row per (Submission, Question),
             // so a Question can be Checked at most once. See docs/adr/0002-incremental-subquiz-feedback.md.
             entity.HasMany(s => s.RecordedAnswers)
                 .WithOne()
                 .HasForeignKey(r => r.SubmissionId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
+            entity.Property(u => u.DisplayName).IsRequired().HasMaxLength(255);
+            entity.Property(u => u.AvatarUrl).HasMaxLength(512);
+            entity.Property(u => u.CreatedAt).IsRequired();
+
+            entity.HasMany(u => u.Providers)
+                .WithOne()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserProvider>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Kind).IsRequired().HasConversion<string>();
+            entity.Property(p => p.SubjectId).IsRequired().HasMaxLength(255);
+            entity.Property(p => p.Email).IsRequired().HasMaxLength(255);
+            entity.Property(p => p.EmailVerified).IsRequired();
+            entity.Property(p => p.CreatedAt).IsRequired();
+
+            // One row per external identity: a provider account links to exactly one User.
+            entity.HasIndex(p => new { p.Kind, p.SubjectId }).IsUnique();
         });
 
         modelBuilder.Entity<RecordedAnswer>(entity =>

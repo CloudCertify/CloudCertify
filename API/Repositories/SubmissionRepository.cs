@@ -31,4 +31,19 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
         context.Set<RecordedAnswer>().Add(recordedAnswer);
         await context.SaveChangesAsync();
     }
+
+    public async Task<int> ClaimAnonymousSubmissions(int userId, IReadOnlyCollection<string> emails)
+    {
+        return await context.Submission
+            .Where(s => s.UserId == null && s.Email != null && emails.Contains(s.Email))
+            .ExecuteUpdateAsync(set => set.SetProperty(s => s.UserId, userId));
+    }
+
+    public async Task<List<Submission>> GetByUserId(int userId)
+    {
+        return await context.Submission
+            .Where(s => s.UserId == userId)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
 }

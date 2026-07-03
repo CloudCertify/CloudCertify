@@ -48,7 +48,7 @@ public class QuizServiceTests
     {
         _quizzes.Setup(r => r.GetQuizById(It.IsAny<int>())).ReturnsAsync((Quiz?)null);
 
-        var result = await CreateService().StartQuiz(1, "user@example.com");
+        var result = await CreateService().StartQuiz(1, "user@example.com", null);
 
         Assert.Null(result);
         _submissions.Verify(r => r.Create(It.IsAny<Submission>()), Times.Never);
@@ -62,7 +62,7 @@ public class QuizServiceTests
 
         var service = CreateService();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.StartQuiz(1, "user@example.com"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.StartQuiz(1, "user@example.com", null));
         _submissions.Verify(r => r.Create(It.IsAny<Submission>()), Times.Never);
     }
 
@@ -76,12 +76,37 @@ public class QuizServiceTests
         };
         _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
 
-        var result = await CreateService().StartQuiz(1, "user@example.com");
+        var result = await CreateService().StartQuiz(1, "user@example.com", null);
 
         Assert.NotNull(result);
         _submissions.Verify(r => r.Create(It.Is<Submission>(s =>
             s.QuizId == 1 && s.Email == "user@example.com" && !s.Finished &&
             s.ServedQuestionIds.SequenceEqual(new[] { 100 }))), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartQuiz_OwnsSubmissionByUser_AndDropsEmail_WhenLoggedIn()
+    {
+        var quiz = new Quiz
+        {
+            Id = 1, Title = "Quiz", Slug = "q", IsAvailable = true,
+            Questions = new List<Question> { Question(100, "D", correctIds: [1], wrongIds: [2]) }
+        };
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
+
+        // A token-derived userId wins: any body email is ignored, not stored (ADR 0003).
+        await CreateService().StartQuiz(1, "stale@client.com", userId: 42);
+
+        _submissions.Verify(r => r.Create(It.Is<Submission>(s =>
+            s.UserId == 42 && s.Email == null)), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartQuiz_Throws_WhenNoEmailAndNoUser()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => CreateService().StartQuiz(1, email: null, userId: null));
+        _submissions.Verify(r => r.Create(It.IsAny<Submission>()), Times.Never);
     }
 
     [Fact]
@@ -139,7 +164,7 @@ public class QuizServiceTests
             .Callback<Submission>(s => captured = s)
             .ReturnsAsync((Submission s) => s);
 
-        await CreateService().StartQuiz(1, "user@example.com");
+        await CreateService().StartQuiz(1, "user@example.com", null);
 
         Assert.NotNull(captured);
         return captured!.ServedQuestionIds.Count;
