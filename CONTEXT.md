@@ -26,11 +26,35 @@ re-answered. Distinct from Submit, which finishes a whole attempt.
 _Avoid_: Submit (one question), Grade, Reveal, Try
 
 **Submission**:
-One attempt at a Quiz or Subquiz by an email-identified visitor. Holds the
-finished state and final score; a Subquiz Submission also accumulates the
-visitor's Recorded Answers as they are checked. There is no User entity; a
-Submission is the only record of who did what.
+One attempt at a Quiz or Subquiz. Holds the finished state and final score; a
+Subquiz Submission also accumulates the visitor's Recorded Answers as they are
+checked. Born with exactly one of: a User (logged-in) or a self-reported
+email (anonymous); an Anonymous Submission later Claimed has both.
 _Avoid_: Attempt, Session, Result, Try
+
+**User**:
+A person with an account, created via social login. Has one or more Providers
+and carries only provider-sourced profile data (email, display name, avatar).
+Optional — quizzes work without one; login exists only for richer data and
+experience.
+_Avoid_: Account, Member, Visitor
+
+**Provider**:
+An external identity (Google, GitHub) linked to a User. A User can have
+several; each Provider belongs to exactly one User. A new Provider whose
+provider-verified email matches an existing User auto-links to that User;
+unverified emails never auto-link and create a separate User instead.
+_Avoid_: Social account, Login method
+
+**Anonymous Submission**:
+A Submission made without a logged-in User, identified only by a
+self-reported email.
+
+**Claiming**:
+Automatically attaching past Anonymous Submissions to a User when the
+Submission's email matches any of the User's provider-verified emails. Runs on
+every login; idempotent.
+_Avoid_: Merging, Importing
 
 **Recorded Answer**:
 One Question's selected answers committed to a Subquiz Submission at Check time.
