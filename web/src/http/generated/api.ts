@@ -35,6 +35,10 @@ import type {
   CheckAnswerRequestDto,
   CheckAnswerResponseDto,
   FinishSubquizRequestDto,
+  GetAuthProviderCallbackParams,
+  GetAuthProviderLoginParams,
+  MeDto,
+  MySubmissionDto,
   QuizDetailDto,
   QuizDto,
   StartQuizRequestDto,
@@ -43,6 +47,364 @@ import type {
   SubquizDetailDto,
   SubquizDto
 } from './api.schemas';
+
+
+
+
+
+export const getAuthProviderLogin = (
+    provider: string,
+    params?: GetAuthProviderLoginParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<void>> => {
+
+
+    return axios.default.get(
+      `https://api-cloudcertify.snowye.dev/auth/${provider}/login`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+
+
+
+export const getGetAuthProviderLoginQueryKey = (provider: string,
+    params?: GetAuthProviderLoginParams,) => {
+    return [
+    `https://api-cloudcertify.snowye.dev/auth/${provider}/login`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAuthProviderLoginQueryOptions = <TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(provider: string,
+    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAuthProviderLoginQueryKey(provider,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthProviderLogin>>> = ({ signal }) => getAuthProviderLogin(provider,params, { signal, ...axiosOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(provider), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAuthProviderLoginQueryResult = NonNullable<Awaited<ReturnType<typeof getAuthProviderLogin>>>
+export type GetAuthProviderLoginQueryError = AxiosError<unknown>
+
+
+export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(
+ provider: string,
+    params: undefined |  GetAuthProviderLoginParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuthProviderLogin>>,
+          TError,
+          Awaited<ReturnType<typeof getAuthProviderLogin>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(
+ provider: string,
+    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuthProviderLogin>>,
+          TError,
+          Awaited<ReturnType<typeof getAuthProviderLogin>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(
+ provider: string,
+    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(
+ provider: string,
+    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAuthProviderLoginQueryOptions(provider,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAuthProviderCallback = (
+    provider: string,
+    params?: GetAuthProviderCallbackParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<void>> => {
+
+
+    return axios.default.get(
+      `https://api-cloudcertify.snowye.dev/auth/${provider}/callback`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+
+
+
+export const getGetAuthProviderCallbackQueryKey = (provider: string,
+    params?: GetAuthProviderCallbackParams,) => {
+    return [
+    `https://api-cloudcertify.snowye.dev/auth/${provider}/callback`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAuthProviderCallbackQueryOptions = <TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(provider: string,
+    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAuthProviderCallbackQueryKey(provider,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthProviderCallback>>> = ({ signal }) => getAuthProviderCallback(provider,params, { signal, ...axiosOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(provider), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAuthProviderCallbackQueryResult = NonNullable<Awaited<ReturnType<typeof getAuthProviderCallback>>>
+export type GetAuthProviderCallbackQueryError = AxiosError<unknown>
+
+
+export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(
+ provider: string,
+    params: undefined |  GetAuthProviderCallbackParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuthProviderCallback>>,
+          TError,
+          Awaited<ReturnType<typeof getAuthProviderCallback>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(
+ provider: string,
+    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuthProviderCallback>>,
+          TError,
+          Awaited<ReturnType<typeof getAuthProviderCallback>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(
+ provider: string,
+    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(
+ provider: string,
+    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAuthProviderCallbackQueryOptions(provider,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getMe = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<MeDto>> => {
+
+
+    return axios.default.get(
+      `https://api-cloudcertify.snowye.dev/me`,options
+    );
+  }
+
+
+
+
+export const getGetMeQueryKey = () => {
+    return [
+    `https://api-cloudcertify.snowye.dev/me`
+    ] as const;
+    }
+
+
+export const getGetMeQueryOptions = <TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMeQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMe>>> = ({ signal }) => getMe({ signal, ...axiosOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMeQueryResult = NonNullable<Awaited<ReturnType<typeof getMe>>>
+export type GetMeQueryError = AxiosError<unknown>
+
+
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMe>>,
+          TError,
+          Awaited<ReturnType<typeof getMe>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMe>>,
+          TError,
+          Awaited<ReturnType<typeof getMe>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMeQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getMeSubmissions = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<MySubmissionDto[]>> => {
+
+
+    return axios.default.get(
+      `https://api-cloudcertify.snowye.dev/me/submissions`,options
+    );
+  }
+
+
+
+
+export const getGetMeSubmissionsQueryKey = () => {
+    return [
+    `https://api-cloudcertify.snowye.dev/me/submissions`
+    ] as const;
+    }
+
+
+export const getGetMeSubmissionsQueryOptions = <TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMeSubmissionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMeSubmissions>>> = ({ signal }) => getMeSubmissions({ signal, ...axiosOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMeSubmissionsQueryResult = NonNullable<Awaited<ReturnType<typeof getMeSubmissions>>>
+export type GetMeSubmissionsQueryError = AxiosError<unknown>
+
+
+export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMeSubmissions>>,
+          TError,
+          Awaited<ReturnType<typeof getMeSubmissions>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMeSubmissions>>,
+          TError,
+          Awaited<ReturnType<typeof getMeSubmissions>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMeSubmissionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
 
 
 

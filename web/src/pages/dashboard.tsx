@@ -6,6 +6,7 @@ import { Footer } from '@/components/footer';
 import { CertificationCard } from '@/components/certification-card';
 import { useGetQuiz } from '@/http/generated/api';
 import { getLucideIcon } from '@/lib/quiz-icon';
+import { AuthMenu } from '@/components/auth-menu';
 
 function SkeletonCard() {
   return (
@@ -38,6 +39,7 @@ export function DashboardPage() {
             <span>CloudCertify</span>
           </Link>
           <div className='flex items-center gap-4'>
+            <AuthMenu />
             <Button variant='outline' size='sm' asChild>
               <Link href='/'>
                 <ArrowLeft className='mr-2 h-4 w-4' />

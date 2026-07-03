@@ -32,7 +32,7 @@ import type {
 
 type SessionData = {
   subquizDetail: SubquizDetailDto;
-  email: string;
+  email: string | null;
 };
 
 type Phase = 'quiz' | 'results';

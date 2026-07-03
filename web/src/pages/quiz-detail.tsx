@@ -29,6 +29,8 @@ import {
 import type { SubquizDto } from '@/http/generated/api.schemas';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { capitalize } from '@/lib/utils';
+import { useAuth } from '@/auth/context';
+import { AuthMenu } from '@/components/auth-menu';
 
 // --- Validation ---
 const emailSchema = z.email('Please enter a valid email address.');
@@ -66,6 +68,7 @@ export function QuizDetailPage() {
 
   const { data, isLoading } = useGetQuizQuizId(quizId);
   const quiz = data?.data;
+  const { isAuthenticated } = useAuth();
 
   const [email, setEmail] = useState(() => {
     try {
@@ -84,6 +87,8 @@ export function QuizDetailPage() {
   );
 
   const validateEmail = (): boolean => {
+    // Logged-in Users are identified by their Bearer token; no email needed.
+    if (isAuthenticated) return true;
     const result = emailSchema.safeParse(email.trim());
     if (!result.success) {
       const msg = result.error.issues[0]?.message ?? 'Invalid email.';
@@ -99,12 +104,16 @@ export function QuizDetailPage() {
     if (!validateEmail()) return;
     setIsStartingExam(true);
     try {
-      const response = await postQuizQuizIdStart(quizId, {
-        email: email.trim()
-      });
+      const response = await postQuizQuizIdStart(
+        quizId,
+        isAuthenticated ? {} : { email: email.trim() }
+      );
       sessionStorage.setItem(
         `quiz-session-${quizId}`,
-        JSON.stringify({ quizDetail: response.data, email: email.trim() })
+        JSON.stringify({
+          quizDetail: response.data,
+          email: isAuthenticated ? null : email.trim()
+        })
       );
       navigate(`/quiz/${quizId}/session`);
     } catch {
@@ -121,13 +130,14 @@ export function QuizDetailPage() {
       const response = await postQuizQuizIdSubquizzesSubquizIdStart(
         quizId,
         subquiz.id,
-        {
-          email: email.trim()
-        }
+        isAuthenticated ? {} : { email: email.trim() }
       );
       sessionStorage.setItem(
         `subquiz-session-${quizId}-${subquiz.id}`,
-        JSON.stringify({ subquizDetail: response.data, email: email.trim() })
+        JSON.stringify({
+          subquizDetail: response.data,
+          email: isAuthenticated ? null : email.trim()
+        })
       );
       navigate(`/quiz/${quizId}/subquiz/${subquiz.id}/session`);
     } catch {
@@ -158,12 +168,15 @@ export function QuizDetailPage() {
             </div>
             <span>CloudCertify</span>
           </Link>
-          <Button variant='outline' size='sm' asChild>
-            <Link href='/dashboard'>
-              <ArrowLeft className='mr-2 h-4 w-4' />
-              Back to Dashboard
-            </Link>
-          </Button>
+          <div className='flex items-center gap-4'>
+            <AuthMenu />
+            <Button variant='outline' size='sm' asChild>
+              <Link href='/dashboard'>
+                <ArrowLeft className='mr-2 h-4 w-4' />
+                Back to Dashboard
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -206,7 +219,9 @@ export function QuizDetailPage() {
               </div>
             </div>
 
-            {/* Shared email input */}
+            {/* Shared email input — hidden for logged-in Users, whose
+                identity travels in the Bearer token instead */}
+            {!isAuthenticated && (
             <div className='space-y-2'>
               <label
                 htmlFor='email'
@@ -245,6 +260,7 @@ export function QuizDetailPage() {
                 <p className='text-sm font-bold text-destructive'>{emailError}</p>
               )}
             </div>
+            )}
 
             {/* Full simulation exam */}
             <section className='space-y-3'>
