@@ -38,6 +38,42 @@ export interface FinishSubquizRequestDto {
   submissionId?: number;
 }
 
+export type ProviderKind = typeof ProviderKind[keyof typeof ProviderKind];
+
+
+export const ProviderKind = {
+  google: 'google',
+  git_hub: 'git_hub',
+} as const;
+
+export interface MeDto {
+  id?: number;
+  email?: string;
+  displayName?: string;
+  /** @nullable */
+  avatarUrl?: string | null;
+  providers?: ProviderKind[];
+}
+
+export interface MySubmissionDto {
+  id?: number;
+  quizId?: number;
+  /** @nullable */
+  subquizId?: number | null;
+  finished?: boolean;
+  score?: number;
+  createdAt?: string;
+}
+
+export type QuestionDifficulty = typeof QuestionDifficulty[keyof typeof QuestionDifficulty];
+
+
+export const QuestionDifficulty = {
+  easy: 'easy',
+  medium: 'medium',
+  hard: 'hard',
+} as const;
+
 export type QuestionType = typeof QuestionType[keyof typeof QuestionType];
 
 
@@ -53,6 +89,7 @@ export interface QuestionDto {
   images?: string[];
   type?: QuestionType;
   selectCount?: number;
+  difficulty?: QuestionDifficulty;
   answers?: AnswerDto[];
 }
 
@@ -143,7 +180,8 @@ export interface QuizResultQuestionDto {
 }
 
 export interface StartQuizRequestDto {
-  email?: string;
+  /** @nullable */
+  email?: string | null;
 }
 
 export interface SubmitQuizRequestDto {
@@ -170,4 +208,13 @@ export interface SubquizDetailDto {
   createdAt?: string;
   questions?: QuestionDto[];
 }
+
+export type GetAuthProviderLoginParams = {
+returnTo?: string;
+};
+
+export type GetAuthProviderCallbackParams = {
+code?: string;
+state?: string;
+};
 

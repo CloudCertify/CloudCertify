@@ -15,6 +15,130 @@
     }
   ],
   "paths": {
+    "/auth/{provider}/login": {
+      "get": {
+        "tags": ["Auth"],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/auth/{provider}/callback": {
+      "get": {
+        "tags": ["Auth"],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["Me"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/submissions": {
+      "get": {
+        "tags": ["Me"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MySubmissionDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MySubmissionDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MySubmissionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/quiz": {
       "get": {
         "tags": ["Quiz"],
@@ -550,6 +674,68 @@
           }
         }
       },
+      "MeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderKind"
+            }
+          }
+        }
+      },
+      "MySubmissionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quizId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "subquizId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "finished": {
+            "type": "boolean"
+          },
+          "score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProviderKind": {
+        "enum": ["google", "git_hub"],
+        "type": "string"
+      },
+      "QuestionDifficulty": {
+        "enum": ["easy", "medium", "hard"],
+        "type": "string"
+      },
       "QuestionDto": {
         "type": "object",
         "properties": {
@@ -573,6 +759,9 @@
           "selectCount": {
             "type": "integer",
             "format": "int32"
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/QuestionDifficulty"
           },
           "answers": {
             "type": "array",
@@ -771,7 +960,8 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -892,6 +1082,12 @@
     }
   },
   "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Me"
+    },
     {
       "name": "Quiz"
     },

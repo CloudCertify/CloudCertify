@@ -28,7 +28,7 @@ const PASSING_SCALED_SCORE = 700;
 
 type SessionData = {
   quizDetail: QuizDetailDto;
-  email: string;
+  email: string | null;
 };
 
 type Phase = 'quiz' | 'results';
