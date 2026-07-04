@@ -37,7 +37,7 @@ jobs:
           file: API/Dockerfile
           push: true
           platforms: linux/arm64
-          tags: ghcr.io/sn0wye/cloudcertify:prod
+          tags: ghcr.io/${{ github.repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Deploy to Coolify
