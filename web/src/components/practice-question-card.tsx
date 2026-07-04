@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
 import type {
   CheckAnswerResponseDto,
   QuestionDto
@@ -69,6 +70,24 @@ export function PracticeQuestionCard({
 
   const correctIds = reveal?.correctAnswerIds ?? [];
   const revealedSelectedIds = reveal?.selectedAnswerIds ?? [];
+  const answers = question.answers ?? [];
+
+  const { getOptionProps } = useQuizKeyboard({
+    count: answers.length,
+    selectionEnabled: !isRevealed,
+    onActivate: i => {
+      const id = answers[i]?.id;
+      if (id != null) onSelect(id);
+    },
+    onPrimary: () => {
+      if (isRevealed) {
+        if (!isFinishing) onContinue();
+      } else if (canCheck && !isChecking) {
+        onCheck();
+      }
+    },
+    resetKey: question.id
+  });
 
   return (
     <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
@@ -92,8 +111,12 @@ export function PracticeQuestionCard({
         </div>
       </CardHeader>
       <CardContent className='py-6'>
-        <div className='space-y-3'>
-          {question.answers?.map(answer => {
+        <div
+          className='space-y-3'
+          role={isMultiResponse ? 'group' : 'radiogroup'}
+          aria-label={question.text}
+        >
+          {answers.map((answer, answerIndex) => {
             const id = answer.id;
             const isSelected = id != null && selectedIds.includes(id);
 
@@ -140,9 +163,13 @@ export function PracticeQuestionCard({
             return (
               <div
                 key={id}
+                {...getOptionProps(answerIndex)}
+                role={isMultiResponse ? 'checkbox' : 'radio'}
+                aria-checked={isSelected}
+                aria-disabled={isDisabled || undefined}
                 className={`p-4 rounded-[5px] border-2 border-black ${optionClass} ${
                   isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
-                } flex items-start gap-3 transition-all`}
+                } flex items-start gap-3 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
                 onClick={() => !isDisabled && id != null && onSelect(id)}
               >
                 <div

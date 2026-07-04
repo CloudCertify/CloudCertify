@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { QuestionCard } from '@/components/question-card';
+import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { QuestionReview } from '@/components/question-review';
 import { Footer } from '@/components/footer';
 import { toast } from 'sonner';
@@ -52,6 +53,7 @@ export function QuizSessionPage() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
+  const [confirmFinishOpen, setConfirmFinishOpen] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem(`quiz-session-${quizId}`);
@@ -90,6 +92,19 @@ export function QuizSessionPage() {
       }
       return { ...prev, [qId]: [answerId] };
     });
+  };
+
+  const unansweredCount = questions.filter(
+    q => q.id == null || (userAnswers[q.id]?.length ?? 0) === 0
+  ).length;
+
+  // Submission is final; confirm before finishing with unanswered questions.
+  const handleFinishRequest = () => {
+    if (unansweredCount > 0) {
+      setConfirmFinishOpen(true);
+    } else {
+      handleSubmit();
+    }
   };
 
   const handleSubmit = async () => {
@@ -271,9 +286,18 @@ export function QuizSessionPage() {
           onSelect={handleAnswerSelect}
           onPrev={() => setCurrentIndex(i => i - 1)}
           onNext={() => setCurrentIndex(i => i + 1)}
-          onFinish={handleSubmit}
+          onFinish={handleFinishRequest}
           finishLabel='Finish Quiz'
           isSubmitting={isSubmitting}
+        />
+        <ConfirmFinishDialog
+          open={confirmFinishOpen}
+          unansweredCount={unansweredCount}
+          onConfirm={() => {
+            setConfirmFinishOpen(false);
+            handleSubmit();
+          }}
+          onCancel={() => setConfirmFinishOpen(false)}
         />
       </main>
       <Footer />
