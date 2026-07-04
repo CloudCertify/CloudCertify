@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
 import type { QuestionDto } from '@/http/generated/api.schemas';
 
 type QuestionCardProps = {
@@ -47,6 +48,24 @@ export function QuestionCard({
   const isLast = index >= total - 1;
   const isMultiResponse = question.type === 'multiple_response';
   const selectCount = question.selectCount ?? 1;
+  const answers = question.answers ?? [];
+
+  const { getOptionProps } = useQuizKeyboard({
+    count: answers.length,
+    selectionEnabled: true,
+    onActivate: i => {
+      const id = answers[i]?.id;
+      if (id != null) onSelect(id);
+    },
+    onPrimary: () => {
+      if (isLast) {
+        if (!isSubmitting) onFinish();
+      } else {
+        onNext();
+      }
+    },
+    resetKey: question.id
+  });
 
   return (
     <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
@@ -70,8 +89,12 @@ export function QuestionCard({
         </div>
       </CardHeader>
       <CardContent className='py-6'>
-        <div className='space-y-3'>
-          {question.answers?.map(answer => {
+        <div
+          className='space-y-3'
+          role={isMultiResponse ? 'group' : 'radiogroup'}
+          aria-label={question.text}
+        >
+          {answers.map((answer, answerIndex) => {
             const isSelected = answer.id != null && selectedIds.includes(answer.id);
             const atCap = isMultiResponse && selectedIds.length >= selectCount;
             const isDisabled = !isSelected && atCap;
@@ -79,13 +102,17 @@ export function QuestionCard({
             return (
               <div
                 key={answer.id}
+                {...getOptionProps(answerIndex)}
+                role={isMultiResponse ? 'checkbox' : 'radio'}
+                aria-checked={isSelected}
+                aria-disabled={isDisabled || undefined}
                 className={`p-4 rounded-[5px] border-2 border-black ${
                   isSelected
                     ? 'bg-primary shadow-none translate-x-[2px] translate-y-[2px]'
                     : 'bg-white hover:bg-background shadow-[4px_4px_0px_0px_#000]'
                 } ${
                   isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-                } flex items-start gap-3 transition-all`}
+                } flex items-start gap-3 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
                 onClick={() => !isDisabled && answer.id != null && onSelect(answer.id)}
               >
                 <div
