@@ -92,7 +92,7 @@ export function QuestionCard({
         <div
           className='space-y-3'
           role={isMultiResponse ? 'group' : 'radiogroup'}
-          aria-label={question.text}
+          aria-label={question.text ?? undefined}
         >
           {answers.map((answer, answerIndex) => {
             const isSelected = answer.id != null && selectedIds.includes(answer.id);

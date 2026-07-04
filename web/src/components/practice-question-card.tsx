@@ -114,7 +114,7 @@ export function PracticeQuestionCard({
         <div
           className='space-y-3'
           role={isMultiResponse ? 'group' : 'radiogroup'}
-          aria-label={question.text}
+          aria-label={question.text ?? undefined}
         >
           {answers.map((answer, answerIndex) => {
             const id = answer.id;
