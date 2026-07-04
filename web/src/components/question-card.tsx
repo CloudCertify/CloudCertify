@@ -9,6 +9,7 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
 import type { QuestionDto } from '@/http/generated/api.schemas';
@@ -74,7 +75,10 @@ export function QuestionCard({
           <Badge variant='outline'>
             Question {index + 1} of {total}
           </Badge>
-          {meta && <div className='flex gap-2 flex-wrap'>{meta}</div>}
+          <div className='flex gap-2 flex-wrap'>
+            {meta}
+            <DifficultyBadge difficulty={question.difficulty} />
+          </div>
         </div>
         <CardTitle className='text-xl md:text-2xl font-black text-black'>
           {question.text}

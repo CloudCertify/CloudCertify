@@ -48,21 +48,24 @@ export function SubquizSessionPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   // Per-question reveal state machine: `answering` until Check, then `revealed`.
-  const [questionPhase, setQuestionPhase] = useState<PracticePhase>('answering');
+  const [questionPhase, setQuestionPhase] =
+    useState<PracticePhase>('answering');
   const [reveal, setReveal] = useState<CheckAnswerResponseDto | null>(null);
   const [score, setScore] = useState<number | null>(null);
   const [passed, setPassed] = useState(false);
   const [correctCount, setCorrectCount] = useState<number | null>(null);
   const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
-  const [resultQuestions, setResultQuestions] = useState<QuizResultQuestionDto[] | null>(
-    null
-  );
+  const [resultQuestions, setResultQuestions] = useState<
+    QuizResultQuestionDto[] | null
+  >(null);
   const [isChecking, setIsChecking] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
 
   useEffect(() => {
-    const raw = sessionStorage.getItem(`subquiz-session-${quizId}-${subquizId}`);
+    const raw = sessionStorage.getItem(
+      `subquiz-session-${quizId}-${subquizId}`
+    );
     if (!raw) {
       navigate(`/quiz/${quizId}`);
       return;
@@ -105,11 +108,15 @@ export function SubquizSessionPage() {
     if (currentQuestion.id == null) return;
     setIsChecking(true);
     try {
-      const res = await postQuizQuizIdSubquizzesSubquizIdCheck(quizId, subquizId, {
-        submissionId: subquizDetail.submissionId,
-        questionId: currentQuestion.id,
-        answerIds: selectedIds
-      });
+      const res = await postQuizQuizIdSubquizzesSubquizIdCheck(
+        quizId,
+        subquizId,
+        {
+          submissionId: subquizDetail.submissionId,
+          questionId: currentQuestion.id,
+          answerIds: selectedIds
+        }
+      );
       setReveal(res.data);
       setQuestionPhase('revealed');
     } catch {
@@ -123,9 +130,13 @@ export function SubquizSessionPage() {
   const finishSubquiz = async () => {
     setIsFinishing(true);
     try {
-      const res = await postQuizQuizIdSubquizzesSubquizIdFinish(quizId, subquizId, {
-        submissionId: subquizDetail.submissionId
-      });
+      const res = await postQuizQuizIdSubquizzesSubquizIdFinish(
+        quizId,
+        subquizId,
+        {
+          submissionId: subquizDetail.submissionId
+        }
+      );
       setScore(res.data.score);
       setPassed(res.data.passed);
       setCorrectCount(res.data.correctCount);
@@ -155,7 +166,11 @@ export function SubquizSessionPage() {
   const handleTryAgain = async () => {
     setIsRestarting(true);
     try {
-      const res = await postQuizQuizIdSubquizzesSubquizIdStart(quizId, subquizId, { email });
+      const res = await postQuizQuizIdSubquizzesSubquizIdStart(
+        quizId,
+        subquizId,
+        { email }
+      );
       const newData: SessionData = { subquizDetail: res.data, email };
       sessionStorage.setItem(
         `subquiz-session-${quizId}-${subquizId}`,
@@ -207,7 +222,8 @@ export function SubquizSessionPage() {
     const scoreColor =
       percentage >= 80 ? '#15a06e' : percentage >= 60 ? '#ffb020' : '#e23b48';
     // Amber reads with black ink; the darker green/red bands take white.
-    const scoreInk = percentage >= 60 && percentage < 80 ? 'text-black' : 'text-white';
+    const scoreInk =
+      percentage >= 60 && percentage < 80 ? 'text-black' : 'text-white';
 
     return (
       <div className='flex min-h-dvh flex-col bg-background'>
@@ -218,7 +234,9 @@ export function SubquizSessionPage() {
               <CardTitle className='text-2xl md:text-3xl font-black text-black'>
                 Practice results
               </CardTitle>
-              <p className='text-black/70 font-medium mt-1'>{subquizDetail.title}</p>
+              <p className='text-black/70 font-medium mt-1'>
+                {subquizDetail.title}
+              </p>
               {subquizDetail.domain && (
                 <div className='flex justify-center mt-2'>
                   <Badge
@@ -236,7 +254,9 @@ export function SubquizSessionPage() {
                   className='h-32 w-32 rounded-[5px] border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
                   style={{ backgroundColor: scoreColor }}
                 >
-                  <span className={`text-5xl font-black ${scoreInk}`}>{percentage}%</span>
+                  <span className={`text-5xl font-black ${scoreInk}`}>
+                    {percentage}%
+                  </span>
                 </div>
                 <Badge className={passed ? 'bg-success' : 'bg-destructive'}>
                   {passed ? 'PASS' : 'FAIL'} (Passing score: {PASS_THRESHOLD}%)
@@ -256,7 +276,11 @@ export function SubquizSessionPage() {
               />
             </CardContent>
             <CardFooter className='flex flex-col sm:flex-row gap-4 justify-between border-t-2 border-black pt-6'>
-              <Button variant='outline' onClick={handleTryAgain} disabled={isRestarting}>
+              <Button
+                variant='outline'
+                onClick={handleTryAgain}
+                disabled={isRestarting}
+              >
                 {isRestarting ? 'Starting...' : 'Try Again'}
               </Button>
               <Button asChild>
@@ -278,16 +302,7 @@ export function SubquizSessionPage() {
           index={currentIndex}
           total={questionsCount}
           question={currentQuestion}
-          meta={
-            <>
-              <Badge>{subquizDetail.title}</Badge>
-              {subquizDetail.domain && (
-                <Badge variant='outline' className='border-2 border-black font-bold'>
-                  {subquizDetail.domain}
-                </Badge>
-              )}
-            </>
-          }
+          meta={<Badge>{subquizDetail.title}</Badge>}
           selectedIds={selectedIds}
           onSelect={handleAnswerSelect}
           phase={questionPhase}
