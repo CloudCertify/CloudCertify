@@ -94,7 +94,7 @@ export function DashboardPage() {
                         title={quiz.title ?? ''}
                         description={quiz.description}
                         icon={getLucideIcon(quiz.iconName, {
-                          className: 'h-6 w-6 text-white'
+                          className: 'h-6 w-6 text-current'
                         })}
                         difficulty={quiz.quizLevel ?? ''}
                         questions={quiz.questionCount ?? 0}
@@ -123,7 +123,7 @@ export function DashboardPage() {
                         title={quiz.title ?? ''}
                         description={quiz.description}
                         icon={getLucideIcon(quiz.iconName, {
-                          className: 'h-6 w-6 text-white'
+                          className: 'h-6 w-6 text-current'
                         })}
                         difficulty={String(quiz.quizLevel ?? '')}
                         questions={quiz.questionCount ?? 0}
