@@ -4,6 +4,7 @@ import { Link } from 'wouter';
 
 import { cn } from '@/lib/utils';
 import { getLucideIcon } from '@/lib/quiz-icon';
+import { PROVIDERS } from '@/lib/quiz-provider';
 import type {
   QuizDto,
   QuizLevel,
@@ -56,16 +57,6 @@ const AWS_TIERS: Tier[] = [
   { number: '03', label: 'Specialty', level: 'specialist' }
 ];
 
-const PROVIDERS: {
-  id: QuizProvider;
-  label: string;
-  short: string;
-  available: boolean;
-}[] = [
-  { id: 'aws', label: 'Amazon Web Services', short: 'AWS', available: true },
-  { id: 'azure', label: 'Microsoft Azure', short: 'Azure', available: false },
-  { id: 'gcp', label: 'Google Cloud', short: 'GCP', available: false }
-];
 
 type CertificationRoadmapProps = {
   quizzes: QuizDto[];
