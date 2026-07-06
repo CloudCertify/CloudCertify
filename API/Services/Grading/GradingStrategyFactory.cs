@@ -9,6 +9,11 @@ public static class GradingStrategyFactory
         return quiz.Slug switch
         {
             "CLF-C02" => new ClfC02GradingStrategy(),
+            "SAA-C03" => new SaaC03GradingStrategy(),
+            "DVA-C02" => new DvaC02GradingStrategy(),
+            "SOA-C03" => new SoaC03GradingStrategy(),
+            "ANS-C01" => new AnsC01GradingStrategy(),
+            "SCS-C03" => new ScsC03GradingStrategy(),
             _ => new DefaultGradingStrategy()
         };
     }

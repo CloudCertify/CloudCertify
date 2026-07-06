@@ -245,7 +245,7 @@ public class QuizServiceTests
     public async Task SubmitQuiz_GradesScoresAndPersistsFinishedSubmission()
     {
         var submission = new Submission { Id = 5, QuizId = 1, Email = "u@e.com", Finished = false, ServedQuestionIds = [100] };
-        var quiz = new Quiz { Id = 1, Slug = "SAA-C03" }; // non-CLF -> default strategy
+        var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" }; // unknown slug -> default strategy
         var question = Question(100, "D", correctIds: [1], wrongIds: [2]);
 
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
@@ -270,7 +270,7 @@ public class QuizServiceTests
     {
         // Two questions served; the client answers only one, omitting the other entirely.
         var submission = new Submission { Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101] };
-        var quiz = new Quiz { Id = 1, Slug = "SAA-C03" }; // default strategy: 0-1000 scaled
+        var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" }; // default strategy: 0-1000 scaled
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
         _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
         _questions.Setup(r => r.GetQuestionsByIds(It.Is<List<int>>(ids => ids.SequenceEqual(new[] { 100, 101 }))))
@@ -301,7 +301,7 @@ public class QuizServiceTests
             Question(100, "D", correctIds: [1], wrongIds: [2]),
             Question(101, "D", correctIds: [3], wrongIds: [4])
         };
-        var quiz = new Quiz { Id = 1, Slug = "SAA-C03" };
+        var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" };
 
         async Task<int> ScoreFor(List<QuizAnswer> answers)
         {
