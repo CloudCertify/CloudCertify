@@ -28,6 +28,7 @@ import {
 } from '@/http/generated/api';
 import type { SubquizDto } from '@/http/generated/api.schemas';
 import { getLucideIcon } from '@/lib/quiz-icon';
+import { getLevelStyle } from '@/lib/quiz-level';
 import { capitalize } from '@/lib/utils';
 import { useAuth } from '@/auth/context';
 import { AuthMenu } from '@/components/auth-menu';
@@ -36,13 +37,6 @@ import { AuthMenu } from '@/components/auth-menu';
 const emailSchema = z.email('Please enter a valid email address.');
 
 // --- Constants ---
-const LEVEL_COLORS: Record<string, string> = {
-  foundational: 'bg-success',
-  associate: 'bg-primary',
-  professional: 'bg-secondary',
-  specialist: 'bg-secondary'
-};
-
 const PROVIDER_LABELS: Record<string, string> = {
   aws: 'Amazon Web Services',
   gcp: 'Google Cloud',
@@ -147,11 +141,7 @@ export function QuizDetailPage() {
     }
   };
 
-  const levelColor = quiz?.quizLevel
-    ? (LEVEL_COLORS[quiz.quizLevel] ?? 'bg-primary')
-    : 'bg-primary';
-  // Amber reads with black ink; the darker cobalt/green need white.
-  const levelInk = levelColor === 'bg-secondary' ? 'text-black' : 'text-white';
+  const { bg: levelColor, ink: levelInk } = getLevelStyle(quiz?.quizLevel);
   const subquizzes = quiz?.subQuizzes ?? [];
   const examQuestionCount = formatExamQuestionRange(
     quiz?.minQuestions,

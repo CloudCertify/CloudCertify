@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'wouter';
-import { capitalize } from '@/lib/utils';
+import { capitalize, cn } from '@/lib/utils';
+import { getLevelStyle } from '@/lib/quiz-level';
 
 type CertificationCardProps = {
   title: string;
@@ -32,11 +33,14 @@ export function CertificationCard({
   available = false,
   href
 }: CertificationCardProps) {
+  const level = getLevelStyle(difficulty);
+
   return (
-    <Card className='flex flex-col overflow-hidden relative border-2 border-black shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] transition-all'>
+    <Card className='flex flex-col overflow-hidden relative border-2 border-black shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] transition-all pt-0'>
+      <div className={cn('h-2 w-full border-b-2 border-black', level.bg)} />
       <CardHeader className='pb-0'>
         <div className='flex justify-center mb-4 relative'>
-          <div className='h-14 w-14 rounded-[5px] border-2 border-black bg-primary flex items-center justify-center shadow-[2px_2px_0px_0px_#000]'>
+          <div className={cn('h-14 w-14 rounded-[5px] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000]', level.bg, level.ink)}>
             {icon}
           </div>
           {!available && (
@@ -53,7 +57,9 @@ export function CertificationCard({
       <CardContent className='flex-1' />
       <CardFooter className='flex flex-col gap-3'>
         <div className='flex justify-between items-center text-sm w-full'>
-          <Badge variant='outline'>{capitalize(difficulty)}</Badge>
+          <Badge className={cn('border-black', level.bg, level.ink)}>
+            {capitalize(difficulty)}
+          </Badge>
           <div className='flex items-center gap-1 font-medium text-black'>
             <span>{questions} Questions</span>
             <BookOpen className='h-4 w-4' />
