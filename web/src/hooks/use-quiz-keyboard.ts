@@ -13,6 +13,12 @@ type UseQuizKeyboardOptions = {
   onActivate: (index: number) => void;
   /** Enter — the card's primary action (Next/Finish or Check/Continue). */
   onPrimary: () => void;
+  /**
+   * ArrowLeft/ArrowRight — move between questions. Omit for forward-only
+   * flows (Subquiz, ADR 0002) where revisiting a checked question is not
+   * allowed.
+   */
+  onNavigate?: (direction: -1 | 1) => void;
   /** Focus highlight resets when this changes (pass the question id). */
   resetKey: unknown;
 };
@@ -22,6 +28,8 @@ type UseQuizKeyboardOptions = {
  * - digits 1-9 select/toggle the matching option and move focus to it;
  * - ArrowUp/Down moves focus only (wrapping); Space selects/toggles the
  *   focused option — arrows never change the selection;
+ * - ArrowLeft/Right move between questions when `onNavigate` is provided
+ *   (full Quiz only — Subquiz flows omit it);
  * - Enter fires the primary action, except when a button/link/dialog has
  *   focus (native activation wins) or focus is in an editable field.
  *
@@ -32,14 +40,29 @@ export function useQuizKeyboard({
   selectionEnabled,
   onActivate,
   onPrimary,
+  onNavigate,
   resetKey
 }: UseQuizKeyboardOptions) {
   const [focusIndex, setFocusIndex] = useState(-1);
   const optionRefs = useRef<(HTMLElement | null)[]>([]);
 
   // Latest-value refs so the window listener never binds stale closures.
-  const stateRef = useRef({ count, selectionEnabled, focusIndex, onActivate, onPrimary });
-  stateRef.current = { count, selectionEnabled, focusIndex, onActivate, onPrimary };
+  const stateRef = useRef({
+    count,
+    selectionEnabled,
+    focusIndex,
+    onActivate,
+    onPrimary,
+    onNavigate
+  });
+  stateRef.current = {
+    count,
+    selectionEnabled,
+    focusIndex,
+    onActivate,
+    onPrimary,
+    onNavigate
+  };
 
   useEffect(() => {
     setFocusIndex(-1);
@@ -64,6 +87,12 @@ export function useQuizKeyboard({
         if (event.repeat || target?.closest('button, a')) return;
         event.preventDefault();
         s.onPrimary();
+        return;
+      }
+
+      if ((event.key === 'ArrowLeft' || event.key === 'ArrowRight') && s.onNavigate) {
+        event.preventDefault();
+        s.onNavigate(event.key === 'ArrowLeft' ? -1 : 1);
         return;
       }
 

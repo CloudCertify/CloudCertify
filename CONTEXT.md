@@ -63,6 +63,13 @@ score is computed from at finish. Full Quiz attempts have no Recorded Answers â€
 they are graded from the answers sent in one batch at Submit.
 _Avoid_: Response, Choice, Pick
 
+**Navigator**:
+The numbered jump control shown during a full Quiz attempt. Marks every
+served Question as answered, unanswered, or current, and moves directly to
+any Question before Submit. Exists for a full Quiz only â€” a Subquiz is
+forward-only because a Check is final.
+_Avoid_: Grid, Palette, Question map, Review screen
+
 **Domain**:
 An exam content area defined by the certification body (e.g. "Security and
 Compliance"). Carries an official Weight in a full Quiz's grade and is the

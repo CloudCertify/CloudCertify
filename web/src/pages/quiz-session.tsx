@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { QuestionCard } from '@/components/question-card';
+import { QuestionNavigator } from '@/components/question-navigator';
 import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { QuestionReview } from '@/components/question-review';
 import { Footer } from '@/components/footer';
@@ -98,14 +99,9 @@ export function QuizSessionPage() {
     q => q.id == null || (userAnswers[q.id]?.length ?? 0) === 0
   ).length;
 
-  // Submission is final; confirm before finishing with unanswered questions.
-  const handleFinishRequest = () => {
-    if (unansweredCount > 0) {
-      setConfirmFinishOpen(true);
-    } else {
-      handleSubmit();
-    }
-  };
+  // Submission is final and Finish is reachable from anywhere (Navigator,
+  // persistent button, Enter on the last question) — always confirm.
+  const handleFinishRequest = () => setConfirmFinishOpen(true);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -274,7 +270,15 @@ export function QuizSessionPage() {
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
       {header(`/quiz/${quizId}`, 'Back')}
-      <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+      <main className='flex-1 container max-w-4xl mx-auto py-12 px-4 space-y-6'>
+        <QuestionNavigator
+          total={questionsCount}
+          currentIndex={currentIndex}
+          answered={questions.map(
+            q => q.id != null && (userAnswers[q.id]?.length ?? 0) > 0
+          )}
+          onJump={setCurrentIndex}
+        />
         <QuestionCard
           index={currentIndex}
           total={questionsCount}
@@ -290,6 +294,11 @@ export function QuizSessionPage() {
           finishLabel='Finish Quiz'
           isSubmitting={isSubmitting}
         />
+        <div className='flex justify-end'>
+          <Button onClick={handleFinishRequest} disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Finish Quiz'}
+          </Button>
+        </div>
         <ConfirmFinishDialog
           open={confirmFinishOpen}
           unansweredCount={unansweredCount}
