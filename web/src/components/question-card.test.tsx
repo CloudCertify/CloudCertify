@@ -24,13 +24,20 @@ const multiQuestion: QuestionDto = {
 
 type HarnessProps = {
   question: QuestionDto;
+  onPrev?: () => void;
   onNext?: () => void;
   onFinish?: () => void;
   isLast?: boolean;
 };
 
 /** Renders the card with the same selection reducer the session pages use. */
-function Harness({ question, onNext = () => {}, onFinish = () => {}, isLast }: HarnessProps) {
+function Harness({
+  question,
+  onPrev = () => {},
+  onNext = () => {},
+  onFinish = () => {},
+  isLast
+}: HarnessProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const selectCount = question.selectCount ?? 1;
 
@@ -52,7 +59,7 @@ function Harness({ question, onNext = () => {}, onFinish = () => {}, isLast }: H
       question={question}
       selectedIds={selectedIds}
       onSelect={handleSelect}
-      onPrev={() => {}}
+      onPrev={onPrev}
       onNext={onNext}
       onFinish={onFinish}
       finishLabel='Finish Quiz'
@@ -139,6 +146,30 @@ describe('QuestionCard keyboard support', () => {
     render(<Harness question={singleQuestion} onFinish={onFinish} isLast />);
     fireEvent.keyDown(window, { key: 'Enter' });
     expect(onFinish).toHaveBeenCalledOnce();
+  });
+
+  it('ArrowRight goes to the next question; ArrowLeft is inert on the first', () => {
+    const onPrev = vi.fn();
+    const onNext = vi.fn();
+    render(<Harness question={singleQuestion} onPrev={onPrev} onNext={onNext} />);
+
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(onNext).toHaveBeenCalledOnce();
+
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(onPrev).not.toHaveBeenCalled();
+  });
+
+  it('ArrowLeft goes back on a later question; ArrowRight is inert on the last', () => {
+    const onPrev = vi.fn();
+    const onNext = vi.fn();
+    render(<Harness question={singleQuestion} onPrev={onPrev} onNext={onNext} isLast />);
+
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(onPrev).toHaveBeenCalledOnce();
+
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(onNext).not.toHaveBeenCalled();
   });
 
   it('Enter on a focused button lets native activation win (no double fire)', () => {

@@ -65,6 +65,10 @@ export function QuestionCard({
         onNext();
       }
     },
+    onNavigate: direction => {
+      if (direction === -1 && !isFirst) onPrev();
+      if (direction === 1 && !isLast) onNext();
+    },
     resetKey: question.id
   });
 
