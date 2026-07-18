@@ -5,14 +5,30 @@
 - Always use caveman skill. All responses must apply `/caveman full` mode for token efficiency. Drop filler, fragments OK, short synonyms only. See caveman skill for intensity levels (lite/full/ultra).
 - For terminal work, always use `rtk` prefix on commands. RTK filters output automatically. Never run commands without `rtk` wrapper.
 
+## Commands
+
+- Don't run dev server commands (e.g. `bun run dev`) — assume it's already running.
+- Don't run build commands unless specifically told to.
+- Focus on checking commands like `bun run typecheck`, `bun run lint`, etc.
+
+## Package Managers
+
+- Use pnpm if the project already uses it, otherwise use bun.
+- Never use npm or yarn.
+
+# Typescript
+
+- Never use `any` unless 100% necessary or specifically instructed.
+
 ## Code style
 
+- Always strive for concise, simple solutions.
+- If a problem can be solved in a simpler way, propose it.
 - Functions: 4-20 lines. Split if longer.
 - Files: under 500 lines. Split by responsibility.
 - One thing per function, one responsibility per module (SRP).
 - Names: specific and unique. Avoid `data`, `handler`, `Manager`.
   Prefer names that return <5 grep hits in the codebase.
-- Types: explicit. No `any`, no `Dict`, no untyped functions.
 - No code duplication. Extract shared logic into a function/module.
 - Early returns over nested ifs. Max 2 levels of indentation.
 - Exception messages must include the offending value and expected shape.
@@ -70,8 +86,7 @@
 
 ## Formatting
 
-- Use the language default formatter (`cargo fmt`, `gofmt`, `prettier`,
-  `black`, `rubocop -A`). Don't discuss style beyond that.
+- Use the language default formatter (`gofmt`, `prettier`). Don't discuss style beyond that.
 
 ## Logging
 
