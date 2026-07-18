@@ -270,43 +270,47 @@ export function QuizSessionPage() {
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
       {header(`/quiz/${quizId}`, 'Back')}
-      <main className='flex-1 container max-w-4xl mx-auto py-12 px-4 space-y-6'>
-        <QuestionNavigator
-          currentIndex={currentIndex}
-          answered={questions.map(
-            q => q.id != null && (userAnswers[q.id]?.length ?? 0) > 0
-          )}
-          onJump={setCurrentIndex}
-        />
-        <QuestionCard
-          index={currentIndex}
-          total={questionsCount}
-          question={currentQuestion}
-          meta={<Badge>{quizDetail.title}</Badge>}
-          selectedIds={
-            currentQuestion?.id != null ? userAnswers[currentQuestion.id] ?? [] : []
-          }
-          onSelect={handleAnswerSelect}
-          onPrev={() => setCurrentIndex(i => i - 1)}
-          onNext={() => setCurrentIndex(i => i + 1)}
-          onFinish={handleFinishRequest}
-          finishLabel='Finish Quiz'
-          isSubmitting={isSubmitting}
-        />
-        <div className='flex justify-end'>
-          <Button onClick={handleFinishRequest} disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Finish Quiz'}
-          </Button>
+      <main className='container mx-auto flex-1 max-w-7xl px-4 py-12'>
+        <div className='relative flex items-start justify-center gap-0 pt-12 lg:gap-6 lg:pt-0'>
+          <QuestionNavigator
+            currentIndex={currentIndex}
+            answered={questions.map(
+              q => q.id != null && (userAnswers[q.id]?.length ?? 0) > 0
+            )}
+            onJump={setCurrentIndex}
+          />
+          <div className='min-w-0 max-w-4xl flex-1 space-y-6'>
+            <QuestionCard
+              index={currentIndex}
+              total={questionsCount}
+              question={currentQuestion}
+              meta={<Badge>{quizDetail.title}</Badge>}
+              selectedIds={
+                currentQuestion?.id != null ? userAnswers[currentQuestion.id] ?? [] : []
+              }
+              onSelect={handleAnswerSelect}
+              onPrev={() => setCurrentIndex(i => i - 1)}
+              onNext={() => setCurrentIndex(i => i + 1)}
+              onFinish={handleFinishRequest}
+              finishLabel='Finish Quiz'
+              isSubmitting={isSubmitting}
+            />
+            <div className='flex justify-end'>
+              <Button onClick={handleFinishRequest} disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Finish Quiz'}
+              </Button>
+            </div>
+            <ConfirmFinishDialog
+              open={confirmFinishOpen}
+              unansweredCount={unansweredCount}
+              onConfirm={() => {
+                setConfirmFinishOpen(false);
+                handleSubmit();
+              }}
+              onCancel={() => setConfirmFinishOpen(false)}
+            />
+          </div>
         </div>
-        <ConfirmFinishDialog
-          open={confirmFinishOpen}
-          unansweredCount={unansweredCount}
-          onConfirm={() => {
-            setConfirmFinishOpen(false);
-            handleSubmit();
-          }}
-          onCancel={() => setConfirmFinishOpen(false)}
-        />
       </main>
       <Footer />
     </div>
