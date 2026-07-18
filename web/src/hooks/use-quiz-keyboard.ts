@@ -47,15 +47,7 @@ export function useQuizKeyboard({
   const optionRefs = useRef<(HTMLElement | null)[]>([]);
 
   // Latest-value refs so the window listener never binds stale closures.
-  const stateRef = useRef({
-    count,
-    selectionEnabled,
-    focusIndex,
-    onActivate,
-    onPrimary,
-    onNavigate
-  });
-  stateRef.current = {
+  const state = {
     count,
     selectionEnabled,
     focusIndex,
@@ -63,6 +55,8 @@ export function useQuizKeyboard({
     onPrimary,
     onNavigate
   };
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   useEffect(() => {
     setFocusIndex(-1);

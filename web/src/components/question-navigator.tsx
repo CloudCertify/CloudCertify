@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 type QuestionNavigatorProps = {
-  total: number;
   /** Zero-based index of the question currently on screen. */
   currentIndex: number;
   /** answered[i] is true when question i has at least one selected answer. */
@@ -15,10 +15,9 @@ type QuestionNavigatorProps = {
  * directly to any of them. Never rendered for a Subquiz — those are
  * forward-only (ADR 0002).
  *
- * Usage: <QuestionNavigator total={65} currentIndex={i} answered={flags} onJump={setIndex} />
+ * Usage: <QuestionNavigator currentIndex={i} answered={flags} onJump={setIndex} />
  */
 export function QuestionNavigator({
-  total,
   currentIndex,
   answered,
   onJump
@@ -28,9 +27,8 @@ export function QuestionNavigator({
       <CardContent className='py-4'>
         <nav aria-label='Question navigator'>
           <div className='flex flex-wrap gap-2'>
-            {Array.from({ length: total }, (_, index) => {
+            {answered.map((isAnswered, index) => {
               const isCurrent = index === currentIndex;
-              const isAnswered = answered[index] ?? false;
               return (
                 <button
                   key={index}
@@ -38,13 +36,16 @@ export function QuestionNavigator({
                   onClick={() => onJump(index)}
                   aria-current={isCurrent ? 'true' : undefined}
                   aria-label={`Question ${index + 1}${isAnswered ? ', answered' : ', unanswered'}`}
-                  className={`h-9 w-9 rounded-[5px] border-2 border-black text-sm font-bold transition-all ${
+                  className={cn(
+                    'h-9 w-9 rounded-[5px] border-2 border-black text-sm font-bold transition-all',
                     isCurrent
-                      ? 'bg-black text-white shadow-none translate-x-[1px] translate-y-[1px]'
-                      : isAnswered
-                        ? 'bg-primary text-white shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none'
-                        : 'bg-white text-black shadow-[2px_2px_0px_0px_#000] hover:bg-background hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none'
-                  }`}
+                      ? 'translate-x-[1px] translate-y-[1px] bg-black text-white shadow-none'
+                      : 'shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none',
+                    !isCurrent &&
+                      (isAnswered
+                        ? 'bg-primary text-white'
+                        : 'bg-white text-black hover:bg-background')
+                  )}
                 >
                   {index + 1}
                 </button>
