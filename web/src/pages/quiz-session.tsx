@@ -272,7 +272,6 @@ export function QuizSessionPage() {
       {header(`/quiz/${quizId}`, 'Back')}
       <main className='flex-1 container max-w-4xl mx-auto py-12 px-4 space-y-6'>
         <QuestionNavigator
-          total={questionsCount}
           currentIndex={currentIndex}
           answered={questions.map(
             q => q.id != null && (userAnswers[q.id]?.length ?? 0) > 0

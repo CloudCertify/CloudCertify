@@ -5,7 +5,11 @@ import { QuestionNavigator } from './question-navigator';
 describe('QuestionNavigator', () => {
   it('renders one numbered button per question', () => {
     render(
-      <QuestionNavigator total={3} currentIndex={0} answered={[]} onJump={() => {}} />
+      <QuestionNavigator
+        currentIndex={0}
+        answered={[false, false, false]}
+        onJump={() => {}}
+      />
     );
     ['1', '2', '3'].forEach(label =>
       expect(screen.getByRole('button', { name: new RegExp(`Question ${label},`) }))
@@ -16,7 +20,11 @@ describe('QuestionNavigator', () => {
   it('jumps to the clicked question', () => {
     const onJump = vi.fn();
     render(
-      <QuestionNavigator total={3} currentIndex={0} answered={[]} onJump={onJump} />
+      <QuestionNavigator
+        currentIndex={0}
+        answered={[false, false, false]}
+        onJump={onJump}
+      />
     );
     fireEvent.click(screen.getByRole('button', { name: /Question 3,/ }));
     expect(onJump).toHaveBeenCalledWith(2);
@@ -25,7 +33,6 @@ describe('QuestionNavigator', () => {
   it('marks the current question and the answered state', () => {
     render(
       <QuestionNavigator
-        total={3}
         currentIndex={1}
         answered={[true, false, false]}
         onJump={() => {}}
