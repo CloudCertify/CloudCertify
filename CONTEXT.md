@@ -82,6 +82,14 @@ from Domain-weighted correctness. Applies to a full Quiz only — never to a
 Subquiz.
 _Avoid_: Score, Grade, Points
 
+**Language**:
+The locale a Submission is served in — `en-US` (default) or `pt-BR`. Chosen
+via `Accept-Language` when the attempt starts, fixed on the Submission for its
+whole life (no mid-attempt switch), and applied to Question text, Answer text,
+and Explanations. Missing translations fall back to `en-US` per field. Quiz and
+Subquiz titles/descriptions are not yet localized.
+_Avoid_: Locale, Culture, Translation (the act, not the choice)
+
 **Grading Strategy**:
 The per-Quiz rule for turning answered Questions into a result. CLF-C02 uses
 Domain-weighted scaled scoring; a Subquiz uses flat percentage; everything
