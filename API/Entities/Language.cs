@@ -14,12 +14,16 @@ public enum Language
 /// <summary>Maps <see cref="Language"/> to/from its persisted IETF tag.</summary>
 public static class LanguageCode
 {
+    /// <summary>Returns the persisted IETF tag for a Submission language.</summary>
+    /// <example><code>LanguageCode.ToTag(Language.PtBr) // "pt-BR"</code></example>
     public static string ToTag(Language language) => language switch
     {
         Language.PtBr => "pt-BR",
         _ => "en-US",
     };
 
+    /// <summary>Reads a persisted IETF tag, defaulting unknown values to EN-US.</summary>
+    /// <example><code>LanguageCode.FromTag("pt-BR") // Language.PtBr</code></example>
     public static Language FromTag(string? tag) =>
         string.Equals(tag, "pt-BR", StringComparison.OrdinalIgnoreCase) ? Language.PtBr : Language.EnUs;
 }

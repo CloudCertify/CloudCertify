@@ -30,6 +30,8 @@ public class LanguageResolverTests
     [InlineData("fr-FR")]
     [InlineData("de,fr;q=0.9")]
     [InlineData("garbage;;;")]
+    [InlineData("ptato")]
+    [InlineData("pt-BRZZ")]
     public void Resolve_UnknownLanguage_FallsBackToEnUs(string header)
     {
         Assert.Equal(Language.EnUs, LanguageResolver.Resolve(header));
