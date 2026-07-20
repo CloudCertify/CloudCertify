@@ -32,7 +32,7 @@ public class SubquizService
     /// Starts a Subquiz attempt for a logged-in User (userId) or anonymous visitor (email) —
     /// exactly one (ADR 0003).
     /// </summary>
-    public async Task<SubquizDetailDto?> StartSubquiz(int quizId, int subquizId, string? email, int? userId)
+    public async Task<SubquizDetailDto?> StartSubquiz(int quizId, int subquizId, string? email, int? userId, Language language = Language.EnUs)
     {
         AttemptIdentity.EnsureValid(email, userId);
         var subquiz = await _subquizRepository.GetSubquizById(subquizId);
@@ -64,6 +64,7 @@ public class SubquizService
             SubquizId = subquizId,
             Finished = false,
             ServedQuestionIds = randomQuestions.Select(q => q.Id).ToList(),
+            Language = language,
         };
 
         await _submissionRepository.Create(submission);
@@ -79,12 +80,12 @@ public class SubquizService
             Questions = randomQuestions.Select(q => new QuestionDto
             {
                 Id = q.Id,
-                Text = q.Text,
+                Text = LocalizedContent.Text(q, language),
                 Images = q.Images,
                 Type = q.Type,
                 SelectCount = q.SelectCount,
                 Difficulty = q.Difficulty,
-                Answers = q.Answers.OrderBy(a => Guid.NewGuid()).Select(AnswerMapper.ToDto).ToList()
+                Answers = q.Answers.OrderBy(a => Guid.NewGuid()).Select(a => AnswerMapper.ToDto(a, language)).ToList()
             }).ToList()
         };
     }
@@ -132,7 +133,8 @@ public class SubquizService
             IsCorrect = QuestionCorrectness.IsCorrect(question, answerIds),
             CorrectAnswerIds = question.Answers.Where(a => a.IsCorrect).Select(a => a.Id).ToList(),
             SelectedAnswerIds = answerIds,
-            Explanation = question.Explanation,
+            // The Submission's stored Language, not the current request header (ADR 0004).
+            Explanation = LocalizedContent.Explanation(question, submission.Language),
         };
     }
 

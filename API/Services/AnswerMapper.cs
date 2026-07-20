@@ -11,23 +11,23 @@ namespace API.Services;
 public static class AnswerMapper
 {
     /// <summary>Start-flow shape: hides correctness, used when serving questions.</summary>
-    public static AnswerDto ToDto(Answer answer)
+    public static AnswerDto ToDto(Answer answer, Language language)
     {
         return new AnswerDto
         {
             Id = answer.Id,
-            Text = answer.Text,
+            Text = LocalizedContent.Text(answer, language),
             Image = answer.Image,
         };
     }
 
     /// <summary>Result-flow shape: reveals correctness and whether the user picked it.</summary>
-    public static QuizResultAnswerDto ToResultDto(Answer answer, bool wasSelected)
+    public static QuizResultAnswerDto ToResultDto(Answer answer, bool wasSelected, Language language)
     {
         return new QuizResultAnswerDto
         {
             Id = answer.Id,
-            Text = answer.Text,
+            Text = LocalizedContent.Text(answer, language),
             Image = answer.Image,
             IsCorrect = answer.IsCorrect,
             WasSelected = wasSelected,

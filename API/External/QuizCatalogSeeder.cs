@@ -176,10 +176,13 @@ public class QuizCatalogSeeder
             ServiceCategory = question.ServiceCategory,
             Services = question.Services,
             Explanation = question.Explanation,
+            TextPt = question.TextPt,
+            ExplanationPt = question.ExplanationPt,
             Difficulty = ParseDifficulty(question.Difficulty),
             Answers = (question.Answers ?? []).Select(answer => new Answer
             {
                 Text = answer.Text,
+                TextPt = answer.TextPt,
                 IsCorrect = answer.IsCorrect,
                 Image = answer.Image,
             }).ToList(),
@@ -350,6 +353,9 @@ public class QuestionPayload
     public string? ServiceCategory { get; set; }
     public string[]? Services { get; set; }
     public string? Explanation { get; set; }
+    // PT-BR fields ride inline on the combined questions file (issue #37, ADR 0004).
+    public string? TextPt { get; set; }
+    public string? ExplanationPt { get; set; }
     public string? Difficulty { get; set; }
     public List<AnswerPayload>? Answers { get; set; }
 }
@@ -357,6 +363,7 @@ public class QuestionPayload
 public class AnswerPayload
 {
     public string? Text { get; set; }
+    public string? TextPt { get; set; }
     public bool IsCorrect { get; set; }
     public string? Image { get; set; }
 }

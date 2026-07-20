@@ -171,6 +171,76 @@ public class QuizServiceTests
     }
 
     [Fact]
+    public async Task StartQuiz_ServesPtContent_AndPersistsLanguage_WhenPtBr()
+    {
+        var question = Question(100, "D", correctIds: [1], wrongIds: [2]);
+        question.Text = "What is EC2?";
+        question.TextPt = "O que é EC2?";
+        question.Answers.First().Text = "A server";
+        question.Answers.First().TextPt = "Um servidor";
+        var quiz = new Quiz { Id = 1, Title = "Quiz", Slug = "q", IsAvailable = true, Questions = [question] };
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
+
+        var result = await CreateService().StartQuiz(1, "u@e.com", null, Language.PtBr);
+
+        var served = Assert.Single(result!.Questions);
+        Assert.Equal("O que é EC2?", served.Text);
+        Assert.Contains(served.Answers, a => a.Text == "Um servidor");
+        _submissions.Verify(r => r.Create(It.Is<Submission>(s => s.Language == Language.PtBr)), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartQuiz_FallsBackToEnPerField_WhenPtMissing()
+    {
+        var question = Question(100, "D", correctIds: [1], wrongIds: [2]);
+        question.Text = "What is EC2?"; // no TextPt
+        var quiz = new Quiz { Id = 1, Title = "Quiz", Slug = "q", IsAvailable = true, Questions = [question] };
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
+
+        var result = await CreateService().StartQuiz(1, "u@e.com", null, Language.PtBr);
+
+        Assert.Equal("What is EC2?", Assert.Single(result!.Questions).Text);
+    }
+
+    [Fact]
+    public async Task StartQuiz_DefaultsToEnUs_WhenNoLanguageGiven()
+    {
+        var quiz = new Quiz
+        {
+            Id = 1, Title = "Quiz", Slug = "q", IsAvailable = true,
+            Questions = [Question(100, "D", correctIds: [1], wrongIds: [2])]
+        };
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
+
+        await CreateService().StartQuiz(1, "u@e.com", null);
+
+        _submissions.Verify(r => r.Create(It.Is<Submission>(s => s.Language == Language.EnUs)), Times.Once);
+    }
+
+    [Fact]
+    public async Task SubmitQuiz_ResultContentFollowsSubmissionLanguage()
+    {
+        // The Submission was started in pt-BR; results resolve from its stored Language.
+        var question = Question(100, "D", correctIds: [1], wrongIds: [2], explanation: "because AWS");
+        question.Text = "What is EC2?";
+        question.TextPt = "O que é EC2?";
+        question.ExplanationPt = "porque AWS";
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100], Language = Language.PtBr
+        };
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync([question]);
+
+        var response = await CreateService().SubmitQuiz(1, 5, [Answer(100, 1)]);
+
+        var resultQuestion = Assert.Single(response.Questions);
+        Assert.Equal("O que é EC2?", resultQuestion.Text);
+        Assert.Equal("porque AWS", resultQuestion.Explanation);
+    }
+
+    [Fact]
     public async Task SubmitQuiz_Throws_WhenSubmissionMissing()
     {
         _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "SAA-C03" });

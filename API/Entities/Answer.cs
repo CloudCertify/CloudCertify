@@ -13,6 +13,9 @@ public class Answer
 
     public string? Text { get; set; }
 
+    /// <summary>PT-BR translation of Text; null falls back to EN-US per field (ADR 0004).</summary>
+    public string? TextPt { get; set; }
+
     [JsonIgnore]
     public bool IsCorrect { get; set; }
 
