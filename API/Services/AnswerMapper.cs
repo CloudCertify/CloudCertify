@@ -10,7 +10,8 @@ namespace API.Services;
 /// </summary>
 public static class AnswerMapper
 {
-    /// <summary>Start-flow shape: hides correctness, used when serving questions.</summary>
+    /// <summary>Maps an Answer to the start-flow shape without revealing correctness.</summary>
+    /// <example><code>AnswerMapper.ToDto(answer, Language.PtBr)</code></example>
     public static AnswerDto ToDto(Answer answer, Language language)
     {
         return new AnswerDto
@@ -21,7 +22,8 @@ public static class AnswerMapper
         };
     }
 
-    /// <summary>Result-flow shape: reveals correctness and whether the user picked it.</summary>
+    /// <summary>Maps an Answer to the result-flow shape with correctness and selection.</summary>
+    /// <example><code>AnswerMapper.ToResultDto(answer, true, Language.PtBr)</code></example>
     public static QuizResultAnswerDto ToResultDto(Answer answer, bool wasSelected, Language language)
     {
         return new QuizResultAnswerDto

@@ -10,6 +10,8 @@ namespace API.Services;
 /// <example>LanguageResolver.Resolve("pt-BR,pt;q=0.9,en;q=0.8") // Language.PtBr</example>
 public static class LanguageResolver
 {
+    /// <summary>Resolves the highest-quality supported language from an Accept-Language value.</summary>
+    /// <example><code>LanguageResolver.Resolve("pt-BR,en;q=0.8") // Language.PtBr</code></example>
     public static Language Resolve(string? acceptLanguage)
     {
         if (string.IsNullOrWhiteSpace(acceptLanguage))
@@ -43,10 +45,10 @@ public static class LanguageResolver
     }
 
     /// <summary>A supported language or null — null keeps quality ordering scanning past e.g. fr-FR.</summary>
-    private static Language? Recognize(string tag)
+    private static Language? Recognize(string tag) => tag.ToLowerInvariant() switch
     {
-        if (tag.StartsWith("pt", StringComparison.OrdinalIgnoreCase)) return Language.PtBr;
-        if (tag.StartsWith("en", StringComparison.OrdinalIgnoreCase)) return Language.EnUs;
-        return null;
-    }
+        "pt" or "pt-br" => Language.PtBr,
+        "en" or "en-us" => Language.EnUs,
+        _ => null,
+    };
 }
