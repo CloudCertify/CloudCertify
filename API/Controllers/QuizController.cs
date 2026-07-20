@@ -43,6 +43,8 @@ public class QuizController: ControllerBase
     /// <summary>
     /// Start a quiz attempt. Anonymous callers must send an email; a bearer token
     /// makes the attempt User-owned and any body email is ignored (ADR 0003).
+    /// Question content is served in the Accept-Language header's language
+    /// (en-US default, pt-BR supported) and fixed on the Submission (ADR 0004).
     /// </summary>
     [HttpPost("{quizId}/start")]
     public async Task<ActionResult<QuizDetailDto>> StartQuiz(int quizId, [FromBody] StartQuizRequestDto request)
@@ -53,7 +55,9 @@ public class QuizController: ControllerBase
             return BadRequest("Email is required for anonymous attempts");
         }
 
-        var quiz = await _quizService.StartQuiz(quizId, request.Email, userId);
+        var language = LanguageResolver.Resolve(Request.Headers.AcceptLanguage);
+        Response.Headers.Vary = "Accept-Language"; // cache-safe: response body varies by language (ADR 0004)
+        var quiz = await _quizService.StartQuiz(quizId, request.Email, userId, language);
 
         if (quiz == null)
         {

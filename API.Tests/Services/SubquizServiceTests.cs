@@ -74,6 +74,61 @@ public class SubquizServiceTests
     }
 
     [Fact]
+    public async Task StartSubquiz_ServesPtContent_AndPersistsLanguage_WhenPtBr()
+    {
+        _subquizzes.Setup(r => r.GetSubquizById(2)).ReturnsAsync(new Subquiz
+        {
+            Id = 2, QuizId = 1, Title = "Security", Domain = "D", Slug = "sec", IsAvailable = true
+        });
+        var question = Question(10, "D", correctIds: [1], wrongIds: [2]);
+        question.Text = "What is IAM?";
+        question.TextPt = "O que é IAM?";
+        _questions.Setup(r => r.GetQuestionsByQuizId(1)).ReturnsAsync([question]);
+
+        var result = await CreateService().StartSubquiz(1, 2, "u@e.com", null, Language.PtBr);
+
+        Assert.Equal("O que é IAM?", Assert.Single(result!.Questions).Text);
+        _submissions.Verify(r => r.Create(It.Is<Submission>(s => s.Language == Language.PtBr)), Times.Once);
+    }
+
+    [Fact]
+    public async Task CheckAnswer_ExplanationFollowsSubmissionLanguage_NotRequestHeader()
+    {
+        // Submission started in pt-BR; Check resolves from its stored Language — there is
+        // deliberately no language parameter on Check (ADR 0004: no mid-attempt switch).
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, SubquizId = 2, Email = "u@e.com",
+            ServedQuestionIds = [10], Language = Language.PtBr
+        };
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
+        var question = Question(10, "D", correctIds: [1], wrongIds: [2], explanation: "because AWS");
+        question.ExplanationPt = "porque AWS";
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync([question]);
+
+        var result = await CreateService().CheckAnswer(1, 2, 5, 10, [1]);
+
+        Assert.Equal("porque AWS", result.Explanation);
+    }
+
+    [Fact]
+    public async Task CheckAnswer_ExplanationFallsBackToEn_WhenPtMissing()
+    {
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, SubquizId = 2, Email = "u@e.com",
+            ServedQuestionIds = [10], Language = Language.PtBr
+        };
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
+        var question = Question(10, "D", correctIds: [1], wrongIds: [2], explanation: "because AWS");
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync([question]);
+
+        var result = await CreateService().CheckAnswer(1, 2, 5, 10, [1]);
+
+        Assert.Equal("because AWS", result.Explanation);
+    }
+
+    [Fact]
     public async Task CheckAnswer_CorrectSelection_ReturnsCorrectnessAndExplanation_AndRecordsAnswer()
     {
         var submission = new Submission { Id = 5, QuizId = 1, SubquizId = 2, Email = "u@e.com", ServedQuestionIds = [10] };

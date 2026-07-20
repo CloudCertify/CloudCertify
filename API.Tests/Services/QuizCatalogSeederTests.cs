@@ -100,6 +100,30 @@ public class QuizCatalogSeederTests : IDisposable
     }
 
     [Fact]
+    public async Task SeedCatalog_MapsPtFieldsOntoEntities_AndLeavesThemNullWhenAbsent()
+    {
+        var payloads = BuildQuestionPayloads("Domain A", "Domain B");
+        payloads[0].TextPt = "Pergunta?";
+        payloads[0].ExplanationPt = "Porque sim";
+        payloads[0].Answers![0].TextPt = "Sim";
+        WriteQuestionsFile("clf-c02", payloads);
+
+        await CreateSeeder().SeedCatalog();
+
+        var questions = _quizzes.Store.Single(q => q.Slug == "CLF-C02").Questions.ToList();
+        var translated = questions.Single(q => q.Domain == "Domain A");
+        Assert.Equal("Pergunta?", translated.TextPt);
+        Assert.Equal("Porque sim", translated.ExplanationPt);
+        Assert.Equal("Sim", translated.Answers.Single().TextPt);
+
+        // EN-only payload seeds with null PT fields (missing translation, story #14).
+        var enOnly = questions.Single(q => q.Domain == "Domain B");
+        Assert.Null(enOnly.TextPt);
+        Assert.Null(enOnly.ExplanationPt);
+        Assert.Null(enOnly.Answers.Single().TextPt);
+    }
+
+    [Fact]
     public async Task SeedCatalog_ThrowsWithOffendingValue_OnUnknownDifficulty()
     {
         var payloads = BuildQuestionPayloads("Domain A");

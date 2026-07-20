@@ -68,6 +68,8 @@ public class ApplicationDbContext: DbContext
             entity.Property(q => q.ServiceCategory).HasMaxLength(255);
             entity.Property(q => q.Services).HasColumnType("text[]");
             entity.Property(q => q.Explanation).HasColumnType("text");
+            entity.Property(q => q.TextPt).HasColumnType("text");
+            entity.Property(q => q.ExplanationPt).HasColumnType("text");
             entity.Property(q => q.Difficulty).IsRequired().HasConversion<string>();
             entity.Property(q => q.CreatedAt).IsRequired();
 
@@ -84,6 +86,7 @@ public class ApplicationDbContext: DbContext
         {
             entity.HasKey(a => a.Id);
             entity.Property(a => a.Text).HasColumnType("text");
+            entity.Property(a => a.TextPt).HasColumnType("text");
             entity.Property(a => a.IsCorrect).IsRequired();
             entity.Property(a => a.Image).HasMaxLength(255);
             entity.Property(a => a.CreatedAt).IsRequired();
@@ -101,6 +104,12 @@ public class ApplicationDbContext: DbContext
             entity.Property(s => s.Finished).IsRequired();
             entity.Property(s => s.ServedQuestionIds).HasColumnType("integer[]").IsRequired();
             entity.Property(s => s.Score).IsRequired();
+            // Persisted as the IETF tag ("en-US"/"pt-BR"), not the enum name (ADR 0004).
+            entity.Property(s => s.Language)
+                .IsRequired()
+                .HasMaxLength(16)
+                .HasDefaultValue(Language.EnUs)
+                .HasConversion(l => LanguageCode.ToTag(l), tag => LanguageCode.FromTag(tag));
             entity.Property(s => s.CreatedAt).IsRequired();
 
             entity.HasOne<Quiz>()

@@ -57,18 +57,20 @@ public class SubmissionGrader
                 .SelectMany(a => a.AnswerIds)
                 .ToList();
 
+            // Result content follows the Submission's stored Language, never the current
+            // request header, so an attempt is never mixed-language (ADR 0004).
             return new QuizResultQuestionDto
             {
                 Id = question.Id,
-                Text = question.Text,
+                Text = LocalizedContent.Text(question, submission.Language),
                 Type = question.Type,
                 Domain = question.Domain,
                 Concepts = question.Concepts,
                 ServiceCategory = question.ServiceCategory,
                 Services = question.Services,
-                Explanation = question.Explanation,
+                Explanation = LocalizedContent.Explanation(question, submission.Language),
                 Answers = question.Answers
-                    .Select(a => AnswerMapper.ToResultDto(a, selectedAnswerIds.Contains(a.Id)))
+                    .Select(a => AnswerMapper.ToResultDto(a, selectedAnswerIds.Contains(a.Id), submission.Language))
                     .ToList()
             };
         }).ToList();

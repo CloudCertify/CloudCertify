@@ -31,6 +31,12 @@ public class Submission
     public int Score { get; set; }
 
     /// <summary>
+    /// Language the attempt is served in, resolved from Accept-Language at start and fixed
+    /// for the Submission's whole life — Check/Submit ignore the current header (ADR 0004).
+    /// </summary>
+    public Language Language { get; set; } = Language.EnUs;
+
+    /// <summary>
     /// Self-reported email of an Anonymous Submission. Born with exactly one of Email/UserId;
     /// a Claimed submission keeps its Email for provenance and gains a UserId (ADR 0003).
     /// </summary>

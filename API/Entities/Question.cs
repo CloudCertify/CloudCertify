@@ -29,6 +29,12 @@ public class Question
 
     public string? Explanation { get; set; }
 
+    /// <summary>PT-BR translation of Text; null falls back to EN-US per field (ADR 0004).</summary>
+    public string? TextPt { get; set; }
+
+    /// <summary>PT-BR translation of Explanation; null falls back to EN-US per field (ADR 0004).</summary>
+    public string? ExplanationPt { get; set; }
+
     public QuestionDifficulty Difficulty { get; set; } = QuestionDifficulty.Medium;
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;

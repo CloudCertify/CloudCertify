@@ -72,7 +72,7 @@ public class QuizService
      /// Starts an attempt for a logged-in User (userId) or an anonymous visitor (email) —
      /// exactly one; a token-derived userId wins over any body email (ADR 0003).
      /// </summary>
-     public async Task<QuizDetailDto?> StartQuiz(int quizId, string? email, int? userId)
+     public async Task<QuizDetailDto?> StartQuiz(int quizId, string? email, int? userId, Language language = Language.EnUs)
      {
          AttemptIdentity.EnsureValid(email, userId);
          var quiz = await _quizRepository.GetQuizById(quizId);
@@ -98,6 +98,7 @@ public class QuizService
               QuizId = quizId,
               Finished = false,
               ServedQuestionIds = randomQuestions.Select(q => q.Id).ToList(),
+              Language = language,
           };
 
           await _submissionRepository.Create(submission);
@@ -113,12 +114,12 @@ public class QuizService
                Questions = randomQuestions.Select(q => new QuestionDto
                {
                    Id = q.Id,
-                   Text = q.Text,
+                   Text = LocalizedContent.Text(q, language),
                    Images = q.Images,
                    Type = q.Type,
                    SelectCount = q.SelectCount,
                    Difficulty = q.Difficulty,
-                    Answers = q.Answers.OrderBy(a => Guid.NewGuid()).Select(AnswerMapper.ToDto).ToList()
+                    Answers = q.Answers.OrderBy(a => Guid.NewGuid()).Select(a => AnswerMapper.ToDto(a, language)).ToList()
                }).ToList()
            };
       }
