@@ -14,6 +14,11 @@ public static class GradingStrategyFactory
             "SOA-C03" => new SoaC03GradingStrategy(),
             "ANS-C01" => new AnsC01GradingStrategy(),
             "SCS-C03" => new ScsC03GradingStrategy(),
+            "SAP-C02" => new SapC02GradingStrategy(),
+            "DOP-C02" => new DopC02GradingStrategy(),
+            "AIF-C01" => new AifC01GradingStrategy(),
+            "DEA-C01" => new DeaC01GradingStrategy(),
+            "MLA-C01" => new MlaC01GradingStrategy(),
             _ => new DefaultGradingStrategy()
         };
     }

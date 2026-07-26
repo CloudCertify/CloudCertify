@@ -12,6 +12,11 @@ public class GradingStrategyFactoryTests
     [InlineData("SOA-C03", typeof(SoaC03GradingStrategy))]
     [InlineData("ANS-C01", typeof(AnsC01GradingStrategy))]
     [InlineData("SCS-C03", typeof(ScsC03GradingStrategy))]
+    [InlineData("SAP-C02", typeof(SapC02GradingStrategy))]
+    [InlineData("DOP-C02", typeof(DopC02GradingStrategy))]
+    [InlineData("AIF-C01", typeof(AifC01GradingStrategy))]
+    [InlineData("DEA-C01", typeof(DeaC01GradingStrategy))]
+    [InlineData("MLA-C01", typeof(MlaC01GradingStrategy))]
     public void KnownSlug_SelectsExamWeightedStrategy(string slug, Type expectedStrategyType)
     {
         var quiz = new Quiz { Slug = slug };

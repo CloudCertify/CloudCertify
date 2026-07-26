@@ -296,6 +296,54 @@ public class QuizCatalogSeeder
         },
         new()
         {
+            Title = "AWS Certified Solutions Architect Professional (SAP-C02)",
+            Description = "Design and migrate complex, multi-account AWS architectures at enterprise scale.",
+            IconName = "server",
+            QuizProvider = QuizProvider.AWS,
+            QuizLevel = QuizLevel.Professional,
+            Slug = "SAP-C02",
+            QuestionsFileName = "sap-c02.json",
+            MinQuestions = 75, // real SAP-C02 exam is a fixed 75 questions
+            MaxQuestions = 75,
+            // 71% of the bank sits in "Design for New Solutions" against a declared 29%
+            // weight, so a 75-question sitting would badly misrepresent the real exam.
+            IsAvailable = false
+        },
+        // Not seeded yet, though their banks and grading strategies are ready:
+        //   DOP-C02 — "Incident and Event Response" holds 3 questions for a 14% domain.
+        //   AIF-C01 — bank covers 2 of 5 domains, so a perfect sitting caps at 448/1000.
+        // Add a QuizSeed for each once its bank covers the exam guide.
+        //
+        // The two banks below hold only 27 questions each — fewer than one exam sitting —
+        // so they stay unavailable until their question banks are filled out.
+        new()
+        {
+            Title = "AWS Certified Data Engineer Associate (DEA-C01)",
+            Description = "Build and operate data ingestion, storage, and transformation pipelines on AWS.",
+            IconName = "database",
+            QuizProvider = QuizProvider.AWS,
+            QuizLevel = QuizLevel.Associate,
+            Slug = "DEA-C01",
+            QuestionsFileName = "dea-c01.json",
+            MinQuestions = 65, // real DEA-C01 exam is a fixed 65 questions
+            MaxQuestions = 65,
+            IsAvailable = false
+        },
+        new()
+        {
+            Title = "AWS Certified Machine Learning Engineer Associate (MLA-C01)",
+            Description = "Develop, deploy, and monitor ML workloads with Amazon SageMaker AI.",
+            IconName = "bar-chart",
+            QuizProvider = QuizProvider.AWS,
+            QuizLevel = QuizLevel.Associate,
+            Slug = "MLA-C01",
+            QuestionsFileName = "mla-c01.json",
+            MinQuestions = 65, // real MLA-C01 exam is a fixed 65 questions
+            MaxQuestions = 65,
+            IsAvailable = false
+        },
+        new()
+        {
             Title = "Microsoft Azure Administrator (AZ-104)",
             Description = "Implement and manage Azure compute, storage, and networking.",
             IconName = "settings",
