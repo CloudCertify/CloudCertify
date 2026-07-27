@@ -107,6 +107,19 @@ export interface MySubmissionDto {
   createdAt?: string;
 }
 
+export interface ProblemDetails {
+  /** @nullable */
+  type?: string | null;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  status?: number | null;
+  /** @nullable */
+  detail?: string | null;
+  /** @nullable */
+  instance?: string | null;
+}
+
 export type QuestionDifficulty = typeof QuestionDifficulty[keyof typeof QuestionDifficulty];
 
 
@@ -232,14 +245,14 @@ export const ReportStatus = {
 } as const;
 
 export interface ReportResponseDto {
-  submissionId?: number;
-  questionId?: number;
-  reasons?: ReportReason[];
+  submissionId: number;
+  questionId: number;
+  reasons: ReportReason[];
   /** @nullable */
   comment?: string | null;
-  language?: Language;
-  status?: ReportStatus;
-  createdAt?: string;
+  language: Language;
+  status: ReportStatus;
+  createdAt: string;
 }
 
 export interface StartQuizRequestDto {
