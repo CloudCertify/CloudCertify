@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'wouter';
 import { capitalize, cn } from '@/lib/utils';
-import { getLevelStyle } from '@/lib/quiz-level';
+import { getLevelStyle, LEVEL_LABELS } from '@/lib/quiz-level';
 import { useI18n } from '@/i18n/context';
 import type { QuizLevel } from '@/http/generated/api.schemas';
 
@@ -37,7 +37,8 @@ export function CertificationCard({
 }: CertificationCardProps) {
   const { t } = useI18n();
   const level = getLevelStyle(difficulty);
-  const levelLabel = t.levels[difficulty as QuizLevel] ?? capitalize(difficulty);
+  // Stays English — the level belongs to the certification's own name.
+  const levelLabel = LEVEL_LABELS[difficulty as QuizLevel] ?? capitalize(difficulty);
 
   return (
     <Card className='flex flex-col overflow-hidden relative border-2 border-black shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] transition-all pt-0'>

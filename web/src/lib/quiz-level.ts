@@ -26,6 +26,18 @@ export const LEVEL_ORDER: QuizLevel[] = [
   'professional'
 ];
 
+/**
+ * Official English tier names. Never localized: a certification's level is part
+ * of its name (AWS Certified Solutions Architect – Associate), and the name
+ * itself isn't translated either.
+ */
+export const LEVEL_LABELS: Record<QuizLevel, string> = {
+  foundational: 'Foundational',
+  associate: 'Associate',
+  specialist: 'Specialty',
+  professional: 'Professional'
+};
+
 export function getLevelStyle(level?: string | null): LevelStyle {
   return LEVEL_STYLES[level as QuizLevel] ?? FALLBACK_STYLE;
 }
