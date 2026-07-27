@@ -64,7 +64,7 @@ export const pt: Messages = {
 
   levels: {
     foundational: 'Fundamental',
-    associate: 'Associate',
+    associate: 'Associado',
     specialist: 'Especialidade',
     professional: 'Professional'
   },
