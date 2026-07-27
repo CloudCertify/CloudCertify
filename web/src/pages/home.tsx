@@ -25,10 +25,14 @@ import { Marquee } from '@/components/marquee';
 import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useGetQuiz } from '@/http/generated/api';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { useI18n } from '@/i18n/context';
+import type { QuestionDifficulty } from '@/http/generated/api.schemas';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function HomePage() {
+  const { t } = useI18n();
   const { data, isLoading } = useGetQuiz();
   const quizzes = data?.data ?? [];
 
@@ -48,16 +52,17 @@ export function HomePage() {
                 href='#certifications'
                 className='hidden text-sm font-bold text-black transition-colors hover:underline sm:inline'
               >
-                Certifications
+                {t.nav.certifications}
               </a>
               <a
                 href='#pricing'
                 className='hidden text-sm font-bold text-black transition-colors hover:underline sm:inline'
               >
-                Pricing
+                {t.nav.pricing}
               </a>
+              <LanguageSwitcher />
               <Button asChild size='sm'>
-                <a href='/dashboard'>Dashboard</a>
+                <a href='/dashboard'>{t.common.dashboard}</a>
               </Button>
             </nav>
           </div>
@@ -81,14 +86,19 @@ export function HomePage() {
                 <Reveal>
                   <span className='inline-flex items-center gap-2 rounded-[5px] border-2 border-black bg-secondary px-3 py-1 text-xs font-black uppercase tracking-wide shadow-[3px_3px_0px_0px_#000]'>
                     <Sparkles className='h-3.5 w-3.5' />
-                    Free — no card, no account
+                    {t.home.heroBadge}
                   </span>
                 </Reveal>
 
                 <Reveal delay={0.08}>
                   <h1 className='mt-6 text-5xl font-black leading-[0.92] tracking-tight text-black sm:text-6xl lg:text-7xl'>
-                    Pass your
+                    {t.home.heroTitleLead}
+                    {/* PT reads "certificação [AWS]", EN "[AWS] cert" — the
+                        chip swaps sides so both stay grammatical. */}
                     <span className='mt-3 flex flex-wrap items-center gap-x-3 gap-y-2'>
+                      {!t.home.heroTitleChipFirst && (
+                        <span>{t.home.heroTitleCert}</span>
+                      )}
                       <span className='inline-block -rotate-1 rounded-[6px] border-2 border-black bg-primary px-3 py-1 text-white shadow-[5px_5px_0px_0px_#000]'>
                         <RotatingText
                           texts={['AWS', 'GCP', 'Azure']}
@@ -110,17 +120,17 @@ export function HomePage() {
                           loop
                         />
                       </span>
-                      <span>cert</span>
+                      {t.home.heroTitleChipFirst && (
+                        <span>{t.home.heroTitleCert}</span>
+                      )}
                     </span>
-                    <span className='mt-3 block'>the first time.</span>
+                    <span className='mt-3 block'>{t.home.heroTitleTail}</span>
                   </h1>
                 </Reveal>
 
                 <Reveal delay={0.16}>
                   <p className='mt-6 max-w-md text-lg font-medium text-black/70'>
-                    Real exam-style questions, focused domain drills and
-                    full-length simulations for AWS, Google Cloud and Azure.
-                    Built to get you certified — not to upsell you.
+                    {t.home.heroSubtitle}
                   </p>
                 </Reveal>
 
@@ -128,11 +138,12 @@ export function HomePage() {
                   <div className='mt-8 flex flex-col gap-3 sm:flex-row'>
                     <Button asChild size='lg'>
                       <Link href='/dashboard'>
-                        Start learning <ArrowRight className='ml-2 h-4 w-4' />
+                        {t.home.heroPrimaryCta}
+                        <ArrowRight className='ml-2 h-4 w-4' />
                       </Link>
                     </Button>
                     <Button size='lg' variant='outline' asChild>
-                      <a href='#certifications'>Browse certifications</a>
+                      <a href='#certifications'>{t.home.heroSecondaryCta}</a>
                     </Button>
                   </div>
                 </Reveal>
@@ -145,25 +156,15 @@ export function HomePage() {
         </section>
 
         {/* ------------------------------------------------------------- MARQUEE */}
-        <Marquee
-          className='bg-secondary py-3 text-black'
-          items={[
-            'AWS Certified',
-            'Google Cloud',
-            'Microsoft Azure',
-            'Practice Exams',
-            'Domain Drills',
-            'Pass First Try'
-          ]}
-        />
+        <Marquee className='bg-secondary py-3 text-black' items={t.home.marquee} />
 
         {/* --------------------------------------------------------------- STATS */}
         <section className='w-full border-b-2 border-black bg-primary'>
           <div className='container grid grid-cols-2 divide-x-2 divide-y-2 divide-black border-x-0 md:grid-cols-4 md:divide-y-0'>
-            <Stat value={500} suffix='+' label='practice questions' />
-            <Stat value={9} label='certification paths' />
-            <Stat value={3} label='cloud providers' />
-            <Stat value={0} prefix='$' label='forever, no upsell' />
+            <Stat value={500} suffix='+' label={t.home.stats.questions} />
+            <Stat value={9} label={t.home.stats.paths} />
+            <Stat value={3} label={t.home.stats.providers} />
+            <Stat value={0} prefix='$' label={t.home.stats.price} />
           </div>
         </section>
 
@@ -175,14 +176,13 @@ export function HomePage() {
           <div className='container px-4 md:px-6'>
             <Reveal className='mb-10 max-w-xl'>
               <span className='text-xs font-black uppercase tracking-widest text-primary'>
-                The roadmap
+                {t.home.roadmapEyebrow}
               </span>
               <h2 className='mt-2 text-3xl font-black tracking-tight md:text-4xl text-balance text-black'>
-                Pick your path
+                {t.home.roadmapTitle}
               </h2>
               <p className='mt-2 font-medium text-black/60'>
-                Start at the foundations and work up to the specialty exams —
-                one provider at a time.
+                {t.home.roadmapSubtitle}
               </p>
             </Reveal>
             <CertificationRoadmap quizzes={quizzes} isLoading={isLoading} />
@@ -194,17 +194,16 @@ export function HomePage() {
           <div className='container px-4 md:px-6'>
             <Reveal className='mb-8 max-w-xl'>
               <h2 className='text-3xl font-black tracking-tight md:text-4xl text-black'>
-                Try a question
+                {t.home.sampleTitle}
               </h2>
               <p className='mt-2 font-medium text-black/60'>
-                The real thing: exam-style stems, plausible distractors,
-                instant feedback.
+                {t.home.sampleSubtitle}
               </p>
             </Reveal>
             <div className='mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2'>
-              {SAMPLE_QUESTIONS.map((q, i) => (
+              {t.home.sampleQuestions.map((q, i) => (
                 <Reveal key={q.question} delay={i * 0.08} y={36}>
-                  <QuizCard {...q} />
+                  <QuizCard {...q} correctAnswer={SAMPLE_CORRECT_ANSWERS[i]} />
                 </Reveal>
               ))}
             </div>
@@ -219,11 +218,10 @@ export function HomePage() {
           <div className='container px-4 md:px-6'>
             <Reveal className='mb-8 text-center'>
               <h2 className='text-3xl font-black tracking-tight md:text-4xl text-black'>
-                Simple pricing
+                {t.home.pricingTitle}
               </h2>
               <p className='mx-auto mt-2 max-w-175 font-medium text-black/60 md:text-lg'>
-                No subscriptions. No premium tiers. Just free cloud
-                certification training.
+                {t.home.pricingSubtitle}
               </p>
             </Reveal>
             <Reveal className='mx-auto max-w-md' y={36}>
@@ -234,16 +232,16 @@ export function HomePage() {
                       $0
                     </span>
                     <span className='mb-2 text-sm font-bold text-black/50'>
-                      / forever
+                      {t.home.pricingPeriod}
                     </span>
                   </div>
                   <p className='mt-2 font-bold text-black/70'>
-                    No catches. Seriously.
+                    {t.home.pricingNote}
                   </p>
                 </CardHeader>
                 <CardContent className='p-6'>
                   <ul className='space-y-3'>
-                    {PRICING_PERKS.map(perk => (
+                    {t.home.pricingPerks.map(perk => (
                       <li key={perk} className='flex items-center gap-3'>
                         <div className='h-6 w-6 rounded-[5px] border-2 border-black bg-success flex items-center justify-center shrink-0'>
                           <CheckCircle className='h-4 w-4 text-white' />
@@ -255,7 +253,7 @@ export function HomePage() {
                 </CardContent>
                 <CardFooter className='p-6 pt-0'>
                   <Button asChild size='lg' className='w-full'>
-                    <Link href='/dashboard'>Start learning now</Link>
+                    <Link href='/dashboard'>{t.home.pricingCta}</Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -272,17 +270,16 @@ export function HomePage() {
             <div className='grid gap-10 lg:grid-cols-2 lg:gap-16 items-center'>
               <div className='space-y-6'>
                 <Reveal>
-                  <Badge>Why CloudCertify</Badge>
+                  <Badge>{t.home.featuresBadge}</Badge>
                   <h2 className='mt-4 text-3xl font-black tracking-tight md:text-4xl text-black'>
-                    Focused on cloud certification success
+                    {t.home.featuresTitle}
                   </h2>
                   <p className='mt-3 font-medium text-black/70 md:text-lg'>
-                    Designed to help you pass certification exams across AWS,
-                    Google Cloud and Azure.
+                    {t.home.featuresSubtitle}
                   </p>
                 </Reveal>
                 <div className='space-y-4'>
-                  {FEATURES.map((f, i) => (
+                  {t.home.features.map((f, i) => (
                     <Reveal key={f.title} delay={i * 0.08}>
                       <div className='group flex items-start gap-4 rounded-[5px] border-2 border-black bg-background p-4 shadow-[4px_4px_0px_0px_#000] transition-transform duration-200 hover:-translate-y-1'>
                         <div className='h-9 w-9 shrink-0 rounded-[5px] border-2 border-black bg-success flex items-center justify-center transition-transform duration-200 group-hover:-rotate-6'>
@@ -314,15 +311,14 @@ export function HomePage() {
                     </motion.div>
                     <div className='space-y-2 text-center'>
                       <h3 className='text-2xl font-black text-white'>
-                        Ready to get cloud certified?
+                        {t.home.ctaCardTitle}
                       </h3>
                       <p className='font-medium text-white/80'>
-                        Take the first step towards your AWS, GCP or Azure
-                        certification today.
+                        {t.home.ctaCardBody}
                       </p>
                     </div>
                     <Button asChild size='lg' variant='outline' className='w-full'>
-                      <Link href='/dashboard'>Start learning now</Link>
+                      <Link href='/dashboard'>{t.home.pricingCta}</Link>
                     </Button>
                   </div>
                 </div>
@@ -339,6 +335,7 @@ export function HomePage() {
 /* ------------------------------------------------------------------ HERO ART */
 
 function HeroCluster() {
+  const { t } = useI18n();
   const answers = [
     { text: 'Amazon EC2', ok: false },
     { text: 'AWS Fargate', ok: true },
@@ -374,7 +371,7 @@ function HeroCluster() {
           </span>
         </div>
         <p className='mt-4 text-sm font-bold leading-snug text-black'>
-          Which service runs containers without managing servers or clusters?
+          {t.home.heroMockQuestion}
         </p>
         <div className='mt-4 space-y-2'>
           {answers.map((a, i) => (
@@ -431,9 +428,9 @@ function HeroCluster() {
         transition={{ delay: 0.7, type: 'spring', stiffness: 260, damping: 12 }}
         className='absolute -right-4 -top-3 z-20 flex h-20 w-20 items-center justify-center rounded-full border-2 border-black bg-secondary text-center text-[11px] font-black uppercase leading-tight shadow-[4px_4px_0px_0px_#000]'
       >
-        100%
+        {t.home.heroFreeSticker[0]}
         <br />
-        free
+        {t.home.heroFreeSticker[1]}
       </motion.div>
     </div>
   );
@@ -502,73 +499,16 @@ function Stat({
 
 /* -------------------------------------------------------------------- DATA */
 
-const PRICING_PERKS = [
-  'All AWS, GCP and Azure questions',
-  'Full exam simulation mode',
-  'No credit card required'
-];
-
-const FEATURES = [
-  {
-    title: 'Multi-cloud question bank',
-    body: 'Hundreds of practice questions covering AWS, Google Cloud and Azure certification exams.'
-  },
-  {
-    title: 'Cloud concepts coverage',
-    body: 'Concepts, services, security and pricing models across all three major providers.'
-  },
-  {
-    title: 'Exam-focused learning',
-    body: 'Questions aligned with the latest exam objectives and question formats.'
-  }
-];
-
-const SAMPLE_QUESTIONS: QuizCardProps[] = [
-  {
-    question:
-      'Which AWS service would you use to run containers without managing servers or clusters?',
-    options: ['Amazon ECS', 'Amazon EKS', 'AWS Fargate', 'AWS Lambda'],
-    correctAnswer: 2,
-    category: 'AWS Solutions Architect',
-    difficulty: 'Medium'
-  },
-  {
-    question:
-      'Which AWS service allows you to run code without provisioning or managing servers?',
-    options: ['AWS Elastic Beanstalk', 'Amazon EC2', 'AWS Lambda', 'Amazon ECS'],
-    correctAnswer: 2,
-    category: 'AWS Developer',
-    difficulty: 'Medium'
-  },
-  {
-    question:
-      'Which Google Cloud service is used to store unstructured objects, similar to Amazon S3?',
-    options: ['Cloud Filestore', 'Cloud SQL', 'Cloud Storage', 'Persistent Disk'],
-    correctAnswer: 2,
-    category: 'Google Cloud',
-    difficulty: 'Easy'
-  },
-  {
-    question:
-      'Which Azure service provides serverless compute to run event-driven code without managing infrastructure?',
-    options: [
-      'Azure App Service',
-      'Azure Functions',
-      'Azure Logic Apps',
-      'Azure Container Instances'
-    ],
-    correctAnswer: 1,
-    category: 'Azure',
-    difficulty: 'Easy'
-  }
-];
+// Answer index per sample question — positional, so it stays in step with
+// `t.home.sampleQuestions` in every locale (option order never changes).
+const SAMPLE_CORRECT_ANSWERS = [2, 2, 2, 1];
 
 type QuizCardProps = {
   question: string;
   options: string[];
   correctAnswer: number;
   category: string;
-  difficulty: string;
+  difficulty: QuestionDifficulty;
 };
 
 function QuizCard({
@@ -578,6 +518,8 @@ function QuizCard({
   category,
   difficulty
 }: QuizCardProps) {
+  const { t } = useI18n();
+
   return (
     <Card className='h-full overflow-hidden bg-white transition-transform duration-200 hover:-translate-y-1 hover:rotate-[-0.5deg] hover:shadow-[8px_8px_0px_0px_#000]'>
       <CardHeader className='pb-2'>
@@ -585,14 +527,14 @@ function QuizCard({
           <Badge variant='outline'>{category}</Badge>
           <Badge
             variant={
-              difficulty === 'Easy'
+              difficulty === 'easy'
                 ? 'outline'
-                : difficulty === 'Medium'
+                : difficulty === 'medium'
                   ? 'secondary'
                   : 'destructive'
             }
           >
-            {difficulty}
+            {t.difficulty[difficulty]}
           </Badge>
         </div>
         <CardTitle className='text-lg'>{question}</CardTitle>
@@ -625,10 +567,10 @@ function QuizCard({
       <CardFooter className='flex justify-between'>
         <Button variant='outline'>
           <ArrowLeft className='mr-2 h-4 w-4' />
-          Previous
+          {t.common.previous}
         </Button>
         <Button>
-          Next
+          {t.common.next}
           <ArrowRight className='ml-2 h-4 w-4' />
         </Button>
       </CardFooter>

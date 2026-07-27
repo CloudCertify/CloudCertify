@@ -15,6 +15,8 @@ import { PracticeQuestionCard } from '@/components/practice-question-card';
 import type { PracticePhase } from '@/components/practice-question-card';
 import { QuestionReview } from '@/components/question-review';
 import { Footer } from '@/components/footer';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { useI18n } from '@/i18n/context';
 import { toast } from 'sonner';
 import {
   postQuizQuizIdSubquizzesSubquizIdStart,
@@ -42,6 +44,7 @@ export function SubquizSessionPage() {
   const quizId = Number(params.id);
   const subquizId = Number(params.subquizId);
   const [, navigate] = useLocation();
+  const { t } = useI18n();
 
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [phase, setPhase] = useState<Phase>('quiz');
@@ -121,7 +124,7 @@ export function SubquizSessionPage() {
       setQuestionPhase('revealed');
     } catch {
       // Leave the question in `answering` so the learner can retry the Check.
-      toast.error('Could not check this answer. Please try again.');
+      toast.error(t.results.checkError);
     } finally {
       setIsChecking(false);
     }
@@ -145,7 +148,7 @@ export function SubquizSessionPage() {
       setPhase('results');
     } catch {
       // Keep the session intact so Continue can be retried.
-      toast.error('Could not finish this practice. Please try again.');
+      toast.error(t.results.finishError);
     } finally {
       setIsFinishing(false);
     }
@@ -188,7 +191,7 @@ export function SubquizSessionPage() {
       setResultQuestions(null);
       setPhase('quiz');
     } catch {
-      toast.error('Could not start a new attempt. Please try again.');
+      toast.error(t.results.restartError);
     } finally {
       setIsRestarting(false);
     }
@@ -203,12 +206,17 @@ export function SubquizSessionPage() {
           </div>
           <span>CloudCertify</span>
         </Link>
-        <Button variant='outline' size='sm' asChild>
-          <Link href={`/quiz/${quizId}`}>
-            <ArrowLeft className='mr-2 h-4 w-4' />
-            {backLabel}
-          </Link>
-        </Button>
+        <div className='flex items-center gap-4'>
+          {/* A Submission's Language is fixed at start — lock the switcher
+              until the attempt is over. */}
+          <LanguageSwitcher locked={phase === 'quiz'} />
+          <Button variant='outline' size='sm' asChild>
+            <Link href={`/quiz/${quizId}`}>
+              <ArrowLeft className='mr-2 h-4 w-4' />
+              {backLabel}
+            </Link>
+          </Button>
+        </div>
       </div>
     </header>
   );
@@ -227,12 +235,12 @@ export function SubquizSessionPage() {
 
     return (
       <div className='flex min-h-dvh flex-col bg-background'>
-        {pageHeader('Back to Certification')}
+        {pageHeader(t.common.backToCertification)}
         <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
           <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
             <CardHeader className='text-center border-b-2 border-black pb-6'>
               <CardTitle className='text-2xl md:text-3xl font-black text-black'>
-                Practice results
+                {t.results.practiceTitle}
               </CardTitle>
               <p className='text-black/70 font-medium mt-1'>
                 {subquizDetail.title}
@@ -259,11 +267,10 @@ export function SubquizSessionPage() {
                   </span>
                 </div>
                 <Badge className={passed ? 'bg-success' : 'bg-destructive'}>
-                  {passed ? 'PASS' : 'FAIL'} (Passing score: {PASS_THRESHOLD}%)
+                  {t.results.passingScore(passed, `${PASS_THRESHOLD}%`)}
                 </Badge>
                 <p className='text-xl font-bold text-black'>
-                  You got <span className='font-black'>{correct}</span> out of{' '}
-                  <span className='font-black'>{total}</span> questions correct
+                  {t.results.scoreLine(correct, total)}
                 </p>
                 <div className='w-full max-w-md'>
                   <Progress value={percentage} />
@@ -272,7 +279,7 @@ export function SubquizSessionPage() {
 
               <QuestionReview
                 questions={resultQuestions ?? []}
-                heading='Question review'
+                heading={t.review.reviewHeading}
               />
             </CardContent>
             <CardFooter className='flex flex-col sm:flex-row gap-4 justify-between border-t-2 border-black pt-6'>
@@ -281,10 +288,12 @@ export function SubquizSessionPage() {
                 onClick={handleTryAgain}
                 disabled={isRestarting}
               >
-                {isRestarting ? 'Starting...' : 'Try Again'}
+                {isRestarting ? t.common.starting : t.common.tryAgain}
               </Button>
               <Button asChild>
-                <Link href={`/quiz/${quizId}`}>Back to Certification</Link>
+                <Link href={`/quiz/${quizId}`}>
+                  {t.common.backToCertification}
+                </Link>
               </Button>
             </CardFooter>
           </Card>
@@ -296,7 +305,7 @@ export function SubquizSessionPage() {
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
-      {pageHeader('Back')}
+      {pageHeader(t.common.back)}
       <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
         <PracticeQuestionCard
           index={currentIndex}

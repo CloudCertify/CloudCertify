@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
+import { useI18n } from '@/i18n/context';
 import type { QuestionDto } from '@/http/generated/api.schemas';
 
 type QuestionCardProps = {
@@ -44,6 +45,7 @@ export function QuestionCard({
   finishLabel,
   isSubmitting
 }: QuestionCardProps) {
+  const { t } = useI18n();
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
   const isFirst = index === 0;
   const isLast = index >= total - 1;
@@ -76,9 +78,7 @@ export function QuestionCard({
     <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
       <CardHeader className='border-b-2 border-black pb-6'>
         <div className='flex justify-between items-center mb-4 flex-wrap gap-2'>
-          <Badge variant='outline'>
-            Question {index + 1} of {total}
-          </Badge>
+          <Badge variant='outline'>{t.question.counter(index + 1, total)}</Badge>
           <div className='flex gap-2 flex-wrap'>
             {meta}
             <DifficultyBadge difficulty={question.difficulty} />
@@ -89,7 +89,7 @@ export function QuestionCard({
         </CardTitle>
         {isMultiResponse && (
           <p className='text-sm font-bold text-black/60 mt-2'>
-            Select {question.selectCount ?? 2} answers
+            {t.question.selectAnswers(question.selectCount ?? 2)}
           </p>
         )}
         <div className='w-full mt-6'>
@@ -143,16 +143,16 @@ export function QuestionCard({
       <CardFooter className='flex justify-between border-t-2 border-black pt-6'>
         <Button variant='outline' onClick={onPrev} disabled={isFirst}>
           <ArrowLeft className='mr-2 h-4 w-4' />
-          Previous
+          {t.common.previous}
         </Button>
         {!isLast ? (
           <Button onClick={onNext}>
-            Next
+            {t.common.next}
             <ArrowRight className='ml-2 h-4 w-4' />
           </Button>
         ) : (
           <Button onClick={onFinish} disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : finishLabel}
+            {isSubmitting ? t.common.submitting : finishLabel}
           </Button>
         )}
       </CardFooter>

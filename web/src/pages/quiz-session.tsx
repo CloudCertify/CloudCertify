@@ -16,6 +16,8 @@ import { QuestionNavigator } from '@/components/question-navigator';
 import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { QuestionReview } from '@/components/question-review';
 import { Footer } from '@/components/footer';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { useI18n } from '@/i18n/context';
 import { toast } from 'sonner';
 import { postQuizQuizIdStart, postQuizQuizIdSubmit } from '@/http/generated/api';
 import type {
@@ -39,6 +41,7 @@ export function QuizSessionPage() {
   const params = useParams<{ id: string }>();
   const quizId = Number(params.id);
   const [, navigate] = useLocation();
+  const { t } = useI18n();
 
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [phase, setPhase] = useState<Phase>('quiz');
@@ -123,9 +126,7 @@ export function QuizSessionPage() {
     } catch {
       // A finished submission can't be re-graded (server-authoritative, issue #12):
       // surface it instead of silently re-enabling the button on a dead-ended attempt.
-      toast.error(
-        'Could not submit this attempt. It may already be finished — use "Try Again" to start a new one.'
-      );
+      toast.error(t.results.submitError);
     } finally {
       setIsSubmitting(false);
     }
@@ -148,7 +149,7 @@ export function QuizSessionPage() {
       setResultQuestions(null);
       setPhase('quiz');
     } catch {
-      toast.error('Could not start a new attempt. Please try again.');
+      toast.error(t.results.restartError);
     } finally {
       setIsRestarting(false);
     }
@@ -163,12 +164,17 @@ export function QuizSessionPage() {
           </div>
           <span>CloudCertify</span>
         </Link>
-        <Button variant='outline' size='sm' asChild>
-          <Link href={backHref}>
-            <ArrowLeft className='mr-2 h-4 w-4' />
-            {backLabel}
-          </Link>
-        </Button>
+        <div className='flex items-center gap-4'>
+          {/* A Submission's Language is fixed at start — lock the switcher
+              until the attempt is over. */}
+          <LanguageSwitcher locked={phase === 'quiz'} />
+          <Button variant='outline' size='sm' asChild>
+            <Link href={backHref}>
+              <ArrowLeft className='mr-2 h-4 w-4' />
+              {backLabel}
+            </Link>
+          </Button>
+        </div>
       </div>
     </header>
   );
@@ -182,12 +188,12 @@ export function QuizSessionPage() {
 
     return (
       <div className='flex min-h-dvh flex-col bg-background'>
-        {header('/dashboard', 'Back to Dashboard')}
+        {header('/dashboard', t.common.backToDashboard)}
         <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
           <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
             <CardHeader className='text-center border-b-2 border-black pb-6'>
               <CardTitle className='text-2xl md:text-3xl font-black text-black'>
-                Quiz results
+                {t.results.quizTitle}
               </CardTitle>
               <p className='text-black/70 font-medium mt-2'>{quizDetail.title}</p>
             </CardHeader>
@@ -201,12 +207,11 @@ export function QuizSessionPage() {
                 </div>
 
                 <Badge className={passed ? 'bg-success' : 'bg-destructive'}>
-                  {passed ? 'PASS' : 'FAIL'} (Passing score: {PASSING_SCALED_SCORE})
+                  {t.results.passingScore(passed, String(PASSING_SCALED_SCORE))}
                 </Badge>
 
                 <p className='text-xl font-bold text-black'>
-                  You got <span className='font-black'>{correctCount ?? 0}</span> out of{' '}
-                  <span className='font-black'>{totalQuestions}</span> questions correct
+                  {t.results.scoreLine(correctCount ?? 0, totalQuestions ?? 0)}
                 </p>
 
                 <div className='w-full max-w-md mt-4'>
@@ -220,7 +225,9 @@ export function QuizSessionPage() {
 
               {domainBreakdown.length > 0 && (
                 <div className='space-y-3'>
-                  <h3 className='text-xl font-black text-black'>Domain breakdown</h3>
+                  <h3 className='text-xl font-black text-black'>
+                    {t.results.domainBreakdown}
+                  </h3>
                   <div className='space-y-2'>
                     {domainBreakdown.map(domain => {
                       const pct =
@@ -235,8 +242,12 @@ export function QuizSessionPage() {
                           <div className='flex items-center justify-between mb-2'>
                             <span className='font-bold text-black'>{domain.domain}</span>
                             <span className='text-sm font-bold text-black/70'>
-                              {domain.correct}/{domain.total} ({pct}%) · weight{' '}
-                              {Math.round(domain.weight * 100)}%
+                              {t.results.domainStats(
+                                domain.correct,
+                                domain.total,
+                                pct,
+                                Math.round(domain.weight * 100)
+                              )}
                             </span>
                           </div>
                           <Progress value={pct} />
@@ -247,17 +258,14 @@ export function QuizSessionPage() {
                 </div>
               )}
 
-              <QuestionReview
-                questions={resultQuestions ?? []}
-                heading='Question summary'
-              />
+              <QuestionReview questions={resultQuestions ?? []} />
             </CardContent>
             <CardFooter className='flex flex-col sm:flex-row gap-4 justify-between border-t-2 border-black pt-6'>
               <Button variant='outline' onClick={handleTryAgain} disabled={isRestarting}>
-                {isRestarting ? 'Starting...' : 'Try Again'}
+                {isRestarting ? t.common.starting : t.common.tryAgain}
               </Button>
               <Button asChild>
-                <Link href='/dashboard'>Back to Dashboard</Link>
+                <Link href='/dashboard'>{t.common.backToDashboard}</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -269,7 +277,7 @@ export function QuizSessionPage() {
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
-      {header(`/quiz/${quizId}`, 'Back')}
+      {header(`/quiz/${quizId}`, t.common.back)}
       <main className='container mx-auto flex-1 max-w-7xl px-4 py-12'>
         <div className='relative flex items-start justify-center gap-0 pt-12 lg:gap-6 lg:pt-0'>
           <QuestionNavigator
@@ -292,12 +300,12 @@ export function QuizSessionPage() {
               onPrev={() => setCurrentIndex(i => i - 1)}
               onNext={() => setCurrentIndex(i => i + 1)}
               onFinish={handleFinishRequest}
-              finishLabel='Finish Quiz'
+              finishLabel={t.question.finishQuiz}
               isSubmitting={isSubmitting}
             />
             <div className='flex justify-end'>
               <Button onClick={handleFinishRequest} disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Finish Quiz'}
+                {isSubmitting ? t.common.submitting : t.question.finishQuiz}
               </Button>
             </div>
             <ConfirmFinishDialog

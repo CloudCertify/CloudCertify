@@ -18,6 +18,7 @@ import {
   AccordionTrigger
 } from '@/components/ui/accordion';
 import { Footer } from '@/components/footer';
+import { useI18n } from '@/i18n/context';
 
 // Define types based on the provided data structure
 type Answer = {
@@ -170,6 +171,7 @@ const quizData: Quiz = {
 const PASS_THRESHOLD = 70;
 
 export function QuizPage() {
+  const { t } = useI18n();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
   const [quizCompleted, setQuizCompleted] = useState(false);
@@ -240,7 +242,7 @@ export function QuizPage() {
               <Button variant='outline' size='sm' asChild>
                 <Link href='/dashboard'>
                   <ArrowLeft className='mr-2 h-4 w-4' />
-                  Back to Dashboard
+                  {t.common.backToDashboard}
                 </Link>
               </Button>
             </div>
@@ -250,7 +252,9 @@ export function QuizPage() {
         <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
           <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
             <CardHeader className='text-center border-b-2 border-black pb-6'>
-              <CardTitle className='text-2xl md:text-3xl font-black text-black'>Quiz results</CardTitle>
+              <CardTitle className='text-2xl md:text-3xl font-black text-black'>
+                {t.results.quizTitle}
+              </CardTitle>
               <p className='text-black/70 font-medium mt-2'>{quizData.title}</p>
             </CardHeader>
             <CardContent className='space-y-8 py-8'>
@@ -263,13 +267,11 @@ export function QuizPage() {
                 <Badge
                   className={passed ? 'bg-success' : 'bg-destructive'}
                 >
-                  {passed ? 'PASS' : 'FAIL'} (Passing score: {PASS_THRESHOLD}%)
+                  {t.results.passingScore(passed, `${PASS_THRESHOLD}%`)}
                 </Badge>
 
                 <p className='text-xl font-bold text-black'>
-                  You got <span className='font-black'>{score.correct}</span> out
-                  of <span className='font-black'>{score.total}</span> questions
-                  correct
+                  {t.results.scoreLine(score.correct, score.total)}
                 </p>
 
                 <div className='w-full max-w-md mt-4'>
@@ -282,7 +284,9 @@ export function QuizPage() {
               </div>
 
               <div className='space-y-6'>
-                <h3 className='text-xl font-black text-black'>Question summary</h3>
+                <h3 className='text-xl font-black text-black'>
+                  {t.review.summaryHeading}
+                </h3>
                 <Accordion type='single' collapsible className='w-full'>
                   {quizData.questions.map((question, index) => {
                     const userAnswerId = userAnswers[question.id];
@@ -308,11 +312,10 @@ export function QuizPage() {
                             </div>
                             <div>
                               <p className='font-bold text-black'>
-                                Question {index + 1}: {question.text}
+                                {t.review.questionLabel(index + 1, question.text)}
                               </p>
                               <p className='text-sm text-black/70 font-medium mt-1'>
-                                {isCorrect ? 'Correct' : 'Incorrect'} - Click to
-                                view details
+                                {t.review.clickToView(Boolean(isCorrect))}
                               </p>
                             </div>
                           </div>
@@ -354,12 +357,12 @@ export function QuizPage() {
                                     <span className='font-medium text-black'>{answer.text}</span>
                                     {isUserAnswer && (
                                       <span className='ml-2 text-sm font-bold text-black/70'>
-                                        (Your answer)
+                                        {t.review.yourAnswer}
                                       </span>
                                     )}
                                     {isCorrectAnswer && (
                                       <span className='ml-2 text-sm font-bold text-black'>
-                                        (Correct answer)
+                                        {t.review.correctAnswer}
                                       </span>
                                     )}
                                   </div>
@@ -376,10 +379,10 @@ export function QuizPage() {
             </CardContent>
             <CardFooter className='flex flex-col sm:flex-row gap-4 justify-between border-t-2 border-black pt-6'>
               <Button variant='outline' onClick={restartQuiz}>
-                Restart Quiz
+                {t.results.restartQuiz}
               </Button>
               <Button asChild>
-                <Link href='/dashboard'>Back to Dashboard</Link>
+                <Link href='/dashboard'>{t.common.backToDashboard}</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -415,7 +418,7 @@ export function QuizPage() {
           <CardHeader className='border-b-2 border-black pb-6'>
             <div className='flex justify-between items-center mb-4'>
               <Badge variant='outline'>
-                Question {currentQuestionIndex + 1} of {totalQuestions}
+                {t.question.counter(currentQuestionIndex + 1, totalQuestions)}
               </Badge>
               <Badge>{quizData.title}</Badge>
             </div>
@@ -467,16 +470,16 @@ export function QuizPage() {
               disabled={currentQuestionIndex === 0}
             >
               <ArrowLeft className='mr-2 h-4 w-4' />
-              Previous
+              {t.common.previous}
             </Button>
 
             {currentQuestionIndex < totalQuestions - 1 ? (
               <Button onClick={handleNextQuestion}>
-                Next
+                {t.common.next}
                 <ArrowRight className='ml-2 h-4 w-4' />
               </Button>
             ) : (
-              <Button onClick={handleFinishQuiz}>Finish Quiz</Button>
+              <Button onClick={handleFinishQuiz}>{t.question.finishQuiz}</Button>
             )}
           </CardFooter>
         </Card>

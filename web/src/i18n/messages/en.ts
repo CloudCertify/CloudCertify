@@ -1,0 +1,314 @@
+import type { QuestionDifficulty } from '@/http/generated/api.schemas';
+
+type SampleQuestion = {
+  question: string;
+  options: string[];
+  category: string;
+  difficulty: QuestionDifficulty;
+};
+
+/**
+ * EN-US copy. This object's shape is the contract every other locale must
+ * satisfy (`pt.ts` is typed as `Messages`), so a missing key is a build error
+ * rather than a blank string at runtime.
+ */
+export const en = {
+  common: {
+    dashboard: 'Dashboard',
+    backToDashboard: 'Back to Dashboard',
+    backToHome: 'Back to Home',
+    backToCertification: 'Back to Certification',
+    back: 'Back',
+    soon: 'Soon',
+    starting: 'Starting...',
+    submitting: 'Submitting...',
+    tryAgain: 'Try Again',
+    next: 'Next',
+    previous: 'Previous',
+    pass: 'PASS',
+    fail: 'FAIL',
+    correct: 'Correct',
+    incorrect: 'Incorrect',
+    questions: (count: number) => `${count} Questions`
+  },
+
+  language: {
+    label: 'Language',
+    switcherAriaLabel: 'Change language',
+    lockedDuringAttempt:
+      'Language is fixed for this attempt — finish or leave it to switch.',
+    names: {
+      'en-US': 'English',
+      'pt-BR': 'Português'
+    },
+    short: {
+      'en-US': 'EN',
+      'pt-BR': 'PT'
+    }
+  },
+
+  nav: {
+    certifications: 'Certifications',
+    pricing: 'Pricing'
+  },
+
+  footer: {
+    buyMeACoffee: 'Buy me a coffee',
+    rights: (year: number) => `© ${year} CloudCertify. All rights reserved.`
+  },
+
+  auth: {
+    continueWith: (provider: string) => `Continue with ${provider}`,
+    logOut: 'Log out',
+    signingIn: 'Signing you in...',
+    failedTitle: "Login didn't work",
+    failedBody:
+      "We couldn't complete the sign-in — the login link was missing or expired. You can try again, or keep using CloudCertify without an account.",
+    tryAgainFromDashboard: 'Try again from the Dashboard',
+    goHome: 'Go Home'
+  },
+
+  levels: {
+    foundational: 'Foundational',
+    associate: 'Associate',
+    specialist: 'Specialty',
+    professional: 'Professional'
+  },
+
+  difficulty: {
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard'
+  },
+
+  home: {
+    heroBadge: 'Free — no card, no account',
+    heroTitleLead: 'Pass your',
+    heroTitleCert: 'cert',
+    heroTitleTail: 'the first time.',
+    /**
+     * Where the rotating provider chip sits relative to `heroTitleCert`:
+     * "Pass your [AWS] cert" (EN) vs "Passe na sua certificação [AWS]" (PT).
+     */
+    heroTitleChipFirst: true,
+    heroSubtitle:
+      'Real exam-style questions, focused domain drills and full-length simulations for AWS, Google Cloud and Azure. Built to get you certified — not to upsell you.',
+    heroPrimaryCta: 'Start learning',
+    heroSecondaryCta: 'Browse certifications',
+    heroMockQuestion:
+      'Which service runs containers without managing servers or clusters?',
+    heroFreeSticker: ['100%', 'free'],
+    marquee: [
+      'AWS Certified',
+      'Google Cloud',
+      'Microsoft Azure',
+      'Practice Exams',
+      'Domain Drills',
+      'Pass First Try'
+    ],
+    stats: {
+      questions: 'practice questions',
+      paths: 'certification paths',
+      providers: 'cloud providers',
+      price: 'forever, no upsell'
+    },
+    roadmapEyebrow: 'The roadmap',
+    roadmapTitle: 'Pick your path',
+    roadmapSubtitle:
+      'Start at the foundations and work up to the specialty exams — one provider at a time.',
+    sampleTitle: 'Try a question',
+    sampleSubtitle:
+      'The real thing: exam-style stems, plausible distractors, instant feedback.',
+    pricingTitle: 'Simple pricing',
+    pricingSubtitle:
+      'No subscriptions. No premium tiers. Just free cloud certification training.',
+    pricingPeriod: '/ forever',
+    pricingNote: 'No catches. Seriously.',
+    pricingPerks: [
+      'All AWS, GCP and Azure questions',
+      'Full exam simulation mode',
+      'No credit card required'
+    ],
+    pricingCta: 'Start learning now',
+    featuresBadge: 'Why CloudCertify',
+    featuresTitle: 'Focused on cloud certification success',
+    featuresSubtitle:
+      'Designed to help you pass certification exams across AWS, Google Cloud and Azure.',
+    features: [
+      {
+        title: 'Multi-cloud question bank',
+        body: 'Hundreds of practice questions covering AWS, Google Cloud and Azure certification exams.'
+      },
+      {
+        title: 'Cloud concepts coverage',
+        body: 'Concepts, services, security and pricing models across all three major providers.'
+      },
+      {
+        title: 'Exam-focused learning',
+        body: 'Questions aligned with the latest exam objectives and question formats.'
+      }
+    ],
+    ctaCardTitle: 'Ready to get cloud certified?',
+    ctaCardBody:
+      'Take the first step towards your AWS, GCP or Azure certification today.',
+    sampleQuestions: [
+      {
+        question:
+          'Which AWS service would you use to run containers without managing servers or clusters?',
+        options: ['Amazon ECS', 'Amazon EKS', 'AWS Fargate', 'AWS Lambda'],
+        category: 'AWS Solutions Architect',
+        difficulty: 'medium'
+      },
+      {
+        question:
+          'Which AWS service allows you to run code without provisioning or managing servers?',
+        options: [
+          'AWS Elastic Beanstalk',
+          'Amazon EC2',
+          'AWS Lambda',
+          'Amazon ECS'
+        ],
+        category: 'AWS Developer',
+        difficulty: 'medium'
+      },
+      {
+        question:
+          'Which Google Cloud service is used to store unstructured objects, similar to Amazon S3?',
+        options: [
+          'Cloud Filestore',
+          'Cloud SQL',
+          'Cloud Storage',
+          'Persistent Disk'
+        ],
+        category: 'Google Cloud',
+        difficulty: 'easy'
+      },
+      {
+        question:
+          'Which Azure service provides serverless compute to run event-driven code without managing infrastructure?',
+        options: [
+          'Azure App Service',
+          'Azure Functions',
+          'Azure Logic Apps',
+          'Azure Container Instances'
+        ],
+        category: 'Azure',
+        difficulty: 'easy'
+      }
+    ] as SampleQuestion[]
+  },
+
+  roadmap: {
+    emptyTier: 'No exams at this tier yet — check back soon.',
+    providerSoon: 'This provider is launching soon. Get notified when it goes live.'
+  },
+
+  dashboard: {
+    title: 'Dashboard',
+    subtitle: 'Continue your cloud certification journey',
+    loadError: 'Failed to load certifications. Please try again later.',
+    empty: (provider: string) =>
+      `No ${provider} certifications are available yet. Check back soon.`
+  },
+
+  certificationCard: {
+    startLearning: 'Start Learning'
+  },
+
+  quizDetail: {
+    emailLabel: 'Your email',
+    emailPlaceholder: 'you@example.com',
+    emailInvalid: 'Please enter a valid email address.',
+    startExamError: 'Failed to start the exam. Please try again.',
+    startPracticeError: 'Failed to start the practice. Please try again.',
+    fullExamHeading: 'Full simulation exam',
+    fullExamBody:
+      "Full-length exam simulation. At the end you'll see your scaled score, whether you'd pass, and which domains need work.",
+    questionsInPool: (count: number) => `${count} Questions in pool`,
+    perExam: (range: string) => `~${range} per exam`,
+    scaledScoreBadge: 'Scaled Score',
+    passFailBadge: 'Pass / Fail',
+    domainBreakdownBadge: 'Domain Breakdown',
+    startExam: 'Start Exam',
+    practiceHeading: 'Domain practice',
+    practiceSubtitle:
+      '15-question focused quizzes per domain. Fast feedback, no pass/fail pressure.',
+    practice: 'Practice',
+    notFound: 'Quiz not found.'
+  },
+
+  question: {
+    counter: (index: number, total: number) => `Question ${index} of ${total}`,
+    selectAnswers: (count: number) => `Select ${count} answers`,
+    finishQuiz: 'Finish Quiz',
+    check: 'Check',
+    checking: 'Checking...',
+    continue: 'Continue',
+    finishPractice: 'Finish Practice',
+    finishing: 'Finishing...',
+    notQuite: 'Not quite'
+  },
+
+  navigator: {
+    open: 'Open question navigator',
+    openTitle: (index: number, total: number) =>
+      `Open question navigator — question ${index} of ${total}`,
+    close: 'Close question navigator',
+    title: 'Questions',
+    landmark: 'Question navigator',
+    answeredCount: (answered: number, total: number) =>
+      `${answered} of ${total} answered`,
+    questionLabel: (index: number, answered: boolean) =>
+      `Question ${index}${answered ? ', answered' : ', unanswered'}`
+  },
+
+  confirmFinish: {
+    titleWithUnanswered: 'Finish with unanswered questions?',
+    title: 'Finish this attempt?',
+    bodyAllAnswered:
+      "Your answers will be submitted for grading, and a finished attempt can't be changed.",
+    bodyWithUnanswered: (count: number) =>
+      count === 1
+        ? "1 question is still unanswered. It will be scored as incorrect, and a finished attempt can't be changed."
+        : `${count} questions are still unanswered. They will be scored as incorrect, and a finished attempt can't be changed.`,
+    keepAnswering: 'Keep answering',
+    finishAnyway: 'Finish anyway'
+  },
+
+  review: {
+    summaryHeading: 'Question summary',
+    reviewHeading: 'Question review',
+    questionLabel: (index: number, text: string) => `Question ${index}: ${text}`,
+    clickToView: (correct: boolean) =>
+      `${correct ? 'Correct' : 'Incorrect'} — Click to view details`,
+    explanation: 'Explanation',
+    yourAnswer: '(Your answer)',
+    correctAnswer: '(Correct answer)'
+  },
+
+  results: {
+    quizTitle: 'Quiz results',
+    practiceTitle: 'Practice results',
+    passingScore: (passed: boolean, score: string) =>
+      `${passed ? 'PASS' : 'FAIL'} (Passing score: ${score})`,
+    scoreLine: (correct: number, total: number) =>
+      `You got ${correct} out of ${total} questions correct`,
+    domainBreakdown: 'Domain breakdown',
+    domainStats: (correct: number, total: number, pct: number, weight: number) =>
+      `${correct}/${total} (${pct}%) · weight ${weight}%`,
+    restartQuiz: 'Restart Quiz',
+    submitError:
+      'Could not submit this attempt. It may already be finished — use "Try Again" to start a new one.',
+    restartError: 'Could not start a new attempt. Please try again.',
+    checkError: 'Could not check this answer. Please try again.',
+    finishError: 'Could not finish this practice. Please try again.'
+  },
+
+  providers: {
+    aws: 'Amazon Web Services',
+    azure: 'Microsoft Azure',
+    gcp: 'Google Cloud'
+  }
+};
+
+export type Messages = typeof en;

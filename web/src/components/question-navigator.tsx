@@ -3,6 +3,7 @@ import { ListOrdered, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/i18n/context';
 
 type QuestionNavigatorProps = {
   /** Zero-based index of the question currently on screen. */
@@ -25,6 +26,7 @@ export function QuestionNavigator({
   answered,
   onJump
 }: QuestionNavigatorProps) {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -55,10 +57,10 @@ export function QuestionNavigator({
         type='button'
         variant='outline'
         size='icon'
-        aria-label='Open question navigator'
+        aria-label={t.navigator.open}
         aria-controls='question-navigator-panel'
         aria-expanded={isOpen}
-        title={`Open question navigator — question ${currentIndex + 1} of ${answered.length}`}
+        title={t.navigator.openTitle(currentIndex + 1, answered.length)}
         onClick={() => setIsOpen(true)}
       >
         <ListOrdered />
@@ -81,17 +83,17 @@ export function QuestionNavigator({
             <div className='mb-4 flex items-start justify-between gap-3 border-b-2 border-black pb-4'>
               <div>
                 <h2 id='question-navigator-title' className='font-black text-black'>
-                  Questions
+                  {t.navigator.title}
                 </h2>
                 <p className='text-sm font-bold text-black/60'>
-                  {answeredCount} of {answered.length} answered
+                  {t.navigator.answeredCount(answeredCount, answered.length)}
                 </p>
               </div>
               <Button
                 type='button'
                 variant='outline'
                 size='icon'
-                aria-label='Close question navigator'
+                aria-label={t.navigator.close}
                 aria-controls='question-navigator-panel'
                 aria-expanded={isOpen}
                 onClick={() => setIsOpen(false)}
@@ -100,7 +102,7 @@ export function QuestionNavigator({
               </Button>
             </div>
 
-            <nav aria-label='Question navigator'>
+            <nav aria-label={t.navigator.landmark}>
               <div className='grid grid-cols-5 gap-2'>
                 {answered.map((isAnswered, index) => {
                   const isCurrent = index === currentIndex;
@@ -110,7 +112,7 @@ export function QuestionNavigator({
                       type='button'
                       onClick={() => jumpToQuestion(index)}
                       aria-current={isCurrent ? 'true' : undefined}
-                      aria-label={`Question ${index + 1}${isAnswered ? ', answered' : ', unanswered'}`}
+                      aria-label={t.navigator.questionLabel(index + 1, isAnswered)}
                       className={cn(
                         'h-9 w-9 rounded-[5px] border-2 border-black text-sm font-bold transition-all',
                         isCurrent

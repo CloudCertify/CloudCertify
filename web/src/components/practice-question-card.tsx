@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
+import { useI18n } from '@/i18n/context';
 import type {
   CheckAnswerResponseDto,
   QuestionDto
@@ -62,6 +63,7 @@ export function PracticeQuestionCard({
   isFinishing,
   isLast
 }: PracticeQuestionCardProps) {
+  const { t } = useI18n();
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
   const isMultiResponse = question.type === 'multiple_response';
   const selectCount = question.selectCount ?? 1;
@@ -94,9 +96,7 @@ export function PracticeQuestionCard({
     <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
       <CardHeader className='border-b-2 border-black pb-6'>
         <div className='flex justify-between items-center mb-4 flex-wrap gap-2'>
-          <Badge variant='outline'>
-            Question {index + 1} of {total}
-          </Badge>
+          <Badge variant='outline'>{t.question.counter(index + 1, total)}</Badge>
           <div className='flex gap-2 flex-wrap'>
             {meta}
             <DifficultyBadge difficulty={question.difficulty} />
@@ -107,7 +107,7 @@ export function PracticeQuestionCard({
         </CardTitle>
         {isMultiResponse && (
           <p className='text-sm font-bold text-black/60 mt-2'>
-            Select {selectCount} answers
+            {t.question.selectAnswers(selectCount)}
           </p>
         )}
         <div className='w-full mt-6'>
@@ -208,7 +208,7 @@ export function PracticeQuestionCard({
                 <XCircle className='h-4 w-4 text-black' />
               )}
               <p className='text-sm font-black text-black'>
-                {reveal?.isCorrect ? 'Correct' : 'Not quite'}
+                {reveal?.isCorrect ? t.common.correct : t.question.notQuite}
               </p>
             </div>
             {reveal?.explanation && (
@@ -222,15 +222,15 @@ export function PracticeQuestionCard({
       <CardFooter className='flex justify-end border-t-2 border-black pt-6'>
         {!isRevealed ? (
           <Button onClick={onCheck} disabled={!canCheck || isChecking}>
-            {isChecking ? 'Checking...' : 'Check'}
+            {isChecking ? t.question.checking : t.question.check}
           </Button>
         ) : (
           <Button onClick={onContinue} disabled={isFinishing}>
             {isFinishing
-              ? 'Finishing...'
+              ? t.question.finishing
               : isLast
-                ? 'Finish Practice'
-                : 'Continue'}
+                ? t.question.finishPractice
+                : t.question.continue}
             {!isFinishing && <ArrowRight className='ml-2 h-4 w-4' />}
           </Button>
         )}

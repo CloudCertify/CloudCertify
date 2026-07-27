@@ -1,13 +1,16 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './auth/context';
+import { LanguageProvider } from './i18n/context';
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
   const qc = new QueryClient();
 
   return (
     <QueryClientProvider client={qc}>
-      <AuthProvider>{children}</AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </LanguageProvider>
       <Toaster
         position='bottom-center'
         toastOptions={{
