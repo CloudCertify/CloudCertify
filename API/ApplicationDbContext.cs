@@ -1,5 +1,6 @@
 using API.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace API;
 
@@ -16,6 +17,7 @@ public class ApplicationDbContext: DbContext
     public DbSet<Answer> Answer { get; set; }
     public DbSet<Submission> Submission { get; set; }
     public DbSet<RecordedAnswer> RecordedAnswer { get; set; }
+    public DbSet<Report> Report { get; set; }
     public DbSet<User> User { get; set; }
     public DbSet<UserProvider> UserProvider { get; set; }
 
@@ -72,6 +74,10 @@ public class ApplicationDbContext: DbContext
             entity.Property(q => q.ExplanationPt).HasColumnType("text");
             entity.Property(q => q.Difficulty).IsRequired().HasConversion<string>();
             entity.Property(q => q.CreatedAt).IsRequired();
+            // Stamped by a database trigger on every content edit, so a Report older than
+            // UpdatedAt is stale by definition (ADR 0005). Triage edits content via SQL, which
+            // is why the stamp lives in the database rather than in SaveChanges.
+            entity.Property(q => q.UpdatedAt).IsRequired().HasDefaultValueSql("now()");
 
             entity.HasOne(q => q.Quiz)
                 .WithMany(q => q.Questions)
@@ -166,6 +172,45 @@ public class ApplicationDbContext: DbContext
         {
             entity.HasKey(r => new { r.SubmissionId, r.QuestionId });
             entity.Property(r => r.SelectedAnswerIds).HasColumnType("integer[]").IsRequired();
+        });
+
+        modelBuilder.Entity<Report>(entity =>
+        {
+            // Same key as RecordedAnswer: one Report per Recorded Answer (ADR 0005).
+            entity.HasKey(r => new { r.SubmissionId, r.QuestionId });
+            entity.Property(r => r.Reasons)
+                .HasColumnType("text[]")
+                .IsRequired()
+                .HasConversion(
+                    reasons => reasons.Select(r => r.ToString()).ToArray(),
+                    tags => tags.Select(Enum.Parse<ReportReason>).ToList(),
+                    new ValueComparer<List<ReportReason>>(
+                        (a, b) => a!.SequenceEqual(b!),
+                        v => v.Aggregate(0, (hash, r) => HashCode.Combine(hash, r.GetHashCode())),
+                        v => v.ToList()));
+            entity.Property(r => r.Comment).HasMaxLength(200);
+            // Persisted as the IETF tag, like Submission.Language (ADR 0004).
+            entity.Property(r => r.Language)
+                .IsRequired()
+                .HasMaxLength(16)
+                .HasDefaultValue(Language.EnUs)
+                .HasConversion(l => LanguageCode.ToTag(l), tag => LanguageCode.FromTag(tag));
+            entity.Property(r => r.Status)
+                .IsRequired()
+                .HasMaxLength(16)
+                .HasDefaultValue(ReportStatus.Open)
+                .HasConversion<string>();
+            // Database clock, so Report.CreatedAt and Question.UpdatedAt are comparable (ADR 0005).
+            entity.Property(r => r.CreatedAt).IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql("now()");
+
+            // A Report always hangs off an existing Recorded Answer.
+            entity.HasOne<RecordedAnswer>()
+                .WithMany()
+                .HasForeignKey(r => new { r.SubmissionId, r.QuestionId })
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Triage groups by Question, then by status.
+            entity.HasIndex(r => new { r.QuestionId, r.Status });
         });
     }
 }
