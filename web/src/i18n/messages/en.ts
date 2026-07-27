@@ -300,6 +300,27 @@ export const en = {
     finishAnyway: 'Finish anyway'
   },
 
+  report: {
+    trigger: 'Report a problem',
+    reported: 'Problem reported',
+    title: "What's wrong with this question?",
+    reasonsHint: 'Pick everything that applies.',
+    reasons: {
+      wrong_answer_key: 'The marked answer is wrong',
+      unclear_wording: "The question doesn't make sense",
+      bad_explanation: "The explanation doesn't help",
+      outdated: 'This is out of date'
+    },
+    commentLabel: 'Anything else? (optional)',
+    commentPlaceholder: 'Tell us what looks off.',
+    commentCounter: (used: number, max: number) => `${used}/${max}`,
+    cancel: 'Cancel',
+    submit: 'Send report',
+    submitting: 'Sending...',
+    success: 'Thanks — we will take a look at this question.',
+    error: 'Could not send this report. Please try again.'
+  },
+
   review: {
     summaryHeading: 'Question summary',
     reviewHeading: 'Question review',
