@@ -63,6 +63,17 @@ score is computed from at finish. Full Quiz attempts have no Recorded Answers �
 they are graded from the answers sent in one batch at Submit.
 _Avoid_: Response, Choice, Pick
 
+**Report**:
+A visitor's claim that a Question's content is defective — wrong answer key,
+bad wording, stale fact, bad translation. About the Question itself, never
+about a Submission's score: resolving a Report may change the Question, but
+never re-grades a past attempt. Filed from a Subquiz only, and only after the
+Question has been Checked, so every Report carries the reporter's Recorded
+Answer as evidence. Anonymous visitors may file. Carries the Submission's
+Language, so a Report always names which language's text was defective — there
+is no separate "bad translation" reason.
+_Avoid_: Flag, Complaint, Dispute, Feedback, Appeal
+
 **Navigator**:
 The numbered jump control shown during a full Quiz attempt. Marks every
 served Question as answered, unanswered, or current, and moves directly to
