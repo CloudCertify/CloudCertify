@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { useI18n } from '@/i18n/context';
 import type { QuestionDifficulty } from '@/http/generated/api.schemas';
 
 const difficultyClasses: Record<QuestionDifficulty, string> = {
@@ -7,21 +8,16 @@ const difficultyClasses: Record<QuestionDifficulty, string> = {
   hard: 'bg-destructive text-black'
 };
 
-const difficultyLabels: Record<QuestionDifficulty, string> = {
-  easy: 'Easy',
-  medium: 'Medium',
-  hard: 'Hard'
-};
-
 export function DifficultyBadge({
   difficulty
 }: {
   difficulty?: QuestionDifficulty;
 }) {
+  const { t } = useI18n();
   if (!difficulty) return null;
   return (
     <Badge variant='outline' className={difficultyClasses[difficulty]}>
-      {difficultyLabels[difficulty]}
+      {t.difficulty[difficulty]}
     </Badge>
   );
 }

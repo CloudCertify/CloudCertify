@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/auth/context';
+import { useI18n } from '@/i18n/context';
 
 function GoogleIcon() {
   return (
@@ -31,18 +32,23 @@ function GitHubIcon() {
  */
 export function AuthMenu() {
   const { isAuthenticated, user, login, logout } = useAuth();
+  const { t } = useI18n();
 
   if (!isAuthenticated) {
     return (
       <div className='flex items-center gap-2'>
         <Button variant='outline' size='sm' onClick={() => login('google')}>
           <GoogleIcon />
-          <span className='ml-2 hidden sm:inline'>Continue with Google</span>
+          <span className='ml-2 hidden sm:inline'>
+            {t.auth.continueWith('Google')}
+          </span>
           <span className='ml-2 sm:hidden'>Google</span>
         </Button>
         <Button variant='outline' size='sm' onClick={() => login('github')}>
           <GitHubIcon />
-          <span className='ml-2 hidden sm:inline'>Continue with GitHub</span>
+          <span className='ml-2 hidden sm:inline'>
+            {t.auth.continueWith('GitHub')}
+          </span>
           <span className='ml-2 sm:hidden'>GitHub</span>
         </Button>
       </div>
@@ -67,9 +73,9 @@ export function AuthMenu() {
           {user?.displayName ?? user?.email}
         </span>
       </div>
-      <Button variant='outline' size='sm' onClick={logout} aria-label='Log out'>
+      <Button variant='outline' size='sm' onClick={logout} aria-label={t.auth.logOut}>
         <LogOut className='h-4 w-4' />
-        <span className='ml-2 hidden sm:inline'>Log out</span>
+        <span className='ml-2 hidden sm:inline'>{t.auth.logOut}</span>
       </Button>
     </div>
   );

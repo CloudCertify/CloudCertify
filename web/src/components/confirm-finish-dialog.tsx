@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { useI18n } from '@/i18n/context';
 
 type ConfirmFinishDialogProps = {
   open: boolean;
@@ -21,6 +22,7 @@ export function ConfirmFinishDialog({
   onConfirm,
   onCancel
 }: ConfirmFinishDialogProps) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -38,23 +40,21 @@ export function ConfirmFinishDialog({
     >
       <div className='border-b-2 border-black px-6 py-4'>
         <h2 className='text-xl font-black text-black'>
-          {unansweredCount > 0 ? 'Finish with unanswered questions?' : 'Finish this attempt?'}
+          {unansweredCount > 0
+            ? t.confirmFinish.titleWithUnanswered
+            : t.confirmFinish.title}
         </h2>
       </div>
       <p className='px-6 py-4 font-medium text-black/80'>
         {unansweredCount === 0
-          ? "Your answers will be submitted for grading, and a finished attempt can't be changed."
-          : `${
-              unansweredCount === 1
-                ? '1 question is still unanswered. It'
-                : `${unansweredCount} questions are still unanswered. They`
-            } will be scored as incorrect, and a finished attempt can't be changed.`}
+          ? t.confirmFinish.bodyAllAnswered
+          : t.confirmFinish.bodyWithUnanswered(unansweredCount)}
       </p>
       <div className='flex justify-end gap-3 border-t-2 border-black px-6 py-4'>
         <Button variant='outline' onClick={onCancel}>
-          Keep answering
+          {t.confirmFinish.keepAnswering}
         </Button>
-        <Button onClick={onConfirm}>Finish anyway</Button>
+        <Button onClick={onConfirm}>{t.confirmFinish.finishAnyway}</Button>
       </div>
     </dialog>
   );

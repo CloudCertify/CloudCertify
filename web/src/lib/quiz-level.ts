@@ -26,13 +26,6 @@ export const LEVEL_ORDER: QuizLevel[] = [
   'professional'
 ];
 
-export const LEVEL_LABELS: Record<QuizLevel, string> = {
-  foundational: 'Foundational',
-  associate: 'Associate',
-  specialist: 'Specialty',
-  professional: 'Professional'
-};
-
 export function getLevelStyle(level?: string | null): LevelStyle {
   return LEVEL_STYLES[level as QuizLevel] ?? FALLBACK_STYLE;
 }

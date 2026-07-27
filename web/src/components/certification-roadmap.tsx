@@ -5,6 +5,7 @@ import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { PROVIDERS } from '@/lib/quiz-provider';
+import { useI18n } from '@/i18n/context';
 import type {
   QuizDto,
   QuizLevel,
@@ -47,14 +48,13 @@ const TIER_STYLES: Record<TierKey, TierStyle> = {
 
 type Tier = {
   number: string;
-  label: string;
   level: QuizLevel;
 };
 
 const AWS_TIERS: Tier[] = [
-  { number: '01', label: 'Foundational', level: 'foundational' },
-  { number: '02', label: 'Associate', level: 'associate' },
-  { number: '03', label: 'Specialty', level: 'specialist' }
+  { number: '01', level: 'foundational' },
+  { number: '02', level: 'associate' },
+  { number: '03', level: 'specialist' }
 ];
 
 
@@ -67,6 +67,7 @@ export function CertificationRoadmap({
   quizzes,
   isLoading
 }: CertificationRoadmapProps) {
+  const { t } = useI18n();
   const [provider, setProvider] = useState<QuizProvider>('aws');
 
   const grouped = useMemo(() => {
@@ -98,7 +99,7 @@ export function CertificationRoadmap({
                 <span>{p.short}</span>
                 {!p.available && (
                   <span className='rounded-[5px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border border-black bg-secondary text-black'>
-                    Soon
+                    {t.common.soon}
                   </span>
                 )}
               </button>
@@ -143,6 +144,8 @@ function TierRow({
   isLoading,
   providerAvailable
 }: TierRowProps) {
+  const { t } = useI18n();
+
   return (
     <div className='relative grid grid-cols-[48px_1fr] gap-4 md:grid-cols-[64px_1fr] md:gap-8'>
       {/* Left rail: number marker + dashed connector */}
@@ -171,7 +174,7 @@ function TierRow({
             styles.label
           )}
         >
-          {tier.label}
+          {t.levels[tier.level]}
         </h4>
 
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
@@ -205,6 +208,8 @@ function CertificationNode({
   quiz: QuizDto;
   styles: TierStyle;
 }) {
+  const { t } = useI18n();
+  const soon = t.common.soon;
   const available = quiz.isAvailable ?? false;
   const { code, name } = splitTitle(quiz.title ?? '');
 
@@ -252,7 +257,7 @@ function CertificationNode({
           />
         ) : (
           <span className='rounded-[5px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border border-black bg-secondary text-black shrink-0 self-start'>
-            Soon
+            {soon}
           </span>
         )}
       </div>
@@ -284,13 +289,13 @@ function NodeSkeleton() {
 }
 
 function EmptyTierCard({ providerAvailable }: { providerAvailable: boolean }) {
+  const { t } = useI18n();
+
   return (
     <div className='col-span-full flex items-center gap-3 rounded-[5px] border-2 border-dashed border-black bg-white p-6 text-sm font-medium text-black/70'>
       <Clock className='h-4 w-4 shrink-0 text-black' />
       <span>
-        {providerAvailable
-          ? 'No exams at this tier yet — check back soon.'
-          : 'This provider is launching soon. Get notified when it goes live.'}
+        {providerAvailable ? t.roadmap.emptyTier : t.roadmap.providerSoon}
       </span>
     </div>
   );

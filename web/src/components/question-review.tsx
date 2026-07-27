@@ -5,20 +5,23 @@ import {
   AccordionItem,
   AccordionTrigger
 } from '@/components/ui/accordion';
+import { useI18n } from '@/i18n/context';
 import type { QuizResultQuestionDto } from '@/http/generated/api.schemas';
 
 type QuestionReviewProps = {
   questions: QuizResultQuestionDto[];
+  /** Defaults to the localized "Question summary". */
   heading?: string;
 };
 
-export function QuestionReview({
-  questions,
-  heading = 'Question summary'
-}: QuestionReviewProps) {
+export function QuestionReview({ questions, heading }: QuestionReviewProps) {
+  const { t } = useI18n();
+
   return (
     <div className='space-y-6'>
-      <h3 className='text-xl font-black text-black'>{heading}</h3>
+      <h3 className='text-xl font-black text-black'>
+        {heading ?? t.review.summaryHeading}
+      </h3>
       <Accordion type='single' collapsible className='w-full'>
         {questions.map((question, index) => {
           const isCorrect = question.answers.every(a =>
@@ -42,10 +45,10 @@ export function QuestionReview({
                   </div>
                   <div>
                     <p className='font-bold text-black'>
-                      Question {index + 1}: {question.text}
+                      {t.review.questionLabel(index + 1, question.text ?? '')}
                     </p>
                     <p className='text-sm text-black/70 font-medium mt-1'>
-                      {isCorrect ? 'Correct' : 'Incorrect'} — Click to view details
+                      {t.review.clickToView(isCorrect)}
                     </p>
                   </div>
                 </div>
@@ -54,7 +57,9 @@ export function QuestionReview({
                 <div className='space-y-3 pt-2 pl-9'>
                   {question.explanation && (
                     <div className='p-3 rounded-[5px] border-2 border-black bg-background'>
-                      <p className='text-sm font-bold text-black mb-1'>Explanation</p>
+                      <p className='text-sm font-bold text-black mb-1'>
+                        {t.review.explanation}
+                      </p>
                       <p className='text-sm text-black/80'>{question.explanation}</p>
                     </div>
                   )}
@@ -88,12 +93,12 @@ export function QuestionReview({
                           <span className='font-medium text-black'>{answer.text}</span>
                           {isUserAnswer && (
                             <span className='ml-2 text-sm font-bold text-black/70'>
-                              (Your answer)
+                              {t.review.yourAnswer}
                             </span>
                           )}
                           {isCorrectAnswer && (
                             <span className='ml-2 text-sm font-bold text-black'>
-                              (Correct answer)
+                              {t.review.correctAnswer}
                             </span>
                           )}
                         </div>
