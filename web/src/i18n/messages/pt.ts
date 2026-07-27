@@ -66,7 +66,7 @@ export const pt: Messages = {
     foundational: 'Fundamental',
     associate: 'Associado',
     specialist: 'Especialidade',
-    professional: 'Professional'
+    professional: 'Profissional'
   },
 
   difficulty: {

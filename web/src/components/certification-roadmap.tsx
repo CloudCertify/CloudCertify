@@ -5,14 +5,13 @@ import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { PROVIDERS } from '@/lib/quiz-provider';
+import { LEVEL_ORDER } from '@/lib/quiz-level';
 import { useI18n } from '@/i18n/context';
 import type {
   QuizDto,
   QuizLevel,
   QuizProvider
 } from '@/http/generated/api.schemas';
-
-type TierKey = 'foundational' | 'associate' | 'specialist';
 
 type TierStyle = {
   label: string;
@@ -22,7 +21,7 @@ type TierStyle = {
   nodeIcon: string;
 };
 
-const TIER_STYLES: Record<TierKey, TierStyle> = {
+const TIER_STYLES: Record<QuizLevel, TierStyle> = {
   foundational: {
     label: 'text-black',
     marker: 'border-black bg-success text-white',
@@ -43,6 +42,13 @@ const TIER_STYLES: Record<TierKey, TierStyle> = {
     accent: 'bg-secondary',
     nodeBg: 'bg-secondary',
     nodeIcon: 'text-black'
+  },
+  professional: {
+    label: 'text-black',
+    marker: 'border-black bg-destructive text-white',
+    accent: 'bg-destructive',
+    nodeBg: 'bg-destructive',
+    nodeIcon: 'text-white'
   }
 };
 
@@ -51,11 +57,11 @@ type Tier = {
   level: QuizLevel;
 };
 
-const AWS_TIERS: Tier[] = [
-  { number: '01', level: 'foundational' },
-  { number: '02', level: 'associate' },
-  { number: '03', level: 'specialist' }
-];
+// Same ladder the Dashboard renders, so the two can't drift apart.
+const TIERS: Tier[] = LEVEL_ORDER.map((level, index) => ({
+  number: String(index + 1).padStart(2, '0'),
+  level
+}));
 
 
 type CertificationRoadmapProps = {
@@ -72,7 +78,7 @@ export function CertificationRoadmap({
 
   const grouped = useMemo(() => {
     const filtered = quizzes.filter(q => q.quizProvider === provider);
-    return AWS_TIERS.map(tier => ({
+    return TIERS.map(tier => ({
       ...tier,
       quizzes: filtered.filter(q => q.quizLevel === tier.level)
     }));
@@ -115,7 +121,7 @@ export function CertificationRoadmap({
             <TierRow
               key={tier.level}
               tier={tier}
-              styles={TIER_STYLES[tier.level as TierKey]}
+              styles={TIER_STYLES[tier.level]}
               isLast={tierIndex === grouped.length - 1}
               isLoading={isLoading}
               providerAvailable={
