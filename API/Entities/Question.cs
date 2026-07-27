@@ -39,6 +39,13 @@ public class Question
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
+    /// <summary>
+    /// Last time this Question's content changed, stamped by a database trigger. A Report
+    /// created before this instant is stale — the defect it names may already be fixed
+    /// (ADR 0005), which is why Reports snapshot no content.
+    /// </summary>
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
     public virtual ICollection<Answer> Answers { get; set; }
 
     [JsonIgnore]
