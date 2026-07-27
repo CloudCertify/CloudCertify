@@ -15,6 +15,7 @@ import { PracticeQuestionCard } from '@/components/practice-question-card';
 import type { PracticePhase } from '@/components/practice-question-card';
 import { QuestionReview } from '@/components/question-review';
 import { DrillBanner } from '@/components/drill-banner';
+import { ReportQuestionControl } from '@/components/report-question-control';
 import { Footer } from '@/components/footer';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useI18n } from '@/i18n/context';
@@ -65,6 +66,14 @@ export function SubquizSessionPage() {
   const [isChecking, setIsChecking] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
+  // One Report per (Submission, Question): a Question reported in-session must
+  // already read as reported when it comes back on the results list (#41).
+  const [reportedQuestionIds, setReportedQuestionIds] = useState<number[]>([]);
+
+  const markReported = (questionId: number) =>
+    setReportedQuestionIds(current =>
+      current.includes(questionId) ? current : [...current, questionId]
+    );
 
   useEffect(() => {
     const raw = sessionStorage.getItem(
@@ -190,6 +199,8 @@ export function SubquizSessionPage() {
       setCorrectCount(null);
       setTotalQuestions(null);
       setResultQuestions(null);
+      // A new Submission may report the same Questions again.
+      setReportedQuestionIds([]);
       setPhase('quiz');
     } catch {
       toast.error(t.results.restartError);
@@ -288,6 +299,16 @@ export function SubquizSessionPage() {
               <QuestionReview
                 questions={resultQuestions ?? []}
                 heading={t.review.reviewHeading}
+                renderReportControl={questionId =>
+                  subquizDetail.submissionId == null ? null : (
+                    <ReportQuestionControl
+                      submissionId={subquizDetail.submissionId}
+                      questionId={questionId}
+                      reported={reportedQuestionIds.includes(questionId)}
+                      onReported={markReported}
+                    />
+                  )
+                }
               />
             </CardContent>
             <CardFooter className='flex flex-col sm:flex-row gap-4 justify-between border-t-2 border-black pt-6'>
@@ -334,6 +355,17 @@ export function SubquizSessionPage() {
           isChecking={isChecking}
           isFinishing={isFinishing}
           isLast={isLast}
+          reportControl={
+            currentQuestion.id != null &&
+            subquizDetail.submissionId != null && (
+              <ReportQuestionControl
+                submissionId={subquizDetail.submissionId}
+                questionId={currentQuestion.id}
+                reported={reportedQuestionIds.includes(currentQuestion.id)}
+                onReported={markReported}
+              />
+            )
+          }
         />
       </main>
       <Footer />

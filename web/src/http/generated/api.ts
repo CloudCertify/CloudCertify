@@ -28,6 +28,7 @@ import type {
   AnswerQuestionRequestDto,
   CheckAnswerRequestDto,
   CheckAnswerResponseDto,
+  CreateReportRequestDto,
   FinishSubquizRequestDto,
   GetAuthProviderCallbackParams,
   GetAuthProviderLoginParams,
@@ -35,6 +36,7 @@ import type {
   MySubmissionDto,
   QuizDetailDto,
   QuizDto,
+  ReportResponseDto,
   StartQuizRequestDto,
   SubmitQuizRequestDto,
   SubmitQuizResponseDto,
@@ -1030,5 +1032,60 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getPostQuizQuizIdSubquizzesSubquizIdFinishMutationOptions(options), queryClient);
+    }
+
+export const postReports = (
+    createReportRequestDto: CreateReportRequestDto, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ReportResponseDto>> => {
+
+
+    return axios.default.post(
+      `https://api-cloudcertify.snowye.dev/reports`,
+      createReportRequestDto,options
+    );
+  }
+
+
+
+export const getPostReportsMutationOptions = <TError = AxiosError<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: CreateReportRequestDto}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: CreateReportRequestDto}, TContext> => {
+
+const mutationKey = ['postReports'];
+const {mutation: mutationOptions, axios: axiosOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, axios: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postReports>>, {data: CreateReportRequestDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postReports(data,axiosOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostReportsMutationResult = NonNullable<Awaited<ReturnType<typeof postReports>>>
+    export type PostReportsMutationBody = CreateReportRequestDto
+    export type PostReportsMutationError = AxiosError<void>
+
+    export const usePostReports = <TError = AxiosError<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: CreateReportRequestDto}, TContext>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postReports>>,
+        TError,
+        {data: CreateReportRequestDto},
+        TContext
+      > => {
+      return useMutation(getPostReportsMutationOptions(options), queryClient);
     }
 

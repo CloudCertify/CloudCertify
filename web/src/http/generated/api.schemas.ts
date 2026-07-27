@@ -43,6 +43,24 @@ export interface CheckAnswerResponseDto {
   explanation?: string | null;
 }
 
+export type ReportReason = typeof ReportReason[keyof typeof ReportReason];
+
+
+export const ReportReason = {
+  wrong_answer_key: 'wrong_answer_key',
+  unclear_wording: 'unclear_wording',
+  bad_explanation: 'bad_explanation',
+  outdated: 'outdated',
+} as const;
+
+export interface CreateReportRequestDto {
+  submissionId?: number;
+  questionId?: number;
+  reasons?: ReportReason[];
+  /** @nullable */
+  comment?: string | null;
+}
+
 export interface DomainResult {
   domain: string;
   correct: number;
@@ -53,6 +71,14 @@ export interface DomainResult {
 export interface FinishSubquizRequestDto {
   submissionId?: number;
 }
+
+export type Language = typeof Language[keyof typeof Language];
+
+
+export const Language = {
+  en_us: 'en_us',
+  pt_br: 'pt_br',
+} as const;
 
 export type ProviderKind = typeof ProviderKind[keyof typeof ProviderKind];
 
@@ -194,6 +220,26 @@ export interface QuizResultQuestionDto {
   explanation?: string | null;
   confidence?: Confidence | null;
   answers: QuizResultAnswerDto[];
+}
+
+export type ReportStatus = typeof ReportStatus[keyof typeof ReportStatus];
+
+
+export const ReportStatus = {
+  open: 'open',
+  resolved: 'resolved',
+  rejected: 'rejected',
+} as const;
+
+export interface ReportResponseDto {
+  submissionId?: number;
+  questionId?: number;
+  reasons?: ReportReason[];
+  /** @nullable */
+  comment?: string | null;
+  language?: Language;
+  status?: ReportStatus;
+  createdAt?: string;
 }
 
 export interface StartQuizRequestDto {

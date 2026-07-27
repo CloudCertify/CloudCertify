@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "CloudCertify API",
-    "description": "CloudCertify API — a cloud certification quiz and exam prep platform.",
+    "description": "CloudCertify API \u2014 a cloud certification quiz and exam prep platform.",
     "version": "v1"
   },
   "servers": [
@@ -17,7 +17,9 @@
   "paths": {
     "/auth/{provider}/login": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "provider",
@@ -44,7 +46,9 @@
     },
     "/auth/{provider}/callback": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "provider",
@@ -78,7 +82,9 @@
     },
     "/me": {
       "get": {
-        "tags": ["Me"],
+        "tags": [
+          "Me"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -105,7 +111,9 @@
     },
     "/me/submissions": {
       "get": {
-        "tags": ["Me"],
+        "tags": [
+          "Me"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -141,7 +149,9 @@
     },
     "/quiz": {
       "get": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -177,7 +187,9 @@
     },
     "/quiz/{quizId}": {
       "get": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -215,7 +227,9 @@
     },
     "/quiz/{quizId}/start": {
       "post": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -314,7 +328,9 @@
     },
     "/quiz/{quizId}/submit": {
       "post": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -372,7 +388,9 @@
     },
     "/quiz/{quizId}/subquizzes": {
       "get": {
-        "tags": ["Subquiz"],
+        "tags": [
+          "Subquiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -419,7 +437,9 @@
     },
     "/quiz/{quizId}/subquizzes/{subquizId}/start": {
       "post": {
-        "tags": ["Subquiz"],
+        "tags": [
+          "Subquiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -486,7 +506,9 @@
     },
     "/quiz/{quizId}/subquizzes/{subquizId}/check": {
       "post": {
-        "tags": ["Subquiz"],
+        "tags": [
+          "Subquiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -553,7 +575,9 @@
     },
     "/quiz/{quizId}/subquizzes/{subquizId}/finish": {
       "post": {
-        "tags": ["Subquiz"],
+        "tags": [
+          "Subquiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -614,6 +638,64 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/reports": {
+      "post": {
+        "tags": [
+          "Report"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReportRequestDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReportRequestDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReportRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
           }
         }
       }
@@ -691,7 +773,11 @@
         }
       },
       "CheckAnswerResponseDto": {
-        "required": ["isCorrect", "correctAnswerIds", "selectedAnswerIds"],
+        "required": [
+          "isCorrect",
+          "correctAnswerIds",
+          "selectedAnswerIds"
+        ],
         "type": "object",
         "properties": {
           "isCorrect": {
@@ -717,8 +803,36 @@
           }
         }
       },
+      "CreateReportRequestDto": {
+        "type": "object",
+        "properties": {
+          "submissionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "questionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportReason"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "DomainResult": {
-        "required": ["domain", "correct", "total", "weight"],
+        "required": [
+          "domain",
+          "correct",
+          "total",
+          "weight"
+        ],
         "type": "object",
         "properties": {
           "domain": {
@@ -746,6 +860,13 @@
             "format": "int32"
           }
         }
+      },
+      "Language": {
+        "enum": [
+          "en_us",
+          "pt_br"
+        ],
+        "type": "string"
       },
       "MeDto": {
         "type": "object",
@@ -802,11 +923,18 @@
         }
       },
       "ProviderKind": {
-        "enum": ["google", "git_hub"],
+        "enum": [
+          "google",
+          "git_hub"
+        ],
         "type": "string"
       },
       "QuestionDifficulty": {
-        "enum": ["easy", "medium", "hard"],
+        "enum": [
+          "easy",
+          "medium",
+          "hard"
+        ],
         "type": "string"
       },
       "QuestionDto": {
@@ -845,7 +973,10 @@
         }
       },
       "QuestionType": {
-        "enum": ["multiple_choice", "multiple_response"],
+        "enum": [
+          "multiple_choice",
+          "multiple_response"
+        ],
         "type": "string"
       },
       "QuizAnswer": {
@@ -950,15 +1081,28 @@
         }
       },
       "QuizLevel": {
-        "enum": ["foundational", "associate", "professional", "specialist"],
+        "enum": [
+          "foundational",
+          "associate",
+          "professional",
+          "specialist"
+        ],
         "type": "string"
       },
       "QuizProvider": {
-        "enum": ["azure", "aws", "gcp"],
+        "enum": [
+          "azure",
+          "aws",
+          "gcp"
+        ],
         "type": "string"
       },
       "QuizResultAnswerDto": {
-        "required": ["id", "isCorrect", "wasSelected"],
+        "required": [
+          "id",
+          "isCorrect",
+          "wasSelected"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -982,7 +1126,12 @@
         }
       },
       "QuizResultQuestionDto": {
-        "required": ["id", "text", "type", "answers"],
+        "required": [
+          "id",
+          "text",
+          "type",
+          "answers"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -1036,6 +1185,56 @@
             }
           }
         }
+      },
+      "ReportReason": {
+        "enum": [
+          "wrong_answer_key",
+          "unclear_wording",
+          "bad_explanation",
+          "outdated"
+        ],
+        "type": "string"
+      },
+      "ReportResponseDto": {
+        "type": "object",
+        "properties": {
+          "submissionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "questionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportReason"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
+            "$ref": "#/components/schemas/Language"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReportStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReportStatus": {
+        "enum": [
+          "open",
+          "resolved",
+          "rejected"
+        ],
+        "type": "string"
       },
       "StartQuizRequestDto": {
         "type": "object",
@@ -1165,7 +1364,13 @@
         }
       },
       "SubquizDto": {
-        "required": ["id", "title", "domain", "slug", "isAvailable"],
+        "required": [
+          "id",
+          "title",
+          "domain",
+          "slug",
+          "isAvailable"
+        ],
         "type": "object",
         "properties": {
           "id": {

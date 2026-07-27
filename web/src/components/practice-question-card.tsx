@@ -46,6 +46,11 @@ type PracticeQuestionCardProps = {
   isFinishing: boolean;
   /** True on the last question, so Continue finishes the drill. */
   isLast: boolean;
+  /**
+   * Report control for this Question. Rendered only in the revealed state — a
+   * Report hangs off a Check (issue #41), so it must not be reachable before.
+   */
+  reportControl?: ReactNode;
 };
 
 export function PracticeQuestionCard({
@@ -61,7 +66,8 @@ export function PracticeQuestionCard({
   onContinue,
   isChecking,
   isFinishing,
-  isLast
+  isLast,
+  reportControl
 }: PracticeQuestionCardProps) {
   const { t } = useI18n();
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
@@ -217,6 +223,10 @@ export function PracticeQuestionCard({
               </p>
             )}
           </div>
+        )}
+
+        {isRevealed && reportControl && (
+          <div className='mt-4 flex justify-end'>{reportControl}</div>
         )}
       </CardContent>
       <CardFooter className='flex justify-end border-t-2 border-black pt-6'>

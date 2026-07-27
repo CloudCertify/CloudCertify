@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import {
   Accordion,
@@ -13,9 +14,18 @@ type QuestionReviewProps = {
   questions: QuizResultQuestionDto[];
   /** Defaults to the localized "Question summary". */
   heading?: string;
+  /**
+   * Report control for a reviewed Question (issue #41). Omitted for full Quiz
+   * results, where reporting is not offered yet.
+   */
+  renderReportControl?: (questionId: number) => ReactNode;
 };
 
-export function QuestionReview({ questions, heading }: QuestionReviewProps) {
+export function QuestionReview({
+  questions,
+  heading,
+  renderReportControl
+}: QuestionReviewProps) {
   const { t } = useI18n();
 
   return (
@@ -109,6 +119,11 @@ export function QuestionReview({ questions, heading }: QuestionReviewProps) {
                       </div>
                     );
                   })}
+                  {renderReportControl && (
+                    <div className='flex justify-end'>
+                      {renderReportControl(question.id)}
+                    </div>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>

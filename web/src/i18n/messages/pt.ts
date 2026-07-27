@@ -290,6 +290,27 @@ export const pt: Messages = {
     finishAnyway: 'Finalizar mesmo assim'
   },
 
+  report: {
+    trigger: 'Relatar um problema',
+    reported: 'Problema relatado',
+    title: 'O que está errado nesta questão?',
+    reasonsHint: 'Marque tudo o que se aplica.',
+    reasons: {
+      wrong_answer_key: 'A resposta marcada está errada',
+      unclear_wording: 'A questão não faz sentido',
+      bad_explanation: 'A explicação não ajuda',
+      outdated: 'Isto está desatualizado'
+    },
+    commentLabel: 'Mais alguma coisa? (opcional)',
+    commentPlaceholder: 'Conte o que parece errado.',
+    commentCounter: (used: number, max: number) => `${used}/${max}`,
+    cancel: 'Cancelar',
+    submit: 'Enviar relato',
+    submitting: 'Enviando...',
+    success: 'Valeu — vamos revisar esta questão.',
+    error: 'Não foi possível enviar este relato. Tente de novo.'
+  },
+
   review: {
     summaryHeading: 'Resumo das questões',
     reviewHeading: 'Revisão das questões',
