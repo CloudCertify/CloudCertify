@@ -1,5 +1,5 @@
-import Axios from "axios";
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import Axios from 'axios';
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 /**
  * Where the API lives. Defaults to production so a plain `pnpm dev` (or a
@@ -7,7 +7,7 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
  * in `web/.env.local` to run the app against a local API. See `.env.example`.
  */
 export const API_BASE_URL: string =
-  import.meta.env.VITE_API_URL ?? "https://api-cloudcertify.snowye.dev";
+  import.meta.env.VITE_API_URL ?? 'https://api-cloudcertify.snowye.dev';
 
 /**
  * The single axios instance every generated endpoint goes through (orval

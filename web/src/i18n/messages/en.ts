@@ -251,6 +251,7 @@ export const en = {
 
   confidence: {
     label: 'How sure are you?',
+    revisitHint: 'Marked to revisit before you finish.',
     options: {
       guess: 'Guess',
       unsure: 'Unsure',
@@ -267,8 +268,12 @@ export const en = {
     landmark: 'Question navigator',
     answeredCount: (answered: number, total: number) =>
       `${answered} of ${total} answered`,
-    questionLabel: (index: number, answered: boolean) =>
-      `Question ${index}${answered ? ', answered' : ', unanswered'}`
+    reviewCount: (count: number) =>
+      count === 1 ? '1 to revisit' : `${count} to revisit`,
+    questionLabel: (index: number, answered: boolean, needsReview = false) =>
+      `Question ${index}${answered ? ', answered' : ', unanswered'}${
+        needsReview ? ', marked to revisit' : ''
+      }`
   },
 
   confirmFinish: {

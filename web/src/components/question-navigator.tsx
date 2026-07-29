@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ListOrdered, X } from 'lucide-react';
+import { AlertTriangle, ListOrdered, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,11 @@ type QuestionNavigatorProps = {
   currentIndex: number;
   /** answered[i] is true when question i has at least one selected answer. */
   answered: boolean[];
+  /**
+   * needsReview[i] is true when question i was rated Guess or Unsure — the
+   * visitor's own "come back to this". Optional: a Subquiz has no Confidence.
+   */
+  needsReview?: boolean[];
   onJump: (index: number) => void;
 };
 
@@ -24,6 +29,7 @@ type QuestionNavigatorProps = {
 export function QuestionNavigator({
   currentIndex,
   answered,
+  needsReview = [],
   onJump
 }: QuestionNavigatorProps) {
   const { t } = useI18n();
@@ -31,6 +37,7 @@ export function QuestionNavigator({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const answeredCount = answered.filter(Boolean).length;
+  const reviewCount = needsReview.filter(Boolean).length;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -88,6 +95,12 @@ export function QuestionNavigator({
                 <p className='text-sm font-bold text-black/60'>
                   {t.navigator.answeredCount(answeredCount, answered.length)}
                 </p>
+                {reviewCount > 0 && (
+                  <p className='mt-1 flex items-center gap-1.5 text-sm font-bold text-black/70'>
+                    <AlertTriangle className='h-4 w-4 text-warning' aria-hidden='true' />
+                    {t.navigator.reviewCount(reviewCount)}
+                  </p>
+                )}
               </div>
               <Button
                 type='button'
@@ -106,15 +119,20 @@ export function QuestionNavigator({
               <div className='grid grid-cols-5 gap-2'>
                 {answered.map((isAnswered, index) => {
                   const isCurrent = index === currentIndex;
+                  const isFlagged = needsReview[index] === true;
                   return (
                     <button
                       key={index}
                       type='button'
                       onClick={() => jumpToQuestion(index)}
                       aria-current={isCurrent ? 'true' : undefined}
-                      aria-label={t.navigator.questionLabel(index + 1, isAnswered)}
+                      aria-label={t.navigator.questionLabel(
+                        index + 1,
+                        isAnswered,
+                        isFlagged
+                      )}
                       className={cn(
-                        'h-9 w-9 rounded-[5px] border-2 border-black text-sm font-bold transition-all',
+                        'relative h-9 w-9 rounded-[5px] border-2 border-black text-sm font-bold transition-all',
                         isCurrent
                           ? 'translate-x-[1px] translate-y-[1px] bg-black text-white shadow-none'
                           : 'shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none',
@@ -125,6 +143,14 @@ export function QuestionNavigator({
                       )}
                     >
                       {index + 1}
+                      {/* Colour alone never carries this: the dot is a second
+                          channel and the aria-label spells it out. */}
+                      {isFlagged && (
+                        <span
+                          aria-hidden='true'
+                          className='absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-black bg-warning'
+                        />
+                      )}
                     </button>
                   );
                 })}
