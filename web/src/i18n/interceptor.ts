@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { apiClient } from '@/http/axios-instance';
 import { getCurrentLanguage } from './language';
 
 let registered = false;
@@ -12,7 +12,7 @@ export function registerLanguageInterceptor(): void {
   if (registered) return;
   registered = true;
 
-  axios.interceptors.request.use(config => {
+  apiClient.interceptors.request.use(config => {
     config.headers.set('Accept-Language', getCurrentLanguage());
     return config;
   });

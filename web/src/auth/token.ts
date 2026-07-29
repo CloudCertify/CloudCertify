@@ -1,10 +1,14 @@
 // Client-side JWT handling per ADR 0003: the token is JS-readable by design
 // (localStorage + Bearer header). Decode only — no signature verification.
 
+import { API_BASE_URL } from '@/http/axios-instance';
+
 export const TOKEN_STORAGE_KEY = 'cloudcertify:token';
 export const RETURN_TO_STORAGE_KEY = 'cloudcertify:returnTo';
 
-export const API_BASE_URL = 'https://api-cloudcertify.snowye.dev';
+// OAuth login is a full-page redirect, not an axios call, so it needs the base
+// URL as a string — re-exported so there is still exactly one place that knows it.
+export { API_BASE_URL };
 
 export type JwtPayload = {
   /** Unix seconds */
