@@ -50,12 +50,33 @@ public class SubmissionGrader
         var questions = await _questionRepository.GetQuestionsByIds(submission.ServedQuestionIds);
         var gradingResult = strategy.Grade(questions, answers);
 
+        // Confidence is read back off the persisted Recorded Answers, never off the request:
+        // the attempt is the source of truth for what was rated (ADR 0006).
+        var confidenceByQuestion = submission.RecordedAnswers
+            .Where(r => r.Confidence != null)
+            .ToDictionary(r => r.QuestionId, r => r.Confidence!.Value);
+
+        var luckyGuessCount = 0;
+        var misconceptionCount = 0;
+
         var resultQuestions = questions.Select(question =>
         {
             var selectedAnswerIds = answers
                 .Where(a => a.QuestionId == question.Id)
                 .SelectMany(a => a.AnswerIds)
                 .ToList();
+
+            var confidence = confidenceByQuestion.TryGetValue(question.Id, out var rating)
+                ? rating
+                : (Confidence?)null;
+
+            // Unrated questions fall through both branches, so they simply do not count.
+            if (confidence != null)
+            {
+                var isCorrect = QuestionCorrectness.IsCorrect(question, selectedAnswerIds);
+                if (confidence == Confidence.Guess && isCorrect) luckyGuessCount++;
+                if (confidence == Confidence.Confident && !isCorrect) misconceptionCount++;
+            }
 
             // Result content follows the Submission's stored Language, never the current
             // request header, so an attempt is never mixed-language (ADR 0004).
@@ -69,6 +90,7 @@ public class SubmissionGrader
                 ServiceCategory = question.ServiceCategory,
                 Services = question.Services,
                 Explanation = LocalizedContent.Explanation(question, submission.Language),
+                Confidence = confidence,
                 Answers = question.Answers
                     .Select(a => AnswerMapper.ToResultDto(a, selectedAnswerIds.Contains(a.Id), submission.Language))
                     .ToList()
@@ -86,6 +108,8 @@ public class SubmissionGrader
             CorrectCount = gradingResult.CorrectCount,
             ScaledScore = gradingResult.ScaledScore,
             Passed = gradingResult.Passed,
+            LuckyGuessCount = luckyGuessCount,
+            MisconceptionCount = misconceptionCount,
             DomainBreakdown = gradingResult.DomainBreakdown,
             Questions = resultQuestions
         };

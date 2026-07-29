@@ -432,6 +432,80 @@ public class QuizServiceTests
     }
 
     [Fact]
+    public async Task SubmitQuiz_CountsLuckyGuessesAndMisconceptions_FromRecordedAnswers()
+    {
+        // 100: guessed and right (lucky guess). 101: sure and wrong (misconception).
+        // 102: guessed and wrong, 103: unrated — neither is either count (ADR 0006).
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101, 102, 103],
+            RecordedAnswers =
+            [
+                Rated(Recorded(100, 1), Confidence.Guess),
+                Rated(Recorded(101, 4), Confidence.Confident),
+                Rated(Recorded(102, 6), Confidence.Guess),
+                Rated(Recorded(103, 7), null)
+            ]
+        };
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(new List<Question>
+        {
+            Question(100, "D", correctIds: [1], wrongIds: [2]),
+            Question(101, "D", correctIds: [3], wrongIds: [4]),
+            Question(102, "D", correctIds: [5], wrongIds: [6]),
+            Question(103, "D", correctIds: [7], wrongIds: [8])
+        });
+
+        var response = await CreateService().SubmitQuiz(1, 5);
+
+        Assert.Equal(1, response.LuckyGuessCount);
+        Assert.Equal(1, response.MisconceptionCount);
+    }
+
+    [Fact]
+    public async Task SubmitQuiz_ReportsNoConfidence_WhenNothingWasRated()
+    {
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100],
+            RecordedAnswers = [Recorded(100, 1)]
+        };
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>()))
+            .ReturnsAsync([Question(100, "D", correctIds: [1], wrongIds: [2])]);
+
+        var response = await CreateService().SubmitQuiz(1, 5);
+
+        Assert.Equal(0, response.LuckyGuessCount);
+        Assert.Equal(0, response.MisconceptionCount);
+        Assert.Null(Assert.Single(response.Questions).Confidence);
+    }
+
+    [Fact]
+    public async Task SubmitQuiz_CarriesConfidenceIntoReview_PerQuestion()
+    {
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+            RecordedAnswers = [Rated(Recorded(100, 1), Confidence.Unsure), Recorded(101, 3)]
+        };
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(new List<Question>
+        {
+            Question(100, "D", correctIds: [1], wrongIds: [2]),
+            Question(101, "D", correctIds: [3], wrongIds: [4])
+        });
+
+        var response = await CreateService().SubmitQuiz(1, 5);
+
+        Assert.Equal(Confidence.Unsure, response.Questions.Single(q => q.Id == 100).Confidence);
+        Assert.Null(response.Questions.Single(q => q.Id == 101).Confidence);
+    }
+
+    [Fact]
     public async Task SubmitQuiz_ResultContentFollowsSubmissionLanguage()
     {
         // The Submission was started in pt-BR; results resolve from its stored Language.

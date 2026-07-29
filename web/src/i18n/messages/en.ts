@@ -297,7 +297,8 @@ export const en = {
       `${correct ? 'Correct' : 'Incorrect'} — Click to view details`,
     explanation: 'Explanation',
     yourAnswer: '(Your answer)',
-    correctAnswer: '(Correct answer)'
+    correctAnswer: '(Correct answer)',
+    ratedAs: (rating: string) => `You were: ${rating}`
   },
 
   results: {
@@ -307,6 +308,11 @@ export const en = {
       `${passed ? 'PASS' : 'FAIL'} (Passing score: ${score})`,
     scoreLine: (correct: number, total: number) =>
       `You got ${correct} out of ${total} questions correct`,
+    confidenceHeading: 'What your confidence says',
+    luckyGuesses: 'Lucky guesses',
+    luckyGuessesHint: 'Guessed, and got it right — worth studying anyway.',
+    misconceptions: 'Misconceptions',
+    misconceptionsHint: "You were sure, and you were wrong — start here.",
     domainBreakdown: 'Domain breakdown',
     domainStats: (correct: number, total: number, pct: number, weight: number) =>
       `${correct}/${total} (${pct}%) · weight ${weight}%`,
