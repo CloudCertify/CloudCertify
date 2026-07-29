@@ -15,6 +15,7 @@ import { QuestionCard } from '@/components/question-card';
 import { QuestionNavigator } from '@/components/question-navigator';
 import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { QuestionReview } from '@/components/question-review';
+import { ConfidenceSummary } from '@/components/confidence-summary';
 import { ConfidenceRating } from '@/components/confidence-rating';
 import { needsReview } from '@/lib/confidence';
 import { Footer } from '@/components/footer';
@@ -60,6 +61,10 @@ export function QuizSessionPage() {
   const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
   const [correctCount, setCorrectCount] = useState<number | null>(null);
   const [domainBreakdown, setDomainBreakdown] = useState<DomainResult[]>([]);
+  // Server-counted from the persisted Recorded Answers, never recomputed from the
+  // in-memory ratings above: the attempt is the source of truth (ADR 0006).
+  const [luckyGuessCount, setLuckyGuessCount] = useState(0);
+  const [misconceptionCount, setMisconceptionCount] = useState(0);
   const [resultQuestions, setResultQuestions] = useState<QuizResultQuestionDto[] | null>(
     null
   );
@@ -161,6 +166,8 @@ export function QuizSessionPage() {
       setTotalQuestions(res.data.totalQuestions);
       setCorrectCount(res.data.correctCount);
       setDomainBreakdown(res.data.domainBreakdown ?? []);
+      setLuckyGuessCount(res.data.luckyGuessCount);
+      setMisconceptionCount(res.data.misconceptionCount);
       setResultQuestions(res.data.questions);
       setPhase('results');
     } catch {
@@ -187,6 +194,8 @@ export function QuizSessionPage() {
       setTotalQuestions(null);
       setCorrectCount(null);
       setDomainBreakdown([]);
+      setLuckyGuessCount(0);
+      setMisconceptionCount(0);
       setResultQuestions(null);
       setPhase('quiz');
     } catch {
@@ -298,6 +307,12 @@ export function QuizSessionPage() {
                   </div>
                 </div>
               )}
+
+              <ConfidenceSummary
+                luckyGuessCount={luckyGuessCount}
+                misconceptionCount={misconceptionCount}
+                questions={resultQuestions ?? []}
+              />
 
               <QuestionReview questions={resultQuestions ?? []} />
             </CardContent>

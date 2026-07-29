@@ -5,6 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger
 } from '@/components/ui/accordion';
+import { ConfidenceBadge } from '@/components/confidence-badge';
 import { useI18n } from '@/i18n/context';
 import type { QuizResultQuestionDto } from '@/http/generated/api.schemas';
 
@@ -55,6 +56,9 @@ export function QuestionReview({ questions, heading }: QuestionReviewProps) {
               </AccordionTrigger>
               <AccordionContent>
                 <div className='space-y-3 pt-2 pl-9'>
+                  {/* Beside the explanation on purpose: the rating and the correction
+                      belong together (ADR 0006). Absent when the question was unrated. */}
+                  <ConfidenceBadge value={question.confidence} />
                   {question.explanation && (
                     <div className='p-3 rounded-[5px] border-2 border-black bg-background'>
                       <p className='text-sm font-bold text-black mb-1'>

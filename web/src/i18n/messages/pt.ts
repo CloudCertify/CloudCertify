@@ -287,7 +287,8 @@ export const pt: Messages = {
       `${correct ? 'Correto' : 'Incorreto'} — Clique para ver os detalhes`,
     explanation: 'Explicação',
     yourAnswer: '(Sua resposta)',
-    correctAnswer: '(Resposta correta)'
+    correctAnswer: '(Resposta correta)',
+    ratedAs: (rating: string) => `Você estava: ${rating}`
   },
 
   results: {
@@ -297,6 +298,11 @@ export const pt: Messages = {
       `${passed ? 'APROVADO' : 'REPROVADO'} (Nota de corte: ${score})`,
     scoreLine: (correct: number, total: number) =>
       `Você acertou ${correct} de ${total} questões`,
+    confidenceHeading: 'O que sua confiança diz',
+    luckyGuesses: 'Chutes certeiros',
+    luckyGuessesHint: 'Você chutou e acertou — ainda vale estudar.',
+    misconceptions: 'Conceitos errados',
+    misconceptionsHint: 'Você tinha certeza e errou — comece por aqui.',
     domainBreakdown: 'Detalhe por domínio',
     domainStats: (correct: number, total: number, pct: number, weight: number) =>
       `${correct}/${total} (${pct}%) · peso ${weight}%`,

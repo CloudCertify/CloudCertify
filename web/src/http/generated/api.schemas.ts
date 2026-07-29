@@ -192,6 +192,7 @@ export interface QuizResultQuestionDto {
   services?: string[] | null;
   /** @nullable */
   explanation?: string | null;
+  confidence?: Confidence | null;
   answers: QuizResultAnswerDto[];
 }
 
@@ -210,6 +211,8 @@ export interface SubmitQuizResponseDto {
   correctCount: number;
   scaledScore: number;
   passed: boolean;
+  luckyGuessCount: number;
+  misconceptionCount: number;
   domainBreakdown: DomainResult[];
   questions: QuizResultQuestionDto[];
 }
