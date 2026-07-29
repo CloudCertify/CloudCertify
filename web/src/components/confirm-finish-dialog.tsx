@@ -36,7 +36,7 @@ export function ConfirmFinishDialog({
     <dialog
       ref={ref}
       onClose={onCancel}
-      className='m-auto w-full max-w-md rounded-[5px] border-4 border-black bg-white p-0 shadow-[8px_8px_0px_0px_#000] backdrop:bg-black/50'
+      className='m-auto w-full max-w-lg rounded-[5px] border-4 border-black bg-white p-0 shadow-[8px_8px_0px_0px_#000] backdrop:bg-black/50'
     >
       <div className='border-b-2 border-black px-6 py-4'>
         <h2 className='text-xl font-black text-black'>
@@ -50,7 +50,10 @@ export function ConfirmFinishDialog({
           ? t.confirmFinish.bodyAllAnswered
           : t.confirmFinish.bodyWithUnanswered(unansweredCount)}
       </p>
-      <div className='flex justify-end gap-3 border-t-2 border-black px-6 py-4'>
+      {/* Buttons never shrink or wrap their label (whitespace-nowrap), so a
+          long-label locale (pt-BR) would overflow the dialog to the left past
+          its border. Let the row wrap instead. */}
+      <div className='flex flex-wrap justify-end gap-3 border-t-2 border-black px-6 py-4'>
         <Button variant='outline' onClick={onCancel}>
           {t.confirmFinish.keepAnswering}
         </Button>
