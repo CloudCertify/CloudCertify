@@ -655,8 +655,20 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          "confidence": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Confidence"
+              }
+            ],
+            "nullable": true
           }
         }
+      },
+      "Confidence": {
+        "enum": ["guess", "unsure", "confident"],
+        "type": "string"
       },
       "CheckAnswerRequestDto": {
         "type": "object",

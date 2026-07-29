@@ -239,6 +239,15 @@ export const pt: Messages = {
     notQuite: 'Quase lá'
   },
 
+  confidence: {
+    label: 'Quanta certeza você tem?',
+    options: {
+      guess: 'Chute',
+      unsure: 'Em dúvida',
+      confident: 'Confiante'
+    }
+  },
+
   navigator: {
     open: 'Abrir navegador de questões',
     openTitle: (index: number, total: number) =>

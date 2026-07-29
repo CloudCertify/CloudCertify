@@ -249,6 +249,15 @@ export const en = {
     notQuite: 'Not quite'
   },
 
+  confidence: {
+    label: 'How sure are you?',
+    options: {
+      guess: 'Guess',
+      unsure: 'Unsure',
+      confident: 'Confident'
+    }
+  },
+
   navigator: {
     open: 'Open question navigator',
     openTitle: (index: number, total: number) =>

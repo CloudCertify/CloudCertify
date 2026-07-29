@@ -18,4 +18,11 @@ public class RecordedAnswer
     public int QuestionId { get; set; }
 
     public List<int> SelectedAnswerIds { get; set; } = new();
+
+    /// <summary>
+    /// How sure the visitor was, committed alongside the answer in a full Quiz and revised with
+    /// it. Null when unrated — rating is optional and never blocks Submit — and always null for
+    /// a Subquiz, which collects no Confidence (ADR 0006).
+    /// </summary>
+    public Confidence? Confidence { get; set; }
 }

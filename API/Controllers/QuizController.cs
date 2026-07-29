@@ -72,12 +72,13 @@ public class QuizController: ControllerBase
     /// Answer; re-sending it for the same Question overwrites the previous one, since the
     /// Navigator allows returning to any Question until Submit (ADR 0006). Returns 204 and
     /// nothing else — no correctness, no correct answer ids, no explanation (ADR 0002).
+    /// May carry an optional Confidence; it is stored on the Recorded Answer and never graded on.
     /// </summary>
     [HttpPost("{quizId}/answer")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> AnswerQuestion(int quizId, [FromBody] AnswerQuestionRequestDto request)
     {
-        await _quizService.AnswerQuestion(quizId, request.SubmissionId, request.QuestionId, request.AnswerIds);
+        await _quizService.AnswerQuestion(quizId, request.SubmissionId, request.QuestionId, request.AnswerIds, request.Confidence);
 
         return NoContent();
     }

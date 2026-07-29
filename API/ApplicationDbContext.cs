@@ -173,6 +173,9 @@ public class ApplicationDbContext: DbContext
         {
             entity.HasKey(r => new { r.SubmissionId, r.QuestionId });
             entity.Property(r => r.SelectedAnswerIds).HasColumnType("integer[]").IsRequired();
+            // Nullable on purpose: an unrated answer stores no Confidence, so there is no
+            // phantom "unrated" bucket in behavioral queries (ADR 0006).
+            entity.Property(r => r.Confidence).HasConversion<string>().HasMaxLength(32);
         });
 
         modelBuilder.Entity<Report>(entity =>

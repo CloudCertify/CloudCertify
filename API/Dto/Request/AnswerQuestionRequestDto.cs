@@ -1,3 +1,5 @@
+using API.Entities;
+
 namespace API.Model.Request;
 
 /// <summary>
@@ -11,4 +13,10 @@ public class AnswerQuestionRequestDto
     public int SubmissionId { get; set; }
     public int QuestionId { get; set; }
     public List<int> AnswerIds { get; set; } = new();
+
+    /// <summary>
+    /// Optional self-reported certainty. Omit it (or send null) to leave the Question unrated —
+    /// rating never blocks Submit and never affects the score (ADR 0006).
+    /// </summary>
+    public Confidence? Confidence { get; set; }
 }
