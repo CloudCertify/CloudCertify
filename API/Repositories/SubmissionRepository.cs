@@ -32,6 +32,24 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
         await context.SaveChangesAsync();
     }
 
+    public async Task SaveAnswer(RecordedAnswer recordedAnswer)
+    {
+        var existing = await context.Set<RecordedAnswer>()
+            .FirstOrDefaultAsync(r => r.SubmissionId == recordedAnswer.SubmissionId
+                                      && r.QuestionId == recordedAnswer.QuestionId);
+
+        if (existing == null)
+        {
+            context.Set<RecordedAnswer>().Add(recordedAnswer);
+        }
+        else
+        {
+            existing.SelectedAnswerIds = recordedAnswer.SelectedAnswerIds;
+        }
+
+        await context.SaveChangesAsync();
+    }
+
     public async Task<int> ClaimAnonymousSubmissions(int userId, IReadOnlyCollection<string> emails)
     {
         return await context.Submission

@@ -133,8 +133,9 @@ public class ApplicationDbContext: DbContext
             // Claiming scans anonymous submissions by email on every login.
             entity.HasIndex(s => s.Email);
 
-            // Recorded Answers belong to the Submission: one row per (Submission, Question),
-            // so a Question can be Checked at most once. See docs/adr/0002-incremental-subquiz-feedback.md.
+            // Recorded Answers belong to the Submission: one row per (Submission, Question), so a
+            // Question is Checked at most once in a Subquiz and re-answering in a full Quiz
+            // overwrites the row rather than appending (ADR 0002, ADR 0006).
             entity.HasMany(s => s.RecordedAnswers)
                 .WithOne()
                 .HasForeignKey(r => r.SubmissionId)

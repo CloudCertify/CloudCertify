@@ -13,6 +13,12 @@ export interface AnswerDto {
   image?: string | null;
 }
 
+export interface AnswerQuestionRequestDto {
+  submissionId?: number;
+  questionId?: number;
+  answerIds?: number[];
+}
+
 export interface CheckAnswerRequestDto {
   submissionId?: number;
   questionId?: number;
@@ -186,7 +192,6 @@ export interface StartQuizRequestDto {
 
 export interface SubmitQuizRequestDto {
   submissionId?: number;
-  answers?: QuizAnswer[];
 }
 
 export interface SubmitQuizResponseDto {
