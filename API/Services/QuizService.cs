@@ -158,9 +158,13 @@ public class QuizService
      /// (ADR 0006). Rejects a Submission for the wrong quiz, a Subquiz Submission (a Check is
      /// final — ADR 0002), an already-finished attempt, and a Question that was never served.
      /// Returns nothing: this extends commit, not feedback, so no correctness leaks mid-attempt.
+     ///
+     /// <paramref name="confidence"/> is optional and rides along with the answer: it is stored
+     /// as sent, so re-answering a Question re-rates it and null clears a previous rating
+     /// (latest wins). It never affects grading (ADR 0006).
      /// </summary>
-     /// <example>await quizService.AnswerQuestion(quizId: 1, submissionId: 42, questionId: 100, [7]);</example>
-     public async Task AnswerQuestion(int quizId, int submissionId, int questionId, List<int> answerIds)
+     /// <example>await quizService.AnswerQuestion(quizId: 1, submissionId: 42, questionId: 100, [7], Confidence.Guess);</example>
+     public async Task AnswerQuestion(int quizId, int submissionId, int questionId, List<int> answerIds, Confidence? confidence = null)
      {
          var submission = await _submissionRepository.GetById(submissionId);
 
@@ -185,6 +189,7 @@ public class QuizService
              SubmissionId = submissionId,
              QuestionId = questionId,
              SelectedAnswerIds = answerIds,
+             Confidence = confidence,
          });
      }
 

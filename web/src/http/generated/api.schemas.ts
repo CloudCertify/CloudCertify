@@ -13,10 +13,20 @@ export interface AnswerDto {
   image?: string | null;
 }
 
+export type Confidence = typeof Confidence[keyof typeof Confidence];
+
+
+export const Confidence = {
+  guess: 'guess',
+  unsure: 'unsure',
+  confident: 'confident',
+} as const;
+
 export interface AnswerQuestionRequestDto {
   submissionId?: number;
   questionId?: number;
   answerIds?: number[];
+  confidence?: Confidence | null;
 }
 
 export interface CheckAnswerRequestDto {

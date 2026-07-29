@@ -143,8 +143,10 @@ public class SubquizServiceTests
         Assert.Equal(new[] { 1 }, result.CorrectAnswerIds);
         Assert.Equal(new[] { 1 }, result.SelectedAnswerIds);
         Assert.Equal("because AWS", result.Explanation);
+        // A Subquiz collects no Confidence: a Check reveals correctness immediately (ADR 0006).
         _submissions.Verify(r => r.RecordAnswer(It.Is<RecordedAnswer>(ra =>
-            ra.SubmissionId == 5 && ra.QuestionId == 10 && ra.SelectedAnswerIds.SequenceEqual(new[] { 1 }))), Times.Once);
+            ra.SubmissionId == 5 && ra.QuestionId == 10 && ra.SelectedAnswerIds.SequenceEqual(new[] { 1 })
+            && ra.Confidence == null)), Times.Once);
     }
 
     [Fact]

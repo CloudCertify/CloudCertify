@@ -1,5 +1,6 @@
 using API.Entities;
 using API.Model.Request;
+using API.Model.Response;
 using API.Repositories;
 using API.Services;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -250,6 +251,51 @@ public class QuizServiceTests
     }
 
     [Fact]
+    public async Task AnswerQuestion_PersistsConfidence_WhenRated()
+    {
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+        });
+
+        await CreateService().AnswerQuestion(1, 5, 100, [7], Confidence.Guess);
+
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a =>
+            a.QuestionId == 100 && a.Confidence == Confidence.Guess)), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_PersistsNoConfidence_WhenUnrated()
+    {
+        // Rating is optional: an unrated answer stores no Confidence at all (ADR 0006).
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+        });
+
+        await CreateService().AnswerQuestion(1, 5, 100, [7]);
+
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a => a.Confidence == null)), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_ReRates_WhenAnswerChanges()
+    {
+        // Changing the answer re-rates it; the latest rating wins.
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100],
+            RecordedAnswers = [Recorded(100, 7)]
+        });
+        var service = CreateService();
+
+        await service.AnswerQuestion(1, 5, 100, [8], Confidence.Confident);
+
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a =>
+            a.SelectedAnswerIds.SequenceEqual(new[] { 8 }) && a.Confidence == Confidence.Confident)), Times.Once);
+    }
+
+    [Fact]
     public async Task AnswerQuestion_Throws_WhenQuestionWasNotServed()
     {
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
@@ -333,6 +379,56 @@ public class QuizServiceTests
 
         Assert.Equal(2, response.CorrectCount);
         Assert.Equal(1000, response.ScaledScore);
+    }
+
+    [Fact]
+    public async Task SubmitQuiz_ScoresIdentically_WhateverTheConfidence()
+    {
+        // Self-reported data is never score-bearing: two attempts answered the same but rated
+        // oppositely (or not at all) must produce the same score and pass/fail (ADR 0006).
+        async Task<SubmitQuizResponseDto> Grade(Confidence?[] confidences)
+        {
+            var submissions = new Mock<ISubmissionRepository>();
+            var questions = new Mock<IQuestionRepository>();
+            var quizzes = new Mock<IQuizRepository>();
+            submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+            {
+                Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+                RecordedAnswers =
+                [
+                    Rated(Recorded(100, 1), confidences[0]),
+                    Rated(Recorded(101, 4), confidences[1])
+                ]
+            });
+            quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
+            questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(new List<Question>
+            {
+                Question(100, "D", correctIds: [1], wrongIds: [2]),
+                Question(101, "D", correctIds: [3], wrongIds: [4])
+            });
+
+            return await new QuizService(quizzes.Object, submissions.Object,
+                new SubmissionGrader(questions.Object, submissions.Object),
+                NullLogger<QuizService>.Instance).SubmitQuiz(1, 5);
+        }
+
+        var unrated = await Grade([null, null]);
+        var confident = await Grade([Confidence.Confident, Confidence.Confident]);
+        var guessed = await Grade([Confidence.Guess, Confidence.Guess]);
+
+        Assert.Equal(unrated.ScaledScore, confident.ScaledScore);
+        Assert.Equal(unrated.ScaledScore, guessed.ScaledScore);
+        Assert.Equal(unrated.Passed, confident.Passed);
+        Assert.Equal(unrated.CorrectCount, guessed.CorrectCount);
+        Assert.Equal(
+            unrated.DomainBreakdown.Select(d => (d.Domain, d.Correct, d.Total)),
+            guessed.DomainBreakdown.Select(d => (d.Domain, d.Correct, d.Total)));
+    }
+
+    private static RecordedAnswer Rated(RecordedAnswer answer, Confidence? confidence)
+    {
+        answer.Confidence = confidence;
+        return answer;
     }
 
     [Fact]

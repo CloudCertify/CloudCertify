@@ -15,6 +15,7 @@ import { QuestionCard } from '@/components/question-card';
 import { QuestionNavigator } from '@/components/question-navigator';
 import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { QuestionReview } from '@/components/question-review';
+import { ConfidenceRating } from '@/components/confidence-rating';
 import { Footer } from '@/components/footer';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useI18n } from '@/i18n/context';
@@ -25,6 +26,7 @@ import {
   postQuizQuizIdSubmit
 } from '@/http/generated/api';
 import type {
+  Confidence,
   QuizDetailDto,
   QuizResultQuestionDto,
   DomainResult
@@ -50,6 +52,8 @@ export function QuizSessionPage() {
   const [phase, setPhase] = useState<Phase>('quiz');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, number[]>>({});
+  // Confidence is optional and never gates Submit, so an unrated question is simply absent here.
+  const [confidences, setConfidences] = useState<Record<number, Confidence>>({});
   const [scaledScore, setScaledScore] = useState<number | null>(null);
   const [passed, setPassed] = useState(false);
   const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
@@ -85,12 +89,25 @@ export function QuizSessionPage() {
   // Every selection is committed to the server as a Recorded Answer, so the attempt —
   // not the browser — is the source of truth at Submit (ADR 0006). Re-answering a
   // Question overwrites its previous commit; nothing about correctness comes back.
-  const commitAnswer = (questionId: number, answerIds: number[]) => {
+  const commitAnswer = (
+    questionId: number,
+    answerIds: number[],
+    confidence: Confidence | null
+  ) => {
     postQuizQuizIdAnswer(quizId, {
       submissionId: quizDetail.submissionId,
       questionId,
-      answerIds
+      answerIds,
+      confidence
     }).catch(() => toast.error(t.results.answerError));
+  };
+
+  // Rating rides along with the answer it describes; the latest commit wins (ADR 0006).
+  const handleRate = (confidence: Confidence) => {
+    const qId = currentQuestion?.id;
+    if (qId == null) return;
+    setConfidences(prev => ({ ...prev, [qId]: confidence }));
+    commitAnswer(qId, userAnswers[qId] ?? [], confidence);
   };
 
   const handleAnswerSelect = (answerId: number) => {
@@ -109,9 +126,18 @@ export function QuizSessionPage() {
             : [...current, answerId]
         : [answerId];
 
-    if (next === current) return; // selection capped: nothing changed, nothing to commit
+    // Nothing changed (selection capped, or the same single choice re-picked): don't commit,
+    // and above all don't drop a Confidence the visitor already gave for this same answer.
+    if (next.length === current.length && next.every(id => current.includes(id))) return;
+
     setUserAnswers(prev => ({ ...prev, [qId]: next }));
-    commitAnswer(qId, next);
+    // A new answer invalidates the old rating: changing the answer means re-rating it.
+    setConfidences(prev => {
+      const remaining = { ...prev };
+      delete remaining[qId];
+      return remaining;
+    });
+    commitAnswer(qId, next, null);
   };
 
   const unansweredCount = questions.filter(
@@ -154,6 +180,7 @@ export function QuizSessionPage() {
       setSessionData(newData);
       setCurrentIndex(0);
       setUserAnswers({});
+      setConfidences({});
       setScaledScore(null);
       setPassed(false);
       setTotalQuestions(null);
@@ -316,6 +343,13 @@ export function QuizSessionPage() {
               finishLabel={t.question.finishQuiz}
               isSubmitting={isSubmitting}
             />
+            {currentQuestion?.id != null &&
+              (userAnswers[currentQuestion.id]?.length ?? 0) > 0 && (
+                <ConfidenceRating
+                  value={confidences[currentQuestion.id] ?? null}
+                  onRate={handleRate}
+                />
+              )}
             <div className='flex justify-end'>
               <Button onClick={handleFinishRequest} disabled={isSubmitting}>
                 {isSubmitting ? t.common.submitting : t.question.finishQuiz}

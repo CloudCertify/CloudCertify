@@ -45,6 +45,8 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
         else
         {
             existing.SelectedAnswerIds = recordedAnswer.SelectedAnswerIds;
+            // Latest rating wins, including back to unrated: a changed answer re-rates (ADR 0006).
+            existing.Confidence = recordedAnswer.Confidence;
         }
 
         await context.SaveChangesAsync();
