@@ -74,4 +74,36 @@ describe('QuestionNavigator', () => {
     expect(screen.getByRole('button', { name: 'Question 1, answered' }))
       .not.toHaveAttribute('aria-current');
   });
+
+  it('marks low-confidence questions as ones to revisit, and counts them', () => {
+    render(
+      <QuestionNavigator
+        currentIndex={0}
+        answered={[true, true, true]}
+        needsReview={[true, false, true]}
+        onJump={() => {}}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /open question navigator/i }));
+
+    // Spelled out in the label, so the marker is never colour-only.
+    expect(screen.getByRole('button', { name: 'Question 3, answered, marked to revisit' }))
+      .toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Question 2, answered' }))
+      .toBeInTheDocument();
+    expect(screen.getByText('2 to revisit')).toBeInTheDocument();
+  });
+
+  it('shows no revisit marker when nothing was rated', () => {
+    render(
+      <QuestionNavigator currentIndex={0} answered={[true, true]} onJump={() => {}} />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /open question navigator/i }));
+
+    expect(screen.queryByText(/to revisit/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Question 1, answered' }))
+      .toBeInTheDocument();
+  });
 });

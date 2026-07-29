@@ -16,6 +16,7 @@ import { QuestionNavigator } from '@/components/question-navigator';
 import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { QuestionReview } from '@/components/question-review';
 import { ConfidenceRating } from '@/components/confidence-rating';
+import { needsReview } from '@/lib/confidence';
 import { Footer } from '@/components/footer';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useI18n } from '@/i18n/context';
@@ -324,6 +325,10 @@ export function QuizSessionPage() {
             currentIndex={currentIndex}
             answered={questions.map(
               q => q.id != null && (userAnswers[q.id]?.length ?? 0) > 0
+            )}
+            // The visitor's own "come back to this": a Guess or Unsure rating.
+            needsReview={questions.map(
+              q => q.id != null && needsReview(confidences[q.id])
             )}
             onJump={setCurrentIndex}
           />

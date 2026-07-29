@@ -241,6 +241,7 @@ export const pt: Messages = {
 
   confidence: {
     label: 'Quanta certeza você tem?',
+    revisitHint: 'Marcada para revisar antes de finalizar.',
     options: {
       guess: 'Chute',
       unsure: 'Em dúvida',
@@ -257,8 +258,12 @@ export const pt: Messages = {
     landmark: 'Navegador de questões',
     answeredCount: (answered: number, total: number) =>
       `${answered} de ${total} respondidas`,
-    questionLabel: (index: number, answered: boolean) =>
-      `Questão ${index}${answered ? ', respondida' : ', não respondida'}`
+    reviewCount: (count: number) =>
+      count === 1 ? '1 para revisar' : `${count} para revisar`,
+    questionLabel: (index: number, answered: boolean, needsReview = false) =>
+      `Questão ${index}${answered ? ', respondida' : ', não respondida'}${
+        needsReview ? ', marcada para revisar' : ''
+      }`
   },
 
   confirmFinish: {
