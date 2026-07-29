@@ -45,7 +45,7 @@
 - [ ] Detailed explanations (why correct/wrong, exam strategy, common traps)
 - [ ] Domain performance tracking by service/concept
 - [ ] Review modes (retry incorrect, flagged, guessed)
-- [ ] Confidence scoring (1-5) to detect lucky guesses and misconceptions
+- [ ] Confidence scoring (Guess/Unsure/Confident, full quizzes only) to detect lucky guesses and misconceptions — ADR 0006
 
 **V2 — Adaptive Learning Engine**
 
