@@ -300,6 +300,7 @@ export const en = {
     submitError:
       'Could not submit this attempt. It may already be finished — use "Try Again" to start a new one.',
     restartError: 'Could not start a new attempt. Please try again.',
+    answerError: 'Could not save that answer. Check your connection and pick it again.',
     checkError: 'Could not check this answer. Please try again.',
     finishError: 'Could not finish this practice. Please try again.'
   },

@@ -218,6 +218,124 @@ public class QuizServiceTests
     }
 
     [Fact]
+    public async Task AnswerQuestion_CommitsRecordedAnswer_ToFullQuizSubmission()
+    {
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101]
+        });
+
+        await CreateService().AnswerQuestion(1, 5, 100, [7]);
+
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a =>
+            a.SubmissionId == 5 && a.QuestionId == 100 && a.SelectedAnswerIds.SequenceEqual(new[] { 7 }))), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_OverwritesPreviousAnswer_WhenReAnswered()
+    {
+        // The Navigator allows returning to a Question: the later commit wins (ADR 0006).
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100],
+            RecordedAnswers = [Recorded(100, 7)]
+        });
+        var service = CreateService();
+
+        await service.AnswerQuestion(1, 5, 100, [8]);
+
+        // Persistence upserts on (SubmissionId, QuestionId), so no immutability guard here.
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a =>
+            a.QuestionId == 100 && a.SelectedAnswerIds.SequenceEqual(new[] { 8 }))), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_Throws_WhenQuestionWasNotServed()
+    {
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+        });
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.AnswerQuestion(1, 5, 999, [7]));
+        _submissions.Verify(r => r.SaveAnswer(It.IsAny<RecordedAnswer>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_Throws_WhenSubmissionIsSubquizAttempt()
+    {
+        // A Subquiz Check is final: it must not be re-answered through the full-quiz path (ADR 0002).
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, SubquizId = 2, Email = "u@e.com", ServedQuestionIds = [100]
+        });
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.AnswerQuestion(1, 5, 100, [7]));
+        _submissions.Verify(r => r.SaveAnswer(It.IsAny<RecordedAnswer>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_Throws_WhenSubmissionAlreadyFinished()
+    {
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100], Finished = true, Score = 720
+        });
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.AnswerQuestion(1, 5, 100, [7]));
+        _submissions.Verify(r => r.SaveAnswer(It.IsAny<RecordedAnswer>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_Throws_WhenSubmissionMissing()
+    {
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync((Submission?)null);
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.AnswerQuestion(1, 5, 100, [7]));
+        _submissions.Verify(r => r.SaveAnswer(It.IsAny<RecordedAnswer>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_CommitsForLoggedInAttempt_TheSameWayAsAnonymous()
+    {
+        _submissions.Setup(r => r.GetById(6)).ReturnsAsync(new Submission
+        {
+            Id = 6, QuizId = 1, UserId = 42, ServedQuestionIds = [100]
+        });
+
+        await CreateService().AnswerQuestion(1, 6, 100, [7]);
+
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a => a.SubmissionId == 6)), Times.Once);
+    }
+
+    [Fact]
+    public async Task SubmitQuiz_GradesRecordedAnswers_IdenticallyToTheAnswersCommitted()
+    {
+        // An attempt answered identically scores the same as before the commit-as-you-go change.
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+            RecordedAnswers = [Recorded(100, 1), Recorded(101, 3)]
+        };
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(new List<Question>
+        {
+            Question(100, "D", correctIds: [1], wrongIds: [2]),
+            Question(101, "D", correctIds: [3], wrongIds: [4])
+        });
+
+        var response = await CreateService().SubmitQuiz(1, 5);
+
+        Assert.Equal(2, response.CorrectCount);
+        Assert.Equal(1000, response.ScaledScore);
+    }
+
+    [Fact]
     public async Task SubmitQuiz_ResultContentFollowsSubmissionLanguage()
     {
         // The Submission was started in pt-BR; results resolve from its stored Language.
@@ -227,13 +345,14 @@ public class QuizServiceTests
         question.ExplanationPt = "porque AWS";
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100], Language = Language.PtBr
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100], Language = Language.PtBr,
+            RecordedAnswers = [Recorded(100, 1)]
         };
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
         _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
         _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync([question]);
 
-        var response = await CreateService().SubmitQuiz(1, 5, [Answer(100, 1)]);
+        var response = await CreateService().SubmitQuiz(1, 5);
 
         var resultQuestion = Assert.Single(response.Questions);
         Assert.Equal("O que é EC2?", resultQuestion.Text);
@@ -248,8 +367,7 @@ public class QuizServiceTests
 
         var service = CreateService();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.SubmitQuiz(1, 5, new List<QuizAnswer>()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.SubmitQuiz(1, 5));
     }
 
     [Fact]
@@ -262,8 +380,7 @@ public class QuizServiceTests
 
         var service = CreateService();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.SubmitQuiz(1, 5, new List<QuizAnswer>()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.SubmitQuiz(1, 5));
         _submissions.Verify(r => r.Update(It.IsAny<Submission>()), Times.Never);
     }
 
@@ -277,8 +394,7 @@ public class QuizServiceTests
 
         var service = CreateService();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.SubmitQuiz(1, 5, new List<QuizAnswer>()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.SubmitQuiz(1, 5));
         _submissions.Verify(r => r.Update(It.IsAny<Submission>()), Times.Never);
     }
 
@@ -286,14 +402,17 @@ public class QuizServiceTests
     public async Task SubmitQuiz_Throws_AndDoesNotOverwriteScore_WhenAlreadyFinished()
     {
         // Replay of a finished full-quiz attempt must be rejected without re-grading (issue #12).
-        var finished = new Submission { Id = 5, QuizId = 1, Email = "u@e.com", Finished = true, Score = 720 };
+        var finished = new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", Finished = true, Score = 720,
+            RecordedAnswers = [Recorded(100, 1)]
+        };
         _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "SAA-C03" });
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(finished);
 
         var service = CreateService();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.SubmitQuiz(1, 5, new List<QuizAnswer> { Answer(100, 1) }));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.SubmitQuiz(1, 5));
         Assert.Equal(720, finished.Score); // original score untouched
         _submissions.Verify(r => r.Update(It.IsAny<Submission>()), Times.Never);
         _questions.Verify(r => r.GetQuestionsByIds(It.IsAny<List<int>>()), Times.Never);
@@ -307,14 +426,17 @@ public class QuizServiceTests
 
         var service = CreateService();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.SubmitQuiz(1, 5, new List<QuizAnswer>()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.SubmitQuiz(1, 5));
     }
 
     [Fact]
     public async Task SubmitQuiz_GradesScoresAndPersistsFinishedSubmission()
     {
-        var submission = new Submission { Id = 5, QuizId = 1, Email = "u@e.com", Finished = false, ServedQuestionIds = [100] };
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", Finished = false, ServedQuestionIds = [100],
+            RecordedAnswers = [Recorded(100, 1)] // committed during the attempt, fully correct
+        };
         var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" }; // unknown slug -> default strategy
         var question = Question(100, "D", correctIds: [1], wrongIds: [2]);
 
@@ -323,9 +445,7 @@ public class QuizServiceTests
         _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>()))
             .ReturnsAsync(new List<Question> { question });
 
-        var answers = new List<QuizAnswer> { Answer(100, 1) }; // fully correct
-
-        var response = await CreateService().SubmitQuiz(1, 5, answers);
+        var response = await CreateService().SubmitQuiz(1, 5);
 
         Assert.Equal(1000, response.ScaledScore); // default strategy, 100% correct
         Assert.True(response.Passed);
@@ -338,8 +458,12 @@ public class QuizServiceTests
     [Fact]
     public async Task SubmitQuiz_GradesAgainstServedSet_SkippedQuestionCountsAsWrong()
     {
-        // Two questions served; the client answers only one, omitting the other entirely.
-        var submission = new Submission { Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101] };
+        // Two questions served; the visitor answered only one, leaving the other unanswered.
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+            RecordedAnswers = [Recorded(100, 1)] // only the first, correct; 101 never answered
+        };
         var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" }; // default strategy: 0-1000 scaled
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
         _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
@@ -350,9 +474,7 @@ public class QuizServiceTests
                 Question(101, "D", correctIds: [3], wrongIds: [4])
             });
 
-        var answers = new List<QuizAnswer> { Answer(100, 1) }; // only the first, correct; 101 skipped
-
-        var response = await CreateService().SubmitQuiz(1, 5, answers);
+        var response = await CreateService().SubmitQuiz(1, 5);
 
         // Denominator is the served count (2), not the answered count (1). Skipped 101 is wrong.
         Assert.Equal(2, response.TotalQuestions);
@@ -373,18 +495,22 @@ public class QuizServiceTests
         };
         var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" };
 
-        async Task<int> ScoreFor(List<QuizAnswer> answers)
+        async Task<int> ScoreFor(List<RecordedAnswer> recorded)
         {
-            var submission = new Submission { Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101] };
+            var submission = new Submission
+            {
+                Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+                RecordedAnswers = recorded
+            };
             _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
             _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
             _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(served);
-            return (await CreateService().SubmitQuiz(1, 5, answers)).ScaledScore;
+            return (await CreateService().SubmitQuiz(1, 5)).ScaledScore;
         }
 
-        var omitted = await ScoreFor([Answer(100, 1)]);                       // 101 left out
-        var answeredWrong = await ScoreFor([Answer(100, 1), Answer(101, 4)]); // 101 answered incorrectly
+        var omitted = await ScoreFor([Recorded(100, 1)]);                        // 101 never answered
+        var answeredWrong = await ScoreFor([Recorded(100, 1), Recorded(101, 4)]); // 101 answered incorrectly
 
-        Assert.Equal(answeredWrong, omitted); // omission buys nothing
+        Assert.Equal(answeredWrong, omitted); // leaving a question unanswered buys nothing
     }
 }

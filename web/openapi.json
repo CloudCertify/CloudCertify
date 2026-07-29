@@ -271,6 +271,47 @@
         }
       }
     },
+    "/quiz/{quizId}/answer": {
+      "post": {
+        "tags": ["Quiz"],
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerQuestionRequestDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerQuestionRequestDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerQuestionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/quiz/{quizId}/submit": {
       "post": {
         "tags": ["Quiz"],
@@ -594,6 +635,26 @@
           "image": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "AnswerQuestionRequestDto": {
+        "type": "object",
+        "properties": {
+          "submissionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "questionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "answerIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
           }
         }
       },
@@ -971,12 +1032,6 @@
           "submissionId": {
             "type": "integer",
             "format": "int32"
-          },
-          "answers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/QuizAnswer"
-            }
           }
         }
       },

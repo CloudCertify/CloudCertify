@@ -22,9 +22,10 @@ public class Submission
     public List<int> ServedQuestionIds { get; set; } = new();
 
     /// <summary>
-    /// Per-Question answers committed via Check, in order. Immutable once written: a
-    /// Question already present here cannot be re-Checked. Empty for full-Quiz attempts,
-    /// which batch-grade from the submit body. See docs/adr/0002-incremental-subquiz-feedback.md.
+    /// Per-Question answers committed during the attempt, and the only thing its final score is
+    /// graded from. A Subquiz commits them at Check and they are immutable; a full Quiz commits
+    /// them as the visitor answers and they are overwritten on re-answer until Submit.
+    /// See docs/adr/0002-incremental-subquiz-feedback.md and docs/adr/0006-full-quiz-incremental-answers-and-confidence.md.
     /// </summary>
     public List<RecordedAnswer> RecordedAnswers { get; set; } = new();
 

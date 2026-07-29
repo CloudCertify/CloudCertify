@@ -32,6 +32,7 @@ import type {
 } from 'axios';
 
 import type {
+  AnswerQuestionRequestDto,
   CheckAnswerRequestDto,
   CheckAnswerResponseDto,
   FinishSubquizRequestDto,
@@ -634,6 +635,62 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
         TContext
       > => {
       return useMutation(getPostQuizQuizIdStartMutationOptions(options), queryClient);
+    }
+
+export const postQuizQuizIdAnswer = (
+    quizId: number,
+    answerQuestionRequestDto: AnswerQuestionRequestDto, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<void>> => {
+
+
+    return axios.default.post(
+      `https://api-cloudcertify.snowye.dev/quiz/${quizId}/answer`,
+      answerQuestionRequestDto,options
+    );
+  }
+
+
+
+export const getPostQuizQuizIdAnswerMutationOptions = <TError = AxiosError<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: AnswerQuestionRequestDto}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: AnswerQuestionRequestDto}, TContext> => {
+
+const mutationKey = ['postQuizQuizIdAnswer'];
+const {mutation: mutationOptions, axios: axiosOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, axios: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, {quizId: number;data: AnswerQuestionRequestDto}> = (props) => {
+          const {quizId,data} = props ?? {};
+
+          return  postQuizQuizIdAnswer(quizId,data,axiosOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostQuizQuizIdAnswerMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>>
+    export type PostQuizQuizIdAnswerMutationBody = AnswerQuestionRequestDto
+    export type PostQuizQuizIdAnswerMutationError = AxiosError<unknown>
+
+    export const usePostQuizQuizIdAnswer = <TError = AxiosError<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: AnswerQuestionRequestDto}, TContext>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postQuizQuizIdAnswer>>,
+        TError,
+        {quizId: number;data: AnswerQuestionRequestDto},
+        TContext
+      > => {
+      return useMutation(getPostQuizQuizIdAnswerMutationOptions(options), queryClient);
     }
 
 export const postQuizQuizIdSubmit = (

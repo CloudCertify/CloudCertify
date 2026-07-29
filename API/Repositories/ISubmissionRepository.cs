@@ -13,6 +13,13 @@ public interface ISubmissionRepository
     Task RecordAnswer(RecordedAnswer recordedAnswer);
 
     /// <summary>
+    /// Persists a full-Quiz <see cref="RecordedAnswer"/>, overwriting the Question's previous
+    /// selection if it was already answered — a full Quiz's answers stay revisable until
+    /// Submit because the Navigator allows returning to any Question (ADR 0006).
+    /// </summary>
+    Task SaveAnswer(RecordedAnswer recordedAnswer);
+
+    /// <summary>
     /// Claiming: attaches anonymous Submissions matching any of the emails to the User.
     /// Keeps the original Email for provenance; idempotent (skips already-owned rows). ADR 0003.
     /// </summary>

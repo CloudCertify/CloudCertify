@@ -19,10 +19,13 @@ import { Footer } from '@/components/footer';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useI18n } from '@/i18n/context';
 import { toast } from 'sonner';
-import { postQuizQuizIdStart, postQuizQuizIdSubmit } from '@/http/generated/api';
+import {
+  postQuizQuizIdAnswer,
+  postQuizQuizIdStart,
+  postQuizQuizIdSubmit
+} from '@/http/generated/api';
 import type {
   QuizDetailDto,
-  QuizAnswer,
   QuizResultQuestionDto,
   DomainResult
 } from '@/http/generated/api.schemas';
@@ -79,23 +82,36 @@ export function QuizSessionPage() {
   const questionsCount = questions.length;
   const currentQuestion = questions[currentIndex];
 
+  // Every selection is committed to the server as a Recorded Answer, so the attempt —
+  // not the browser — is the source of truth at Submit (ADR 0006). Re-answering a
+  // Question overwrites its previous commit; nothing about correctness comes back.
+  const commitAnswer = (questionId: number, answerIds: number[]) => {
+    postQuizQuizIdAnswer(quizId, {
+      submissionId: quizDetail.submissionId,
+      questionId,
+      answerIds
+    }).catch(() => toast.error(t.results.answerError));
+  };
+
   const handleAnswerSelect = (answerId: number) => {
     if (currentQuestion.id == null) return;
     const qId = currentQuestion.id!;
     const type = currentQuestion.type;
     const selectCount = currentQuestion.selectCount ?? 1;
 
-    setUserAnswers(prev => {
-      const current = prev[qId] ?? [];
-      if (type === 'multiple_response') {
-        if (current.includes(answerId)) {
-          return { ...prev, [qId]: current.filter(id => id !== answerId) };
-        }
-        if (current.length >= selectCount) return prev;
-        return { ...prev, [qId]: [...current, answerId] };
-      }
-      return { ...prev, [qId]: [answerId] };
-    });
+    const current = userAnswers[qId] ?? [];
+    const next =
+      type === 'multiple_response'
+        ? current.includes(answerId)
+          ? current.filter(id => id !== answerId)
+          : current.length >= selectCount
+            ? current
+            : [...current, answerId]
+        : [answerId];
+
+    if (next === current) return; // selection capped: nothing changed, nothing to commit
+    setUserAnswers(prev => ({ ...prev, [qId]: next }));
+    commitAnswer(qId, next);
   };
 
   const unansweredCount = questions.filter(
@@ -108,13 +124,10 @@ export function QuizSessionPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    const answers: QuizAnswer[] = Object.entries(userAnswers).map(
-      ([questionId, answerIds]) => ({ questionId: Number(questionId), answerIds })
-    );
     try {
+      // No answers in the body: the server grades the Recorded Answers it collected (ADR 0006).
       const res = await postQuizQuizIdSubmit(quizId, {
-        submissionId: quizDetail.submissionId,
-        answers
+        submissionId: quizDetail.submissionId
       });
       setScaledScore(res.data.scaledScore);
       setPassed(res.data.passed);

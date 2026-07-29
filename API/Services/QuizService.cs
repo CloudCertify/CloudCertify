@@ -152,13 +152,65 @@ public class QuizService
          return available;
      }
 
-     public async Task<SubmitQuizResponseDto> SubmitQuiz(int quizId, int submissionId, List<QuizAnswer> answers)
+     /// <summary>
+     /// Commits one Question's selected answers to a full-Quiz Submission as the visitor answers
+     /// it, overwriting the Question's previous Recorded Answer if it was already answered
+     /// (ADR 0006). Rejects a Submission for the wrong quiz, a Subquiz Submission (a Check is
+     /// final — ADR 0002), an already-finished attempt, and a Question that was never served.
+     /// Returns nothing: this extends commit, not feedback, so no correctness leaks mid-attempt.
+     /// </summary>
+     /// <example>await quizService.AnswerQuestion(quizId: 1, submissionId: 42, questionId: 100, [7]);</example>
+     public async Task AnswerQuestion(int quizId, int submissionId, int questionId, List<int> answerIds)
+     {
+         var submission = await _submissionRepository.GetById(submissionId);
+
+         if (submission == null)
+         {
+             throw new InvalidOperationException($"Submission {submissionId} not found");
+         }
+
+         // expectedSubquizId null: a Subquiz Submission must go through Check, which is immutable.
+         SubmissionGrader.EnsureBelongsTo(submission, quizId, expectedSubquizId: null);
+         SubmissionGrader.EnsureNotFinished(submission);
+
+         if (!submission.ServedQuestionIds.Contains(questionId))
+         {
+             throw new InvalidOperationException(
+                 $"Question {questionId} was not served to submission {submissionId}; " +
+                 $"served questions are [{string.Join(", ", submission.ServedQuestionIds)}]");
+         }
+
+         await _submissionRepository.SaveAnswer(new RecordedAnswer
+         {
+             SubmissionId = submissionId,
+             QuestionId = questionId,
+             SelectedAnswerIds = answerIds,
+         });
+     }
+
+     /// <summary>
+     /// Finishes a full-Quiz attempt: grades the Recorded Answers accumulated during the attempt
+     /// — not answers echoed in the request body — against the served set, so there is a single
+     /// source of truth for what the visitor answered (ADR 0006) and a served Question with no
+     /// Recorded Answer counts as wrong (ADR 0001).
+     /// </summary>
+     public async Task<SubmitQuizResponseDto> SubmitQuiz(int quizId, int submissionId)
      {
          var quiz = await _quizRepository.GetQuizById(quizId);
          if (quiz == null)
          {
              throw new InvalidOperationException($"Quiz {quizId} not found");
          }
+
+         var submission = await _submissionRepository.GetById(submissionId);
+         if (submission == null)
+         {
+             throw new InvalidOperationException($"Submission {submissionId} not found");
+         }
+
+         var answers = submission.RecordedAnswers
+             .Select(r => new QuizAnswer { QuestionId = r.QuestionId, AnswerIds = r.SelectedAnswerIds })
+             .ToList();
 
          var strategy = GradingStrategyFactory.GetStrategy(quiz);
 

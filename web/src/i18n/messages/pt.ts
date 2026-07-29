@@ -290,6 +290,8 @@ export const pt: Messages = {
     submitError:
       'Não foi possível enviar esta tentativa. Ela pode já estar finalizada — use "Tentar de novo" para começar outra.',
     restartError: 'Não foi possível iniciar uma nova tentativa. Tente de novo.',
+    answerError:
+      'Não foi possível salvar essa resposta. Verifique sua conexão e selecione de novo.',
     checkError: 'Não foi possível verificar esta resposta. Tente de novo.',
     finishError: 'Não foi possível finalizar este treino. Tente de novo.'
   },

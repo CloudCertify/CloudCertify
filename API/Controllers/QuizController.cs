@@ -67,12 +67,30 @@ public class QuizController: ControllerBase
         return Ok(quiz);
     }
 
+    /// <summary>
+    /// Commit one Question's selected answers during a full Quiz attempt. Persists a Recorded
+    /// Answer; re-sending it for the same Question overwrites the previous one, since the
+    /// Navigator allows returning to any Question until Submit (ADR 0006). Returns 204 and
+    /// nothing else — no correctness, no correct answer ids, no explanation (ADR 0002).
+    /// </summary>
+    [HttpPost("{quizId}/answer")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> AnswerQuestion(int quizId, [FromBody] AnswerQuestionRequestDto request)
+    {
+        await _quizService.AnswerQuestion(quizId, request.SubmissionId, request.QuestionId, request.AnswerIds);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Submit a full Quiz attempt: grade the Recorded Answers committed during the attempt and
+    /// return the scaled score, domain breakdown, and per-Question review. Served Questions left
+    /// unanswered count as wrong (ADR 0001, ADR 0006).
+    /// </summary>
     [HttpPost("{quizId}/submit")]
     public async Task<ActionResult<SubmitQuizResponseDto>> SubmitQuiz(int quizId, [FromBody] SubmitQuizRequestDto request)
     {
-        var answers = request.Answers;
-        
-        var result = await _quizService.SubmitQuiz(quizId, request.SubmissionId, answers);
+        var result = await _quizService.SubmitQuiz(quizId, request.SubmissionId);
         
         return Ok(result);
     }
