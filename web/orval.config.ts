@@ -9,7 +9,15 @@ export default defineConfig({
       client: 'react-query',
       httpClient: 'axios',
       clean: true,
-      baseUrl: 'https://api-cloudcertify.snowye.dev'
+      // No baseUrl here on purpose: the base URL belongs to the custom axios
+      // instance, so `VITE_API_URL` can point the app at a local API without
+      // regenerating the client.
+      override: {
+        mutator: {
+          path: './src/http/axios-instance.ts',
+          name: 'customInstance'
+        }
+      }
     }
   }
 });

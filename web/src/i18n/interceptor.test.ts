@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
+import { apiClient } from '@/http/axios-instance';
 import { registerLanguageInterceptor } from './interceptor';
 import { setCurrentLanguage } from './language';
 
@@ -13,7 +14,7 @@ async function runRequestInterceptors(): Promise<InternalAxiosRequestConfig> {
     fulfilled?: (c: InternalAxiosRequestConfig) => InternalAxiosRequestConfig;
   }> = [];
   (
-    axios.interceptors.request as unknown as {
+    apiClient.interceptors.request as unknown as {
       forEach: (fn: (h: never) => void) => void;
     }
   ).forEach(h => handlers.push(h as never));

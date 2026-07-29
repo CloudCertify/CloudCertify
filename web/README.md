@@ -1,5 +1,24 @@
 # React + TypeScript + Vite
 
+## Pointing the app at an API
+
+Every generated endpoint goes through one axios instance,
+`src/http/axios-instance.ts` (wired as the orval mutator), so the base URL is
+configuration rather than generated code:
+
+```sh
+cp .env.example .env.local   # then set VITE_API_URL=http://localhost:8080
+pnpm dev
+```
+
+Unset, `VITE_API_URL` falls back to production, so a fresh clone runs with no
+setup. Interceptors (`Authorization`, `Accept-Language`) live on that same
+instance — not on the global axios default.
+
+Regenerating the client (`pnpm api:generate`) logs an `import.meta is not
+available` warning while orval bundles the mutator to read its types; it is
+harmless, the mutator itself is never rewritten.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

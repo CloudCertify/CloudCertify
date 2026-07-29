@@ -24,13 +24,6 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   AnswerQuestionRequestDto,
   CheckAnswerRequestDto,
@@ -49,22 +42,27 @@ import type {
   SubquizDto
 } from './api.schemas';
 
+import { customInstance } from '../axios-instance';
+import type { ErrorType , BodyType } from '../axios-instance';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 export const getAuthProviderLogin = (
     provider: string,
-    params?: GetAuthProviderLoginParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    params?: GetAuthProviderLoginParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.get(
-      `https://api-cloudcertify.snowye.dev/auth/${provider}/login`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+      return customInstance<void>(
+      {url: `/auth/${provider}/login`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
 
 
 
@@ -72,22 +70,22 @@ export const getAuthProviderLogin = (
 export const getGetAuthProviderLoginQueryKey = (provider: string,
     params?: GetAuthProviderLoginParams,) => {
     return [
-    `https://api-cloudcertify.snowye.dev/auth/${provider}/login`, ...(params ? [params] : [])
+    `/auth/${provider}/login`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetAuthProviderLoginQueryOptions = <TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(provider: string,
-    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAuthProviderLoginQueryOptions = <TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = ErrorType<unknown>>(provider: string,
+    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAuthProviderLoginQueryKey(provider,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthProviderLogin>>> = ({ signal }) => getAuthProviderLogin(provider,params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthProviderLogin>>> = ({ signal }) => getAuthProviderLogin(provider,params, requestOptions, signal);
 
 
 
@@ -97,10 +95,10 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAuthProviderLoginQueryResult = NonNullable<Awaited<ReturnType<typeof getAuthProviderLogin>>>
-export type GetAuthProviderLoginQueryError = AxiosError<unknown>
+export type GetAuthProviderLoginQueryError = ErrorType<unknown>
 
 
-export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(
+export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = ErrorType<unknown>>(
  provider: string,
     params: undefined |  GetAuthProviderLoginParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -108,10 +106,10 @@ export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAut
           TError,
           Awaited<ReturnType<typeof getAuthProviderLogin>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(
+export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = ErrorType<unknown>>(
  provider: string,
     params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -119,18 +117,18 @@ export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAut
           TError,
           Awaited<ReturnType<typeof getAuthProviderLogin>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(
+export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = ErrorType<unknown>>(
  provider: string,
-    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, axios?: AxiosRequestConfig}
+    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = AxiosError<unknown>>(
+export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAuthProviderLogin>>, TError = ErrorType<unknown>>(
  provider: string,
-    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, axios?: AxiosRequestConfig}
+    params?: GetAuthProviderLoginParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderLogin>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -149,16 +147,17 @@ export function useGetAuthProviderLogin<TData = Awaited<ReturnType<typeof getAut
 
 export const getAuthProviderCallback = (
     provider: string,
-    params?: GetAuthProviderCallbackParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    params?: GetAuthProviderCallbackParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.get(
-      `https://api-cloudcertify.snowye.dev/auth/${provider}/callback`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+      return customInstance<void>(
+      {url: `/auth/${provider}/callback`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
 
 
 
@@ -166,22 +165,22 @@ export const getAuthProviderCallback = (
 export const getGetAuthProviderCallbackQueryKey = (provider: string,
     params?: GetAuthProviderCallbackParams,) => {
     return [
-    `https://api-cloudcertify.snowye.dev/auth/${provider}/callback`, ...(params ? [params] : [])
+    `/auth/${provider}/callback`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetAuthProviderCallbackQueryOptions = <TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(provider: string,
-    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAuthProviderCallbackQueryOptions = <TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = ErrorType<unknown>>(provider: string,
+    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAuthProviderCallbackQueryKey(provider,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthProviderCallback>>> = ({ signal }) => getAuthProviderCallback(provider,params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthProviderCallback>>> = ({ signal }) => getAuthProviderCallback(provider,params, requestOptions, signal);
 
 
 
@@ -191,10 +190,10 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAuthProviderCallbackQueryResult = NonNullable<Awaited<ReturnType<typeof getAuthProviderCallback>>>
-export type GetAuthProviderCallbackQueryError = AxiosError<unknown>
+export type GetAuthProviderCallbackQueryError = ErrorType<unknown>
 
 
-export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(
+export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = ErrorType<unknown>>(
  provider: string,
     params: undefined |  GetAuthProviderCallbackParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -202,10 +201,10 @@ export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof get
           TError,
           Awaited<ReturnType<typeof getAuthProviderCallback>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(
+export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = ErrorType<unknown>>(
  provider: string,
     params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -213,18 +212,18 @@ export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof get
           TError,
           Awaited<ReturnType<typeof getAuthProviderCallback>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(
+export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = ErrorType<unknown>>(
  provider: string,
-    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, axios?: AxiosRequestConfig}
+    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = AxiosError<unknown>>(
+export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof getAuthProviderCallback>>, TError = ErrorType<unknown>>(
  provider: string,
-    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, axios?: AxiosRequestConfig}
+    params?: GetAuthProviderCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAuthProviderCallback>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -242,35 +241,37 @@ export function useGetAuthProviderCallback<TData = Awaited<ReturnType<typeof get
 
 
 export const getMe = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MeDto>> => {
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.get(
-      `https://api-cloudcertify.snowye.dev/me`,options
-    );
-  }
+      return customInstance<MeDto>(
+      {url: `/me`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetMeQueryKey = () => {
     return [
-    `https://api-cloudcertify.snowye.dev/me`
+    `/me`
     ] as const;
     }
 
 
-export const getGetMeQueryOptions = <TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetMeQueryOptions = <TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetMeQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMe>>> = ({ signal }) => getMe({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMe>>> = ({ signal }) => getMe(requestOptions, signal);
 
 
 
@@ -280,36 +281,36 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetMeQueryResult = NonNullable<Awaited<ReturnType<typeof getMe>>>
-export type GetMeQueryError = AxiosError<unknown>
+export type GetMeQueryError = ErrorType<unknown>
 
 
-export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>(
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMe>>,
           TError,
           Awaited<ReturnType<typeof getMe>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>(
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMe>>,
           TError,
           Awaited<ReturnType<typeof getMe>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -327,35 +328,37 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Axi
 
 
 export const getMeSubmissions = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MySubmissionDto[]>> => {
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.get(
-      `https://api-cloudcertify.snowye.dev/me/submissions`,options
-    );
-  }
+      return customInstance<MySubmissionDto[]>(
+      {url: `/me/submissions`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetMeSubmissionsQueryKey = () => {
     return [
-    `https://api-cloudcertify.snowye.dev/me/submissions`
+    `/me/submissions`
     ] as const;
     }
 
 
-export const getGetMeSubmissionsQueryOptions = <TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetMeSubmissionsQueryOptions = <TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetMeSubmissionsQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMeSubmissions>>> = ({ signal }) => getMeSubmissions({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMeSubmissions>>> = ({ signal }) => getMeSubmissions(requestOptions, signal);
 
 
 
@@ -365,36 +368,36 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetMeSubmissionsQueryResult = NonNullable<Awaited<ReturnType<typeof getMeSubmissions>>>
-export type GetMeSubmissionsQueryError = AxiosError<unknown>
+export type GetMeSubmissionsQueryError = ErrorType<unknown>
 
 
-export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>(
+export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = ErrorType<unknown>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMeSubmissions>>,
           TError,
           Awaited<ReturnType<typeof getMeSubmissions>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>(
+export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = ErrorType<unknown>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMeSubmissions>>,
           TError,
           Awaited<ReturnType<typeof getMeSubmissions>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmissions>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeSubmissions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -412,35 +415,37 @@ export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmi
 
 
 export const getQuiz = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<QuizDto[]>> => {
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.get(
-      `https://api-cloudcertify.snowye.dev/quiz`,options
-    );
-  }
+      return customInstance<QuizDto[]>(
+      {url: `/quiz`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetQuizQueryKey = () => {
     return [
-    `https://api-cloudcertify.snowye.dev/quiz`
+    `/quiz`
     ] as const;
     }
 
 
-export const getGetQuizQueryOptions = <TData = Awaited<ReturnType<typeof getQuiz>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuiz>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetQuizQueryOptions = <TData = Awaited<ReturnType<typeof getQuiz>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuiz>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetQuizQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuiz>>> = ({ signal }) => getQuiz({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuiz>>> = ({ signal }) => getQuiz(requestOptions, signal);
 
 
 
@@ -450,36 +455,36 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetQuizQueryResult = NonNullable<Awaited<ReturnType<typeof getQuiz>>>
-export type GetQuizQueryError = AxiosError<unknown>
+export type GetQuizQueryError = ErrorType<unknown>
 
 
-export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError = AxiosError<unknown>>(
+export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError = ErrorType<unknown>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuiz>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getQuiz>>,
           TError,
           Awaited<ReturnType<typeof getQuiz>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError = AxiosError<unknown>>(
+export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError = ErrorType<unknown>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuiz>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getQuiz>>,
           TError,
           Awaited<ReturnType<typeof getQuiz>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuiz>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuiz>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuiz>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuiz>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -497,35 +502,37 @@ export function useGetQuiz<TData = Awaited<ReturnType<typeof getQuiz>>, TError =
 
 
 export const getQuizQuizId = (
-    quizId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<QuizDto>> => {
+    quizId: number,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.get(
-      `https://api-cloudcertify.snowye.dev/quiz/${quizId}`,options
-    );
-  }
+      return customInstance<QuizDto>(
+      {url: `/quiz/${quizId}`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetQuizQuizIdQueryKey = (quizId: number,) => {
     return [
-    `https://api-cloudcertify.snowye.dev/quiz/${quizId}`
+    `/quiz/${quizId}`
     ] as const;
     }
 
 
-export const getGetQuizQuizIdQueryOptions = <TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = AxiosError<unknown>>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetQuizQuizIdQueryOptions = <TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = ErrorType<unknown>>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetQuizQuizIdQueryKey(quizId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuizQuizId>>> = ({ signal }) => getQuizQuizId(quizId, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuizQuizId>>> = ({ signal }) => getQuizQuizId(quizId, requestOptions, signal);
 
 
 
@@ -535,36 +542,36 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetQuizQuizIdQueryResult = NonNullable<Awaited<ReturnType<typeof getQuizQuizId>>>
-export type GetQuizQuizIdQueryError = AxiosError<unknown>
+export type GetQuizQuizIdQueryError = ErrorType<unknown>
 
 
-export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = AxiosError<unknown>>(
+export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = ErrorType<unknown>>(
  quizId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizId>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getQuizQuizId>>,
           TError,
           Awaited<ReturnType<typeof getQuizQuizId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = AxiosError<unknown>>(
+export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = ErrorType<unknown>>(
  quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizId>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getQuizQuizId>>,
           TError,
           Awaited<ReturnType<typeof getQuizQuizId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = AxiosError<unknown>>(
- quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = AxiosError<unknown>>(
- quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -583,36 +590,39 @@ export function useGetQuizQuizId<TData = Awaited<ReturnType<typeof getQuizQuizId
 
 export const postQuizQuizIdStart = (
     quizId: number,
-    startQuizRequestDto: StartQuizRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<QuizDetailDto>> => {
+    startQuizRequestDto: BodyType<StartQuizRequestDto>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.post(
-      `https://api-cloudcertify.snowye.dev/quiz/${quizId}/start`,
-      startQuizRequestDto,options
-    );
-  }
+      return customInstance<QuizDetailDto>(
+      {url: `/quiz/${quizId}/start`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: startQuizRequestDto, signal
+    },
+      options);
+    }
 
 
 
-export const getPostQuizQuizIdStartMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdStart>>, TError,{quizId: number;data: StartQuizRequestDto}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdStart>>, TError,{quizId: number;data: StartQuizRequestDto}, TContext> => {
+export const getPostQuizQuizIdStartMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdStart>>, TError,{quizId: number;data: BodyType<StartQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdStart>>, TError,{quizId: number;data: BodyType<StartQuizRequestDto>}, TContext> => {
 
 const mutationKey = ['postQuizQuizIdStart'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdStart>>, {quizId: number;data: StartQuizRequestDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdStart>>, {quizId: number;data: BodyType<StartQuizRequestDto>}> = (props) => {
           const {quizId,data} = props ?? {};
 
-          return  postQuizQuizIdStart(quizId,data,axiosOptions)
+          return  postQuizQuizIdStart(quizId,data,requestOptions)
         }
 
 
@@ -623,15 +633,15 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostQuizQuizIdStartMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdStart>>>
-    export type PostQuizQuizIdStartMutationBody = StartQuizRequestDto
-    export type PostQuizQuizIdStartMutationError = AxiosError<unknown>
+    export type PostQuizQuizIdStartMutationBody = BodyType<StartQuizRequestDto>
+    export type PostQuizQuizIdStartMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdStart = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdStart>>, TError,{quizId: number;data: StartQuizRequestDto}, TContext>, axios?: AxiosRequestConfig}
+    export const usePostQuizQuizIdStart = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdStart>>, TError,{quizId: number;data: BodyType<StartQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postQuizQuizIdStart>>,
         TError,
-        {quizId: number;data: StartQuizRequestDto},
+        {quizId: number;data: BodyType<StartQuizRequestDto>},
         TContext
       > => {
       return useMutation(getPostQuizQuizIdStartMutationOptions(options), queryClient);
@@ -639,36 +649,39 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
 export const postQuizQuizIdAnswer = (
     quizId: number,
-    answerQuestionRequestDto: AnswerQuestionRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    answerQuestionRequestDto: BodyType<AnswerQuestionRequestDto>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.post(
-      `https://api-cloudcertify.snowye.dev/quiz/${quizId}/answer`,
-      answerQuestionRequestDto,options
-    );
-  }
+      return customInstance<void>(
+      {url: `/quiz/${quizId}/answer`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: answerQuestionRequestDto, signal
+    },
+      options);
+    }
 
 
 
-export const getPostQuizQuizIdAnswerMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: AnswerQuestionRequestDto}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: AnswerQuestionRequestDto}, TContext> => {
+export const getPostQuizQuizIdAnswerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: BodyType<AnswerQuestionRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: BodyType<AnswerQuestionRequestDto>}, TContext> => {
 
 const mutationKey = ['postQuizQuizIdAnswer'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, {quizId: number;data: AnswerQuestionRequestDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, {quizId: number;data: BodyType<AnswerQuestionRequestDto>}> = (props) => {
           const {quizId,data} = props ?? {};
 
-          return  postQuizQuizIdAnswer(quizId,data,axiosOptions)
+          return  postQuizQuizIdAnswer(quizId,data,requestOptions)
         }
 
 
@@ -679,15 +692,15 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostQuizQuizIdAnswerMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>>
-    export type PostQuizQuizIdAnswerMutationBody = AnswerQuestionRequestDto
-    export type PostQuizQuizIdAnswerMutationError = AxiosError<unknown>
+    export type PostQuizQuizIdAnswerMutationBody = BodyType<AnswerQuestionRequestDto>
+    export type PostQuizQuizIdAnswerMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdAnswer = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: AnswerQuestionRequestDto}, TContext>, axios?: AxiosRequestConfig}
+    export const usePostQuizQuizIdAnswer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdAnswer>>, TError,{quizId: number;data: BodyType<AnswerQuestionRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postQuizQuizIdAnswer>>,
         TError,
-        {quizId: number;data: AnswerQuestionRequestDto},
+        {quizId: number;data: BodyType<AnswerQuestionRequestDto>},
         TContext
       > => {
       return useMutation(getPostQuizQuizIdAnswerMutationOptions(options), queryClient);
@@ -695,36 +708,39 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
 export const postQuizQuizIdSubmit = (
     quizId: number,
-    submitQuizRequestDto: SubmitQuizRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<SubmitQuizResponseDto>> => {
+    submitQuizRequestDto: BodyType<SubmitQuizRequestDto>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.post(
-      `https://api-cloudcertify.snowye.dev/quiz/${quizId}/submit`,
-      submitQuizRequestDto,options
-    );
-  }
+      return customInstance<SubmitQuizResponseDto>(
+      {url: `/quiz/${quizId}/submit`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: submitQuizRequestDto, signal
+    },
+      options);
+    }
 
 
 
-export const getPostQuizQuizIdSubmitMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>, TError,{quizId: number;data: SubmitQuizRequestDto}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>, TError,{quizId: number;data: SubmitQuizRequestDto}, TContext> => {
+export const getPostQuizQuizIdSubmitMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>, TError,{quizId: number;data: BodyType<SubmitQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>, TError,{quizId: number;data: BodyType<SubmitQuizRequestDto>}, TContext> => {
 
 const mutationKey = ['postQuizQuizIdSubmit'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>, {quizId: number;data: SubmitQuizRequestDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>, {quizId: number;data: BodyType<SubmitQuizRequestDto>}> = (props) => {
           const {quizId,data} = props ?? {};
 
-          return  postQuizQuizIdSubmit(quizId,data,axiosOptions)
+          return  postQuizQuizIdSubmit(quizId,data,requestOptions)
         }
 
 
@@ -735,50 +751,52 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostQuizQuizIdSubmitMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>>
-    export type PostQuizQuizIdSubmitMutationBody = SubmitQuizRequestDto
-    export type PostQuizQuizIdSubmitMutationError = AxiosError<unknown>
+    export type PostQuizQuizIdSubmitMutationBody = BodyType<SubmitQuizRequestDto>
+    export type PostQuizQuizIdSubmitMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdSubmit = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>, TError,{quizId: number;data: SubmitQuizRequestDto}, TContext>, axios?: AxiosRequestConfig}
+    export const usePostQuizQuizIdSubmit = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubmit>>, TError,{quizId: number;data: BodyType<SubmitQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postQuizQuizIdSubmit>>,
         TError,
-        {quizId: number;data: SubmitQuizRequestDto},
+        {quizId: number;data: BodyType<SubmitQuizRequestDto>},
         TContext
       > => {
       return useMutation(getPostQuizQuizIdSubmitMutationOptions(options), queryClient);
     }
 
 export const getQuizQuizIdSubquizzes = (
-    quizId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<SubquizDto[]>> => {
+    quizId: number,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.get(
-      `https://api-cloudcertify.snowye.dev/quiz/${quizId}/subquizzes`,options
-    );
-  }
+      return customInstance<SubquizDto[]>(
+      {url: `/quiz/${quizId}/subquizzes`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
 
 export const getGetQuizQuizIdSubquizzesQueryKey = (quizId: number,) => {
     return [
-    `https://api-cloudcertify.snowye.dev/quiz/${quizId}/subquizzes`
+    `/quiz/${quizId}/subquizzes`
     ] as const;
     }
 
 
-export const getGetQuizQuizIdSubquizzesQueryOptions = <TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = AxiosError<unknown>>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetQuizQuizIdSubquizzesQueryOptions = <TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetQuizQuizIdSubquizzesQueryKey(quizId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>> = ({ signal }) => getQuizQuizIdSubquizzes(quizId, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>> = ({ signal }) => getQuizQuizIdSubquizzes(quizId, requestOptions, signal);
 
 
 
@@ -788,36 +806,36 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetQuizQuizIdSubquizzesQueryResult = NonNullable<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>>
-export type GetQuizQuizIdSubquizzesQueryError = AxiosError<unknown>
+export type GetQuizQuizIdSubquizzesQueryError = ErrorType<unknown>
 
 
-export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = AxiosError<unknown>>(
+export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(
  quizId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>,
           TError,
           Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = AxiosError<unknown>>(
+export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(
  quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>,
           TError,
           Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = AxiosError<unknown>>(
- quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = AxiosError<unknown>>(
- quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -837,36 +855,39 @@ export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof get
 export const postQuizQuizIdSubquizzesSubquizIdStart = (
     quizId: number,
     subquizId: number,
-    startQuizRequestDto: StartQuizRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<SubquizDetailDto>> => {
+    startQuizRequestDto: BodyType<StartQuizRequestDto>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.post(
-      `https://api-cloudcertify.snowye.dev/quiz/${quizId}/subquizzes/${subquizId}/start`,
-      startQuizRequestDto,options
-    );
-  }
+      return customInstance<SubquizDetailDto>(
+      {url: `/quiz/${quizId}/subquizzes/${subquizId}/start`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: startQuizRequestDto, signal
+    },
+      options);
+    }
 
 
 
-export const getPostQuizQuizIdSubquizzesSubquizIdStartMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: StartQuizRequestDto}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: StartQuizRequestDto}, TContext> => {
+export const getPostQuizQuizIdSubquizzesSubquizIdStartMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>}, TContext> => {
 
 const mutationKey = ['postQuizQuizIdSubquizzesSubquizIdStart'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, {quizId: number;subquizId: number;data: StartQuizRequestDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, {quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>}> = (props) => {
           const {quizId,subquizId,data} = props ?? {};
 
-          return  postQuizQuizIdSubquizzesSubquizIdStart(quizId,subquizId,data,axiosOptions)
+          return  postQuizQuizIdSubquizzesSubquizIdStart(quizId,subquizId,data,requestOptions)
         }
 
 
@@ -877,15 +898,15 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostQuizQuizIdSubquizzesSubquizIdStartMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>>
-    export type PostQuizQuizIdSubquizzesSubquizIdStartMutationBody = StartQuizRequestDto
-    export type PostQuizQuizIdSubquizzesSubquizIdStartMutationError = AxiosError<unknown>
+    export type PostQuizQuizIdSubquizzesSubquizIdStartMutationBody = BodyType<StartQuizRequestDto>
+    export type PostQuizQuizIdSubquizzesSubquizIdStartMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdSubquizzesSubquizIdStart = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: StartQuizRequestDto}, TContext>, axios?: AxiosRequestConfig}
+    export const usePostQuizQuizIdSubquizzesSubquizIdStart = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>,
         TError,
-        {quizId: number;subquizId: number;data: StartQuizRequestDto},
+        {quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>},
         TContext
       > => {
       return useMutation(getPostQuizQuizIdSubquizzesSubquizIdStartMutationOptions(options), queryClient);
@@ -894,36 +915,39 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 export const postQuizQuizIdSubquizzesSubquizIdCheck = (
     quizId: number,
     subquizId: number,
-    checkAnswerRequestDto: CheckAnswerRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CheckAnswerResponseDto>> => {
+    checkAnswerRequestDto: BodyType<CheckAnswerRequestDto>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.post(
-      `https://api-cloudcertify.snowye.dev/quiz/${quizId}/subquizzes/${subquizId}/check`,
-      checkAnswerRequestDto,options
-    );
-  }
+      return customInstance<CheckAnswerResponseDto>(
+      {url: `/quiz/${quizId}/subquizzes/${subquizId}/check`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: checkAnswerRequestDto, signal
+    },
+      options);
+    }
 
 
 
-export const getPostQuizQuizIdSubquizzesSubquizIdCheckMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: CheckAnswerRequestDto}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: CheckAnswerRequestDto}, TContext> => {
+export const getPostQuizQuizIdSubquizzesSubquizIdCheckMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>}, TContext> => {
 
 const mutationKey = ['postQuizQuizIdSubquizzesSubquizIdCheck'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, {quizId: number;subquizId: number;data: CheckAnswerRequestDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, {quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>}> = (props) => {
           const {quizId,subquizId,data} = props ?? {};
 
-          return  postQuizQuizIdSubquizzesSubquizIdCheck(quizId,subquizId,data,axiosOptions)
+          return  postQuizQuizIdSubquizzesSubquizIdCheck(quizId,subquizId,data,requestOptions)
         }
 
 
@@ -934,15 +958,15 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostQuizQuizIdSubquizzesSubquizIdCheckMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>>
-    export type PostQuizQuizIdSubquizzesSubquizIdCheckMutationBody = CheckAnswerRequestDto
-    export type PostQuizQuizIdSubquizzesSubquizIdCheckMutationError = AxiosError<unknown>
+    export type PostQuizQuizIdSubquizzesSubquizIdCheckMutationBody = BodyType<CheckAnswerRequestDto>
+    export type PostQuizQuizIdSubquizzesSubquizIdCheckMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdSubquizzesSubquizIdCheck = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: CheckAnswerRequestDto}, TContext>, axios?: AxiosRequestConfig}
+    export const usePostQuizQuizIdSubquizzesSubquizIdCheck = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>,
         TError,
-        {quizId: number;subquizId: number;data: CheckAnswerRequestDto},
+        {quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>},
         TContext
       > => {
       return useMutation(getPostQuizQuizIdSubquizzesSubquizIdCheckMutationOptions(options), queryClient);
@@ -951,36 +975,39 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 export const postQuizQuizIdSubquizzesSubquizIdFinish = (
     quizId: number,
     subquizId: number,
-    finishSubquizRequestDto: FinishSubquizRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<SubmitQuizResponseDto>> => {
+    finishSubquizRequestDto: BodyType<FinishSubquizRequestDto>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.post(
-      `https://api-cloudcertify.snowye.dev/quiz/${quizId}/subquizzes/${subquizId}/finish`,
-      finishSubquizRequestDto,options
-    );
-  }
+      return customInstance<SubmitQuizResponseDto>(
+      {url: `/quiz/${quizId}/subquizzes/${subquizId}/finish`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: finishSubquizRequestDto, signal
+    },
+      options);
+    }
 
 
 
-export const getPostQuizQuizIdSubquizzesSubquizIdFinishMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: FinishSubquizRequestDto}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: FinishSubquizRequestDto}, TContext> => {
+export const getPostQuizQuizIdSubquizzesSubquizIdFinishMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>}, TContext> => {
 
 const mutationKey = ['postQuizQuizIdSubquizzesSubquizIdFinish'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, {quizId: number;subquizId: number;data: FinishSubquizRequestDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, {quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>}> = (props) => {
           const {quizId,subquizId,data} = props ?? {};
 
-          return  postQuizQuizIdSubquizzesSubquizIdFinish(quizId,subquizId,data,axiosOptions)
+          return  postQuizQuizIdSubquizzesSubquizIdFinish(quizId,subquizId,data,requestOptions)
         }
 
 
@@ -991,15 +1018,15 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostQuizQuizIdSubquizzesSubquizIdFinishMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>>
-    export type PostQuizQuizIdSubquizzesSubquizIdFinishMutationBody = FinishSubquizRequestDto
-    export type PostQuizQuizIdSubquizzesSubquizIdFinishMutationError = AxiosError<unknown>
+    export type PostQuizQuizIdSubquizzesSubquizIdFinishMutationBody = BodyType<FinishSubquizRequestDto>
+    export type PostQuizQuizIdSubquizzesSubquizIdFinishMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdSubquizzesSubquizIdFinish = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: FinishSubquizRequestDto}, TContext>, axios?: AxiosRequestConfig}
+    export const usePostQuizQuizIdSubquizzesSubquizIdFinish = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>,
         TError,
-        {quizId: number;subquizId: number;data: FinishSubquizRequestDto},
+        {quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>},
         TContext
       > => {
       return useMutation(getPostQuizQuizIdSubquizzesSubquizIdFinishMutationOptions(options), queryClient);

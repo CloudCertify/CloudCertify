@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
+import { apiClient } from '@/http/axios-instance';
 import { registerAuthInterceptor } from './interceptor';
 import { clearToken, setToken } from './token';
 
@@ -21,7 +22,9 @@ async function runRequestInterceptors(): Promise<InternalAxiosRequestConfig> {
     fulfilled?: (c: InternalAxiosRequestConfig) => InternalAxiosRequestConfig;
   }> = [];
   (
-    axios.interceptors.request as unknown as { forEach: (fn: (h: never) => void) => void }
+    apiClient.interceptors.request as unknown as {
+      forEach: (fn: (h: never) => void) => void;
+    }
   ).forEach(h => handlers.push(h as never));
   for (const h of handlers) {
     if (h.fulfilled) config = await h.fulfilled(config);
