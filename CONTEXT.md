@@ -57,11 +57,25 @@ every login; idempotent.
 _Avoid_: Merging, Importing
 
 **Recorded Answer**:
-One Question's selected answers committed to a Subquiz Submission at Check time.
-Immutable once recorded; the set of Recorded Answers is what a Subquiz's final
-score is computed from at finish. Full Quiz attempts have no Recorded Answers —
-they are graded from the answers sent in one batch at Submit.
+One Question's selected answers committed to a Submission, plus the visitor's
+Confidence in a full Quiz. Every attempt accumulates them, but their lifecycle
+follows the attempt type: in a Subquiz a Recorded Answer is committed at Check
+and is immutable, because a Check is final; in a full Quiz it is committed as
+the visitor answers and stays revisable until Submit, because the Navigator
+allows returning to any Question. Either way, the accumulated Recorded Answers
+are what the attempt's final score is computed from.
 _Avoid_: Response, Choice, Pick
+
+**Confidence**:
+The visitor's self-reported certainty about a Question's answer — Guess,
+Unsure, or Confident — committed with the answer itself and revisable with it.
+Names the two things a score cannot: a _lucky guess_ (Guess, correct) and a
+_misconception_ (Confident, incorrect). Optional; an unrated answer is normal
+and carries no Confidence. Never affects a score — it is reported back, not
+graded on. Exists only where correctness is deferred, so a full Quiz has
+Confidence and a Subquiz does not: a Check reveals correctness immediately, so
+the drill already tells the visitor what a rating would have.
+_Avoid_: Certainty, Sureness, Conviction
 
 **Report**:
 A visitor's claim that a Question's content is defective — wrong answer key,
