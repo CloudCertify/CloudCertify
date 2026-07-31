@@ -15,7 +15,9 @@ _Avoid_: Exam, Test, Simulation
 A focused, single-Domain practice drill carved out of a parent Quiz's
 questions. Answered one Question at a time with instant feedback (Check),
 unlike a full Quiz. Scored as a simple 0-100 percentage (pass ≥ 70), distinct
-from a full Quiz attempt's scaled score.
+from a full Quiz attempt's scaled score. Its questions are chosen by the Drill
+Mix from the visitor's Outcomes; a visitor with no Outcomes gets a uniformly
+random draw.
 _Avoid_: Mini-quiz, Practice test, Section
 
 **Check**:
@@ -57,8 +59,11 @@ every login; idempotent.
 _Avoid_: Merging, Importing
 
 **Recorded Answer**:
-One Question's selected answers committed to a Submission, plus the visitor's
-Confidence in a full Quiz. Every attempt accumulates them, but their lifecycle
+One Question's selected answers committed to a Submission, whether they were
+correct, plus the visitor's Confidence in a full Quiz. Correctness is judged and
+stamped when the answer is committed and never re-judged afterwards, so a later
+fix to a Question's answer key cannot rewrite what the visitor knew at the time.
+Every attempt accumulates them, but their lifecycle
 follows the attempt type: in a Subquiz a Recorded Answer is committed at Check
 and is immutable, because a Check is final; in a full Quiz it is committed as
 the visitor answers and stays revisable until Submit, because the Navigator
@@ -114,6 +119,24 @@ whole life (no mid-attempt switch), and applied to Question text, Answer text,
 and Explanations. Missing translations fall back to `en-US` per field. Quiz and
 Subquiz titles/descriptions are not yet localized.
 _Avoid_: Locale, Culture, Translation (the act, not the choice)
+
+**Outcome**:
+The visitor's latest evidence on a single Question — Missed, Mastered, or
+Unseen. Read from their finished Submissions only, across both full Quizzes and
+Subquizzes; the most recent attempt wins outright, so improvement erases a past
+miss. A served Question with no Recorded Answer counts as Missed, matching the
+way grading treats it. Belongs to a User: an attempt without one produces no
+Outcomes. Not a quantity — it does not accumulate, and it is not a score.
+_Avoid_: Mastery, Level, Score, Weakness, Streak
+
+**Drill Mix**:
+The target make-up of a Subquiz attempt's served Questions, stated in Outcomes:
+mostly Missed, some Unseen, a little Mastered. A short bucket spills into the
+others rather than shortening the drill, so every attempt is full-length and a
+visitor with no history simply gets all-Unseen. Applies to a Subquiz only — a
+full Quiz is drawn uniformly at random so its Scaled Score keeps predicting the
+real exam.
+_Avoid_: Weighting, Algorithm, Selection, Adaptive quiz
 
 **Grading Strategy**:
 The per-Quiz rule for turning answered Questions into a result. CLF-C02 uses

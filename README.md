@@ -39,9 +39,8 @@
 > quiz attempts (today only Subquizzes have Recorded Answers; full quizzes
 > submit one batch) — data-model change, do first.
 
-- [ ] Behavioral data capture + analytics tracking (success rate, most failed, answer time, abandonment, score distribution) — **next milestone**
-- [ ] Persist per-domain results per attempt (grading already computes per-domain correctness; cheapest win)
-- [ ] Domain grouped tests (focused on user weaknesses)
+- [ ] Behavioral data capture + analytics tracking (success rate, most failed, answer time, abandonment, score distribution)
+- [ ] Domain grouped tests focused on user weaknesses: Subquizzes drawn by Drill Mix (9 Missed / 4 Unseen / 2 Mastered) from a logged-in User's per-Question Outcomes; correctness stamped on Recorded Answers — ADR 0007, ADR 0008 — **next milestone**
 - [ ] Detailed explanations (why correct/wrong, exam strategy, common traps)
 - [ ] Domain performance tracking by service/concept
 - [ ] Review modes (retry incorrect, flagged, guessed)

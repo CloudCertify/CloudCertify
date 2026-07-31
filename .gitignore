@@ -11,3 +11,6 @@ riderModule.iml
 *.user
 
 /API/External/questions/
+
+# Mac
+*.DS_Store
