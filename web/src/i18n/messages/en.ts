@@ -249,6 +249,13 @@ export const en = {
     notQuite: 'Not quite'
   },
 
+  drill: {
+    label: 'Built for you',
+    composition: (missed: number, unseen: number, mastered: number) =>
+      `${missed} review · ${unseen} new · ${mastered} refresh`,
+    signInPitch: 'Sign in and your missed questions come back to you.'
+  },
+
   confidence: {
     label: 'How sure are you?',
     revisitHint: 'Marked to revisit before you finish.',

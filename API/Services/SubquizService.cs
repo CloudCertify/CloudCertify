@@ -87,6 +87,9 @@ public class SubquizService
             Slug = subquiz.Slug,
             CreatedAt = subquiz.CreatedAt,
             SubmissionId = submission.Id,
+            // Anonymous drills carry no composition: there is nothing adaptive to report, and the
+            // absence is what the web app shows the sign-in pitch for.
+            Composition = userId == null ? null : Compose(drillQuestions, snapshot),
             Questions = drillQuestions.Select(q => new QuestionDto
             {
                 Id = q.Id,
@@ -174,6 +177,22 @@ public class SubquizService
 
         var strategy = GradingStrategyFactory.GetSubquizStrategy();
         return await _submissionGrader.GradeAndFinish(submissionId, quizId, subquizId, strategy, recordedAnswers);
+    }
+
+    /// <summary>
+    /// Counts the served Questions by the Outcome they had <em>going in</em>, so the visitor is
+    /// told what the draw did for them before they answer anything.
+    /// </summary>
+    private static DrillCompositionDto Compose(IEnumerable<Question> drill, OutcomeSnapshot snapshot)
+    {
+        var byOutcome = drill.CountBy(q => snapshot.OutcomeOf(q.Id)).ToDictionary();
+
+        return new DrillCompositionDto
+        {
+            Missed = byOutcome.GetValueOrDefault(Outcome.Missed),
+            Unseen = byOutcome.GetValueOrDefault(Outcome.Unseen),
+            Mastered = byOutcome.GetValueOrDefault(Outcome.Mastered),
+        };
     }
 
     private static SubquizDto MapSubquizToDto(Subquiz sq)
