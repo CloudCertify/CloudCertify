@@ -68,4 +68,13 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<List<Submission>> GetFinishedByUserAndQuiz(int userId, int quizId)
+    {
+        return await context.Submission
+            .Include(s => s.RecordedAnswers)
+            .Where(s => s.UserId == userId && s.QuizId == quizId && s.Finished)
+            .OrderBy(s => s.CreatedAt)
+            .ToListAsync();
+    }
 }

@@ -26,4 +26,11 @@ public interface ISubmissionRepository
     Task<int> ClaimAnonymousSubmissions(int userId, IReadOnlyCollection<string> emails);
 
     Task<List<Submission>> GetByUserId(int userId);
+
+    /// <summary>
+    /// Finished Submissions a User made on a Quiz — full Quizzes and Subquizzes alike — with their
+    /// Recorded Answers. This is the evidence Outcomes are read from (ADR 0008); unfinished
+    /// attempts are excluded at the source because they contribute nothing.
+    /// </summary>
+    Task<List<Submission>> GetFinishedByUserAndQuiz(int userId, int quizId);
 }
