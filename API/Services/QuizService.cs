@@ -9,15 +9,17 @@ namespace API.Services;
 
 public class QuizService
 {
-    public QuizService(IQuizRepository quizRepository, ISubmissionRepository submissionRepository, SubmissionGrader submissionGrader, ILogger<QuizService> logger)
+    public QuizService(IQuizRepository quizRepository, IQuestionRepository questionRepository, ISubmissionRepository submissionRepository, SubmissionGrader submissionGrader, ILogger<QuizService> logger)
     {
         _quizRepository = quizRepository;
+        _questionRepository = questionRepository;
         _submissionRepository = submissionRepository;
         _submissionGrader = submissionGrader;
         _logger = logger;
     }
 
     private readonly IQuizRepository _quizRepository;
+    private readonly IQuestionRepository _questionRepository;
     private readonly ISubmissionRepository _submissionRepository;
     private readonly SubmissionGrader _submissionGrader;
     private readonly ILogger<QuizService> _logger;
@@ -162,6 +164,9 @@ public class QuizService
      /// <paramref name="confidence"/> is optional and rides along with the answer: it is stored
      /// as sent, so re-answering a Question re-rates it and null clears a previous rating
      /// (latest wins). It never affects grading (ADR 0006).
+     ///
+     /// Correctness is judged here and stored on the Recorded Answer, re-stamped on each revision
+     /// and never re-judged afterwards (ADR 0007). It stays out of the response.
      /// </summary>
      /// <example>await quizService.AnswerQuestion(quizId: 1, submissionId: 42, questionId: 100, [7], Confidence.Guess);</example>
      public async Task AnswerQuestion(int quizId, int submissionId, int questionId, List<int> answerIds, Confidence? confidence = null)
@@ -184,12 +189,22 @@ public class QuizService
                  $"served questions are [{string.Join(", ", submission.ServedQuestionIds)}]");
          }
 
+         var question = (await _questionRepository.GetQuestionsByIds([questionId])).FirstOrDefault();
+
+         if (question == null)
+         {
+             throw new InvalidOperationException($"Question {questionId} not found for submission {submissionId}");
+         }
+
          await _submissionRepository.SaveAnswer(new RecordedAnswer
          {
              SubmissionId = submissionId,
              QuestionId = questionId,
              SelectedAnswerIds = answerIds,
              Confidence = confidence,
+             // Stamped now, re-stamped on every revision, never re-judged later (ADR 0007). The
+             // visitor is still told nothing: this is stored, not returned.
+             IsCorrect = QuestionCorrectness.IsCorrect(question, answerIds),
          });
      }
 

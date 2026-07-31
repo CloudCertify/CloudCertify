@@ -146,7 +146,9 @@ public class SubquizServiceTests
         // A Subquiz collects no Confidence: a Check reveals correctness immediately (ADR 0006).
         _submissions.Verify(r => r.RecordAnswer(It.Is<RecordedAnswer>(ra =>
             ra.SubmissionId == 5 && ra.QuestionId == 10 && ra.SelectedAnswerIds.SequenceEqual(new[] { 1 })
-            && ra.Confidence == null)), Times.Once);
+            && ra.Confidence == null
+            // The verdict shown at Check is the verdict stored (ADR 0007).
+            && ra.IsCorrect == true)), Times.Once);
     }
 
     [Fact]
@@ -163,7 +165,8 @@ public class SubquizServiceTests
 
         Assert.False(result.IsCorrect);
         Assert.Equal(new[] { 1, 2 }, result.CorrectAnswerIds);
-        _submissions.Verify(r => r.RecordAnswer(It.Is<RecordedAnswer>(ra => ra.QuestionId == 10)), Times.Once);
+        _submissions.Verify(r => r.RecordAnswer(It.Is<RecordedAnswer>(ra =>
+            ra.QuestionId == 10 && ra.IsCorrect == false)), Times.Once);
     }
 
     [Fact]

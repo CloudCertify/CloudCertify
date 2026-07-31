@@ -176,6 +176,9 @@ public class ApplicationDbContext: DbContext
             // Nullable on purpose: an unrated answer stores no Confidence, so there is no
             // phantom "unrated" bucket in behavioral queries (ADR 0006).
             entity.Property(r => r.Confidence).HasConversion<string>().HasMaxLength(32);
+            // Nullable on purpose: rows written before commit-time stamping have no verdict and
+            // are never backfilled — an unknown verdict is not a wrong one (ADR 0007).
+            entity.Property(r => r.IsCorrect);
         });
 
         modelBuilder.Entity<Report>(entity =>

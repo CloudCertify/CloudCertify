@@ -121,16 +121,21 @@ public class SubquizService
             throw new InvalidOperationException($"Question {questionId} not found for submission {submissionId}");
         }
 
+        // Judged once, here: the verdict the visitor is shown is the verdict that is stored, and
+        // it is never re-judged against a later answer key (ADR 0007).
+        var isCorrect = QuestionCorrectness.IsCorrect(question, answerIds);
+
         await _submissionRepository.RecordAnswer(new RecordedAnswer
         {
             SubmissionId = submissionId,
             QuestionId = questionId,
             SelectedAnswerIds = answerIds,
+            IsCorrect = isCorrect,
         });
 
         return new CheckAnswerResponseDto
         {
-            IsCorrect = QuestionCorrectness.IsCorrect(question, answerIds),
+            IsCorrect = isCorrect,
             CorrectAnswerIds = question.Answers.Where(a => a.IsCorrect).Select(a => a.Id).ToList(),
             SelectedAnswerIds = answerIds,
             // The Submission's stored Language, not the current request header (ADR 0004).
