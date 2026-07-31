@@ -3,6 +3,7 @@ using API.Entities;
 using API.Model.Request;
 using API.Model.Response;
 using API.Repositories;
+using API.Services.Drills;
 using API.Services.Grading;
 
 namespace API.Services;
@@ -32,6 +33,11 @@ public class SubquizService
     /// Starts a Subquiz attempt for a logged-in User (userId) or anonymous visitor (email) —
     /// exactly one (ADR 0003).
     /// </summary>
+    /// <remarks>
+    /// A logged-in User's drill is drawn to the Drill Mix from their own Outcomes; an anonymous
+    /// visitor gets an empty <see cref="OutcomeSnapshot"/>, which the same draw turns into today's
+    /// uniform random 15 — signing in is what makes the drill adaptive (ADR 0008).
+    /// </remarks>
     public async Task<SubquizDetailDto?> StartSubquiz(int quizId, int subquizId, string? email, int? userId, Language language = Language.EnUs)
     {
         AttemptIdentity.EnsureValid(email, userId);
@@ -50,11 +56,15 @@ public class SubquizService
         // Get parent quiz to fetch questions by domain
         var parentQuiz = await _questionRepository.GetQuestionsByQuizId(quizId);
 
-        var randomQuestions = parentQuiz
-            .Where(q => q.Domain == subquiz.Domain)
-            .OrderBy(q => Guid.NewGuid())
-            .Take(15)
-            .ToList();
+        var domainQuestions = parentQuiz.Where(q => q.Domain == subquiz.Domain).ToList();
+
+        var snapshot = userId == null
+            ? OutcomeSnapshot.Empty
+            : OutcomeSnapshot.Build(
+                await _submissionRepository.GetFinishedByUserAndQuiz(userId.Value, quizId),
+                domainQuestions.Select(q => q.Id).ToHashSet());
+
+        var drillQuestions = DrillMix.Draw(domainQuestions, snapshot);
 
         var submission = new Submission
         {
@@ -63,7 +73,7 @@ public class SubquizService
             QuizId = quizId,
             SubquizId = subquizId,
             Finished = false,
-            ServedQuestionIds = randomQuestions.Select(q => q.Id).ToList(),
+            ServedQuestionIds = drillQuestions.Select(q => q.Id).ToList(),
             Language = language,
         };
 
@@ -77,7 +87,7 @@ public class SubquizService
             Slug = subquiz.Slug,
             CreatedAt = subquiz.CreatedAt,
             SubmissionId = submission.Id,
-            Questions = randomQuestions.Select(q => new QuestionDto
+            Questions = drillQuestions.Select(q => new QuestionDto
             {
                 Id = q.Id,
                 Text = LocalizedContent.Text(q, language),

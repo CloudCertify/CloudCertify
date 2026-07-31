@@ -50,6 +50,20 @@ public class SubquizServiceTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.StartSubquiz(1, 2, "u@e.com", null));
     }
 
+    /// <summary>A Question in this Domain, ids derived from the Question id so they never collide.</summary>
+    private static Question InDomain(int id, string domain = "Security and Compliance") =>
+        Question(id, domain, correctIds: [id * 10], wrongIds: [id * 10 + 1]);
+
+    private static Submission FinishedAttempt(int id, DateTime at, int[] served, int[] correct) =>
+        new()
+        {
+            Id = id, QuizId = 1, UserId = 7, Finished = true, CreatedAt = at,
+            ServedQuestionIds = served.ToList(),
+            RecordedAnswers = served
+                .Select(q => new RecordedAnswer { QuestionId = q, IsCorrect = correct.Contains(q) })
+                .ToList()
+        };
+
     [Fact]
     public async Task StartSubquiz_CreatesSubmission_AndReturnsOnlyMatchingDomainQuestions()
     {
@@ -89,6 +103,77 @@ public class SubquizServiceTests
 
         Assert.Equal("O que é IAM?", Assert.Single(result!.Questions).Text);
         _submissions.Verify(r => r.Create(It.Is<Submission>(s => s.Language == Language.PtBr)), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartSubquiz_DrawsToTheDrillMix_ForALoggedInUser()
+    {
+        // 20 missed, 20 mastered, 20 never served. The drill is asserted by composition, not by
+        // Question identity — the pick within each bucket is random (ADR 0008).
+        var bank = Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList();
+        SetupDomainBank(bank);
+        var history = FinishedAttempt(1, new DateTime(2026, 1, 1),
+            served: Enumerable.Range(1, 40).ToArray(), correct: Enumerable.Range(21, 20).ToArray());
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync([history]);
+
+        var result = await CreateService().StartSubquiz(1, 2, null, 7);
+
+        var served = result!.Questions.Select(q => q.Id).ToList();
+        Assert.Equal(15, served.Count);
+        Assert.Equal(9, served.Count(id => id <= 20));            // Missed
+        Assert.Equal(2, served.Count(id => id is > 20 and <= 40)); // Mastered
+        Assert.Equal(4, served.Count(id => id > 40));              // Unseen
+    }
+
+    [Fact]
+    public async Task StartSubquiz_DrawsUniformlyAtRandom_ForAnAnonymousVisitor()
+    {
+        // No User, so no Outcomes to read: the drill is 15 of the bank and no history is fetched.
+        SetupDomainBank(Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList());
+
+        var result = await CreateService().StartSubquiz(1, 2, "u@e.com", null);
+
+        Assert.Equal(15, result!.Questions.Count);
+        Assert.Equal(15, result.Questions.Select(q => q.Id).Distinct().Count());
+        _submissions.Verify(r => r.GetFinishedByUserAndQuiz(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task StartSubquiz_ServesFifteenUnseen_ForAUserWithNoHistory()
+    {
+        SetupDomainBank(Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList());
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync([]);
+
+        var result = await CreateService().StartSubquiz(1, 2, null, 7);
+
+        Assert.Equal(15, result!.Questions.Count);
+        Assert.Equal(15, result.Questions.Select(q => q.Id).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task StartSubquiz_DrawsFromTheMissesOfAFullQuizAttempt()
+    {
+        // The full Quiz is never adapted, but its misses land in the matching Domain's drill.
+        var bank = Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList();
+        SetupDomainBank(bank);
+        var fullQuiz = FinishedAttempt(1, new DateTime(2026, 1, 1),
+            served: Enumerable.Range(1, 20).ToArray(), correct: []);
+        fullQuiz.SubquizId = null;
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync([fullQuiz]);
+
+        var result = await CreateService().StartSubquiz(1, 2, null, 7);
+
+        Assert.Equal(9, result!.Questions.Count(q => q.Id <= 20));
+    }
+
+    private void SetupDomainBank(List<Question> bank)
+    {
+        _subquizzes.Setup(r => r.GetSubquizById(2)).ReturnsAsync(new Subquiz
+        {
+            Id = 2, QuizId = 1, Title = "Security", Domain = "Security and Compliance",
+            Slug = "sec", IsAvailable = true
+        });
+        _questions.Setup(r => r.GetQuestionsByQuizId(1)).ReturnsAsync(bank);
     }
 
     [Fact]
