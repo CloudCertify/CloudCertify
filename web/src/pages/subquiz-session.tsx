@@ -278,6 +278,13 @@ export function SubquizSessionPage() {
                 </div>
               </div>
 
+              {/* After the Check the same fact is a reward, not a prime (issue #53): over the
+                  review it lands as a win, and an anonymous visitor sees the pitch here too. */}
+              <DrillBanner
+                composition={subquizDetail.composition}
+                place='review'
+              />
+
               <QuestionReview
                 questions={resultQuestions ?? []}
                 heading={t.review.reviewHeading}

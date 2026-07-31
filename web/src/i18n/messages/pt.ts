@@ -243,7 +243,11 @@ export const pt: Messages = {
     label: 'Feito para você',
     composition: (missed: number, unseen: number, mastered: number) =>
       `${missed} revisão · ${unseen} novas · ${mastered} reforço`,
-    signInPitch: 'Entre e as questões que você errou voltam para você.'
+    signInPitch: 'Entre e as questões que você errou voltam para você.',
+    reviewedMissed: (count: number) =>
+      count === 1
+        ? 'Você acabou de refazer 1 questão que tinha errado antes.'
+        : `Você acabou de refazer ${count} questões que tinha errado antes.`
   },
 
   confidence: {

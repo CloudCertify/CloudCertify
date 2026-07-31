@@ -14,15 +14,34 @@ import type { DrillCompositionDto } from '@/http/generated/api.schemas';
  * drill (issue #53).
  *
  * Deliberately not per-Question: telling someone "you missed this before" ahead of an answer
- * turns recall into recognition and corrupts the Outcome being collected.
+ * turns recall into recognition and corrupts the Outcome being collected. After the drill is
+ * graded that same fact is a reward instead of a prime, so `place='review'` says it again over
+ * the review — from the composition the client already holds, with no change to grading.
  */
 export function DrillBanner({
-  composition
+  composition,
+  place = 'start'
 }: {
   composition?: DrillCompositionDto | null;
+  /** Where it speaks from: before the first Question, or over the graded review. */
+  place?: 'start' | 'review';
 }) {
   const { t } = useI18n();
   const { login } = useAuth();
+
+  if (composition && place === 'review') {
+    // Nothing was owed back, so there is no win to claim — say nothing rather than pad.
+    if (composition.missed === 0) return null;
+
+    return (
+      <div className='mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[5px] border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]'>
+        <Sparkles className='h-4 w-4 shrink-0' aria-hidden='true' />
+        <span className='text-sm font-bold text-black'>
+          {t.drill.reviewedMissed(composition.missed)}
+        </span>
+      </div>
+    );
+  }
 
   if (composition) {
     return (
