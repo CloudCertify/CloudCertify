@@ -15,8 +15,16 @@ public class QuizServiceTests
     private readonly Mock<IQuestionRepository> _questions = new();
     private readonly Mock<ISubmissionRepository> _submissions = new();
 
+    public QuizServiceTests()
+    {
+        // Answer-commit judges correctness against the served Question (ADR 0007), so every
+        // AnswerQuestion test needs the Question graph; individual tests override this.
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(
+            (List<int> ids) => ids.Select(id => Question(id, "D", correctIds: [7], wrongIds: [8])).ToList());
+    }
+
     private QuizService CreateService() =>
-        new(_quizzes.Object, _submissions.Object,
+        new(_quizzes.Object, _questions.Object, _submissions.Object,
             new SubmissionGrader(_questions.Object, _submissions.Object),
             NullLogger<QuizService>.Instance);
 
@@ -233,6 +241,51 @@ public class QuizServiceTests
     }
 
     [Fact]
+    public async Task AnswerQuestion_StampsCorrectness_WhenCommitted()
+    {
+        // Correctness is judged at commit time and stored, though nothing is returned (ADR 0007).
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+        });
+
+        await CreateService().AnswerQuestion(1, 5, 100, [7]);
+
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a => a.IsCorrect == true)), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_StampsIncorrect_WhenSelectionIsWrong()
+    {
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+        });
+
+        await CreateService().AnswerQuestion(1, 5, 100, [8]);
+
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a => a.IsCorrect == false)), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_ReStampsCorrectness_WhenAnswerIsRevised()
+    {
+        // Revising before Submit re-judges the answer that now stands (ADR 0006 + 0007).
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100],
+            RecordedAnswers = [Recorded(100, 8)]
+        });
+        var service = CreateService();
+
+        await service.AnswerQuestion(1, 5, 100, [8]);
+        await service.AnswerQuestion(1, 5, 100, [7]);
+
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a => a.IsCorrect == false)), Times.Once);
+        _submissions.Verify(r => r.SaveAnswer(It.Is<RecordedAnswer>(a => a.IsCorrect == true)), Times.Once);
+    }
+
+    [Fact]
     public async Task AnswerQuestion_OverwritesPreviousAnswer_WhenReAnswered()
     {
         // The Navigator allows returning to a Question: the later commit wins (ADR 0006).
@@ -407,7 +460,7 @@ public class QuizServiceTests
                 Question(101, "D", correctIds: [3], wrongIds: [4])
             });
 
-            return await new QuizService(quizzes.Object, submissions.Object,
+            return await new QuizService(quizzes.Object, questions.Object, submissions.Object,
                 new SubmissionGrader(questions.Object, submissions.Object),
                 NullLogger<QuizService>.Instance).SubmitQuiz(1, 5);
         }

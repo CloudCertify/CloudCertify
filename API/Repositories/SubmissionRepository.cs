@@ -45,6 +45,8 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
         else
         {
             existing.SelectedAnswerIds = recordedAnswer.SelectedAnswerIds;
+            // Re-stamped with the revision: the verdict tracks the answer that now stands (ADR 0007).
+            existing.IsCorrect = recordedAnswer.IsCorrect;
             // Latest rating wins, including back to unrated: a changed answer re-rates (ADR 0006).
             existing.Confidence = recordedAnswer.Confidence;
         }
