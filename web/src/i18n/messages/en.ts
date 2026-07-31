@@ -253,7 +253,11 @@ export const en = {
     label: 'Built for you',
     composition: (missed: number, unseen: number, mastered: number) =>
       `${missed} review · ${unseen} new · ${mastered} refresh`,
-    signInPitch: 'Sign in and your missed questions come back to you.'
+    signInPitch: 'Sign in and your missed questions come back to you.',
+    reviewedMissed: (count: number) =>
+      count === 1
+        ? "You just retook 1 question you'd missed before."
+        : `You just retook ${count} questions you'd missed before.`
   },
 
   confidence: {

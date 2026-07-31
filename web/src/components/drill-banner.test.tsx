@@ -4,11 +4,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DrillBanner } from './drill-banner';
 import { AuthProvider } from '@/auth/context';
 
-const renderBanner = (composition?: { missed: number; unseen: number; mastered: number } | null) =>
+const renderBanner = (
+  composition?: { missed: number; unseen: number; mastered: number } | null,
+  place?: 'start' | 'review',
+) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
       <AuthProvider>
-        <DrillBanner composition={composition} />
+        <DrillBanner composition={composition} place={place} />
       </AuthProvider>
     </QueryClientProvider>,
   );
@@ -27,5 +30,27 @@ describe('DrillBanner', () => {
       screen.getByText('Sign in and your missed questions come back to you.'),
     ).toBeInTheDocument();
     expect(screen.getByText('Continue with Google')).toBeInTheDocument();
+  });
+
+  it('turns the same fact into a reward over the review', () => {
+    renderBanner({ missed: 9, unseen: 4, mastered: 2 }, 'review');
+
+    expect(
+      screen.getByText("You just retook 9 questions you'd missed before."),
+    ).toBeInTheDocument();
+  });
+
+  it('says nothing over the review when nothing was owed back', () => {
+    const { container } = renderBanner({ missed: 0, unseen: 15, mastered: 0 }, 'review');
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('still pitches signing in over the review', () => {
+    renderBanner(null, 'review');
+
+    expect(
+      screen.getByText('Sign in and your missed questions come back to you.'),
+    ).toBeInTheDocument();
   });
 });
