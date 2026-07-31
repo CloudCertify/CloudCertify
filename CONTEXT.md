@@ -138,6 +138,16 @@ full Quiz is drawn uniformly at random so its Scaled Score keeps predicting the
 real exam.
 _Avoid_: Weighting, Algorithm, Selection, Adaptive quiz
 
+**Drill Composition**:
+What a drill actually came out as — how many of the served Questions were
+Missed, Unseen and Mastered going in. Reported once, at start, and shown before
+the first Question so the adaptivity is visible; the shrinking Missed count
+doubles as progress. Exists only for a logged-in User: an anonymous drill is
+random, so it has none, and the sign-in pitch takes that slot instead. Never
+attached to an individual Question before it is answered — that would turn
+recall into recognition.
+_Avoid_: Breakdown, Stats, Mix report
+
 **Grading Strategy**:
 The per-Quiz rule for turning answered Questions into a result. CLF-C02 uses
 Domain-weighted scaled scoring; a Subquiz uses flat percentage; everything

@@ -1110,6 +1110,24 @@
           }
         }
       },
+      "DrillCompositionDto": {
+        "required": ["missed", "unseen", "mastered"],
+        "type": "object",
+        "properties": {
+          "missed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unseen": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mastered": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "SubquizDetailDto": {
         "type": "object",
         "properties": {
@@ -1133,6 +1151,10 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "composition": {
+            "allOf": [{ "$ref": "#/components/schemas/DrillCompositionDto" }],
+            "nullable": true
           },
           "questions": {
             "type": "array",

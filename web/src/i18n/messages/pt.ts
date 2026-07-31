@@ -239,6 +239,13 @@ export const pt: Messages = {
     notQuite: 'Quase lá'
   },
 
+  drill: {
+    label: 'Feito para você',
+    composition: (missed: number, unseen: number, mastered: number) =>
+      `${missed} revisão · ${unseen} novas · ${mastered} reforço`,
+    signInPitch: 'Entre e as questões que você errou voltam para você.'
+  },
+
   confidence: {
     label: 'Quanta certeza você tem?',
     revisitHint: 'Marcada para revisar antes de finalizar.',

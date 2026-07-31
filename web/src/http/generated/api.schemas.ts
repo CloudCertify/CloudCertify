@@ -217,6 +217,12 @@ export interface SubmitQuizResponseDto {
   questions: QuizResultQuestionDto[];
 }
 
+export interface DrillCompositionDto {
+  missed: number;
+  unseen: number;
+  mastered: number;
+}
+
 export interface SubquizDetailDto {
   id?: number;
   title?: string;
@@ -224,6 +230,7 @@ export interface SubquizDetailDto {
   slug?: string;
   submissionId?: number;
   createdAt?: string;
+  composition?: DrillCompositionDto | null;
   questions?: QuestionDto[];
 }
 

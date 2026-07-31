@@ -166,6 +166,50 @@ public class SubquizServiceTests
         Assert.Equal(9, result!.Questions.Count(q => q.Id <= 20));
     }
 
+    [Fact]
+    public async Task StartSubquiz_ReportsTheDrillComposition_ForALoggedInUser()
+    {
+        // The counts a User is shown before the first Question are the served set's Outcomes
+        // going in — the same numbers the draw was made to (issue #53).
+        var bank = Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList();
+        SetupDomainBank(bank);
+        var history = FinishedAttempt(1, new DateTime(2026, 1, 1),
+            served: Enumerable.Range(1, 40).ToArray(), correct: Enumerable.Range(21, 20).ToArray());
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync([history]);
+
+        var result = await CreateService().StartSubquiz(1, 2, null, 7);
+
+        Assert.NotNull(result!.Composition);
+        Assert.Equal(9, result.Composition!.Missed);
+        Assert.Equal(4, result.Composition.Unseen);
+        Assert.Equal(2, result.Composition.Mastered);
+    }
+
+    [Fact]
+    public async Task StartSubquiz_ReportsAllUnseen_ForAUserWithNoHistory()
+    {
+        SetupDomainBank(Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList());
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync([]);
+
+        var result = await CreateService().StartSubquiz(1, 2, null, 7);
+
+        Assert.Equal(15, result!.Composition!.Unseen);
+        Assert.Equal(0, result.Composition.Missed);
+        Assert.Equal(0, result.Composition.Mastered);
+    }
+
+    [Fact]
+    public async Task StartSubquiz_ReportsNoComposition_ForAnAnonymousVisitor()
+    {
+        // Nothing adaptive happened, so there is nothing to claim: the web app shows the
+        // sign-in pitch in that slot instead.
+        SetupDomainBank(Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList());
+
+        var result = await CreateService().StartSubquiz(1, 2, "u@e.com", null);
+
+        Assert.Null(result!.Composition);
+    }
+
     private void SetupDomainBank(List<Question> bank)
     {
         _subquizzes.Setup(r => r.GetSubquizById(2)).ReturnsAsync(new Subquiz

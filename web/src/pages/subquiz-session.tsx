@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { PracticeQuestionCard } from '@/components/practice-question-card';
 import type { PracticePhase } from '@/components/practice-question-card';
 import { QuestionReview } from '@/components/question-review';
+import { DrillBanner } from '@/components/drill-banner';
 import { Footer } from '@/components/footer';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useI18n } from '@/i18n/context';
@@ -307,6 +308,11 @@ export function SubquizSessionPage() {
     <div className='flex min-h-dvh flex-col bg-background'>
       {pageHeader(t.common.back)}
       <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        {/* Only before the first answer: once the drill is under way the slot has said its
+            piece, and repeating it would just be noise. */}
+        {currentIndex === 0 && questionPhase === 'answering' && (
+          <DrillBanner composition={subquizDetail.composition} />
+        )}
         <PracticeQuestionCard
           index={currentIndex}
           total={questionsCount}
