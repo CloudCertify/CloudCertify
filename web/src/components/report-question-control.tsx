@@ -354,13 +354,14 @@ function buildPatch(
 /** A suggested key is a wrong-key claim; rewritten text is an unclear-wording one. */
 function inferReasons(suggestion: SuggestionDto | null): ReportReason[] {
   if (!suggestion) return [];
+  const answers = suggestion.answers ?? [];
   const inferred: ReportReason[] = [];
-  if (suggestion.answers.some(answer => answer.isCorrect !== undefined)) {
+  if (answers.some(answer => answer.isCorrect !== undefined)) {
     inferred.push(ReportReason.wrong_answer_key);
   }
   if (
     suggestion.questionText !== undefined ||
-    suggestion.answers.some(answer => answer.text !== undefined)
+    answers.some(answer => answer.text !== undefined)
   ) {
     inferred.push(ReportReason.unclear_wording);
   }
@@ -371,7 +372,7 @@ function countChanges(suggestion: SuggestionDto | null): number {
   if (!suggestion) return 0;
   return (
     (suggestion.questionText === undefined ? 0 : 1) +
-    suggestion.answers.reduce(
+    (suggestion.answers ?? []).reduce(
       (total, answer) =>
         total +
         (answer.text === undefined ? 0 : 1) +

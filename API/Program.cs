@@ -36,11 +36,17 @@ builder.Services.AddOpenApi(options =>
 
     options.AddSchemaTransformer((schema, context, ct) =>
     {
-        if (context.JsonTypeInfo.Type.IsEnum)
+        // Unwrap Confidence? and friends: a nullable enum is not itself an enum, so without
+        // this it escapes the transformer and ships as a bare integer, which then generates a
+        // number-typed client field for what is a string on the wire.
+        var underlying = Nullable.GetUnderlyingType(context.JsonTypeInfo.Type);
+        var type = underlying ?? context.JsonTypeInfo.Type;
+        if (type.IsEnum)
         {
             schema.Type = "string";
             schema.Format = null;
-            schema.Enum = Enum.GetNames(context.JsonTypeInfo.Type)
+            schema.Nullable = underlying != null;
+            schema.Enum = Enum.GetNames(type)
                 .Select(n => (IOpenApiAny)new OpenApiString(
                     JsonNamingPolicy.SnakeCaseLower.ConvertName(n)))
                 .ToList();
