@@ -14,9 +14,10 @@ public class ReportControllerTests
 {
     private readonly Mock<ISubmissionRepository> _submissions = new();
     private readonly Mock<IReportRepository> _reports = new();
+    private readonly Mock<IQuestionRepository> _questions = new();
 
     private ReportController CreateController() =>
-        new(new ReportService(_submissions.Object, _reports.Object));
+        new(new ReportService(_submissions.Object, _reports.Object, _questions.Object));
 
     private void GivenCheckedSubquizSubmission()
     {
@@ -28,7 +29,7 @@ public class ReportControllerTests
             Email = "anon@example.com",
             RecordedAnswers = [new RecordedAnswer { SubmissionId = 1, QuestionId = 10, SelectedAnswerIds = [42] }],
         });
-        _reports.Setup(r => r.Create(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
+        _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
     }
 
     private static CreateReportRequestDto Request(List<ReportReason>? reasons = null, string? comment = null) =>
@@ -104,10 +105,35 @@ public class ReportControllerTests
     }
 
     [Fact]
+    public async Task CreateReport_Returns400_WhenSuggestionIsInapplicable()
+    {
+        GivenCheckedSubquizSubmission();
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync([
+            new Question
+            {
+                Id = 10,
+                Type = QuestionType.MultipleChoice,
+                SelectCount = 1,
+                Answers = [new Answer { Id = 101, Text = "A", IsCorrect = true }],
+            }
+        ]);
+
+        var request = Request();
+        request.Suggestion = new SuggestionDto
+        {
+            Answers = [new AnswerSuggestionDto { AnswerId = 999, Text = "not mine" }],
+        };
+
+        var result = await CreateController().CreateReport(request);
+
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
     public async Task CreateReport_Returns409_WhenAlreadyReported()
     {
         GivenCheckedSubquizSubmission();
-        _reports.Setup(r => r.Create(It.IsAny<Report>())).ReturnsAsync((Report?)null);
+        _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report?)null);
 
         var result = await CreateController().CreateReport(Request());
 

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using API.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -6,6 +7,13 @@ namespace API;
 
 public class ApplicationDbContext: DbContext
 {
+    /// <summary>camelCase so a suggestion reads the same in psql as it does on the wire.</summary>
+    private static readonly JsonSerializerOptions SuggestionJson = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
@@ -196,6 +204,21 @@ public class ApplicationDbContext: DbContext
                         v => v.Aggregate(0, (hash, r) => HashCode.Combine(hash, r.GetHashCode())),
                         v => v.ToList()));
             entity.Property(r => r.Comment).HasMaxLength(200);
+            // Sparse patch, read by a human and never applied automatically (ADR 0009), so it
+            // is stored whole as jsonb rather than as rows nobody queries by field. Converted
+            // explicitly instead of via dynamic JSON mapping, so the shape stays independent of
+            // the data source's serializer configuration.
+            entity.Property(r => r.Suggestion)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    suggestion => JsonSerializer.Serialize(suggestion, SuggestionJson),
+                    json => JsonSerializer.Deserialize<ReportSuggestion>(json, SuggestionJson),
+                    new ValueComparer<ReportSuggestion?>(
+                        (a, b) => JsonSerializer.Serialize(a, SuggestionJson) ==
+                                  JsonSerializer.Serialize(b, SuggestionJson),
+                        v => JsonSerializer.Serialize(v, SuggestionJson).GetHashCode(),
+                        v => JsonSerializer.Deserialize<ReportSuggestion>(
+                            JsonSerializer.Serialize(v, SuggestionJson), SuggestionJson)));
             // Persisted as the IETF tag, like Submission.Language (ADR 0004).
             entity.Property(r => r.Language)
                 .IsRequired()

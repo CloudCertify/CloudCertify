@@ -14,6 +14,7 @@ public enum ReportOutcome
     NotChecked,
     NoReasons,
     CommentTooLong,
+    InvalidSuggestion,
     AlreadyReported,
 }
 
@@ -26,10 +27,20 @@ public record ReportResult(ReportOutcome Outcome, string? Message = null, Report
 /// visitors may report. Never touches the Submission's grade
 /// (see docs/adr/0005-reports-flag-question-defects.md).
 /// </summary>
-public class ReportService(ISubmissionRepository submissionRepository, IReportRepository reportRepository)
+public class ReportService(
+    ISubmissionRepository submissionRepository,
+    IReportRepository reportRepository,
+    IQuestionRepository questionRepository)
 {
     /// <summary>Maximum length of the optional free-text comment.</summary>
     public const int MaxCommentLength = 200;
+
+    /// <summary>
+    /// Maximum length of any single suggested text. Anonymous reporters can now send several
+    /// fields of free text instead of one short comment, so the size cap does the work the
+    /// 200-char comment used to do (ADR 0009).
+    /// </summary>
+    public const int MaxSuggestedTextLength = 2000;
 
     /// <summary>
     /// Validates and persists a Report. Rejects a missing Submission, a full-Quiz Submission
@@ -53,18 +64,33 @@ public class ReportService(ISubmissionRepository submissionRepository, IReportRe
             return ineligible;
         }
 
-        var report = await reportRepository.Create(new Report
+        ReportSuggestion? suggestion = null;
+        if (request.Suggestion != null)
+        {
+            var question = (await questionRepository.GetQuestionsByIds([request.QuestionId]))
+                .FirstOrDefault();
+            var (rejected, patch) = BuildSuggestion(request.Suggestion, question);
+            if (rejected != null)
+            {
+                return rejected;
+            }
+
+            suggestion = patch;
+        }
+
+        var report = await reportRepository.Save(new Report
         {
             SubmissionId = request.SubmissionId,
             QuestionId = request.QuestionId,
             Reasons = reasons,
             Comment = request.Comment,
+            Suggestion = suggestion,
             // Copied from the Submission; any client-supplied language is ignored (ADR 0004).
             Language = submission!.Language,
             Status = ReportStatus.Open,
         });
 
-        // Null means the primary key already held a Report for this Recorded Answer.
+        // Null means this Recorded Answer already holds a Report that has been triaged.
         return report == null
             ? new ReportResult(ReportOutcome.AlreadyReported,
                 $"Question {request.QuestionId} is already reported on submission {request.SubmissionId}")
@@ -110,12 +136,113 @@ public class ReportService(ISubmissionRepository submissionRepository, IReportRe
             : null;
     }
 
+    /// <summary>
+    /// Turns a suggestion request into the sparse patch that gets stored, or rejects it. A patch
+    /// is only accepted if it can actually be applied: every answer belongs to the reported
+    /// Question, texts are within the size cap, and any proposed key still has exactly as many
+    /// correct answers as the Question's type allows (ADR 0009). Entries that change nothing are
+    /// dropped, and a patch that changes nothing at all is stored as null.
+    /// </summary>
+    private static (ReportResult? Rejected, ReportSuggestion? Patch) BuildSuggestion(
+        SuggestionDto request, Question? question)
+    {
+        if (question == null)
+        {
+            return (Invalid("Cannot suggest an edit for an unknown question"), null);
+        }
+
+        var questionText = Trimmed(request.QuestionText);
+        if (TooLong(questionText))
+        {
+            return (Invalid($"Suggested text must be at most {MaxSuggestedTextLength} characters"), null);
+        }
+
+        var answers = new List<AnswerSuggestion>();
+        foreach (var suggested in request.Answers)
+        {
+            var answer = question.Answers.FirstOrDefault(a => a.Id == suggested.AnswerId);
+            if (answer == null)
+            {
+                return (Invalid($"Answer {suggested.AnswerId} does not belong to question {question.Id}"), null);
+            }
+
+            if (answers.Any(a => a.AnswerId == suggested.AnswerId))
+            {
+                return (Invalid($"Answer {suggested.AnswerId} was suggested twice"), null);
+            }
+
+            var text = Trimmed(suggested.Text);
+            if (TooLong(text))
+            {
+                return (Invalid($"Suggested text must be at most {MaxSuggestedTextLength} characters"), null);
+            }
+
+            // A field that matches what is already stored is not a change worth keeping.
+            var changedText = text != null && text != answer.Text ? text : null;
+            var changedKey = suggested.IsCorrect != null && suggested.IsCorrect != answer.IsCorrect
+                ? suggested.IsCorrect
+                : null;
+
+            if (changedText != null || changedKey != null)
+            {
+                answers.Add(new AnswerSuggestion
+                {
+                    AnswerId = suggested.AnswerId,
+                    Text = changedText,
+                    IsCorrect = changedKey,
+                });
+            }
+        }
+
+        var keyError = ValidateProposedKey(question, answers);
+        if (keyError != null)
+        {
+            return (keyError, null);
+        }
+
+        var changedQuestionText = questionText != null && questionText != question.Text ? questionText : null;
+        return changedQuestionText == null && answers.Count == 0
+            ? (null, null)
+            : (null, new ReportSuggestion { QuestionText = changedQuestionText, Answers = answers });
+    }
+
+    /// <summary>
+    /// A proposed key must be applicable: one correct answer for a multiple choice Question,
+    /// exactly SelectCount for a multiple response one. Rejected here rather than discovered
+    /// during triage.
+    /// </summary>
+    private static ReportResult? ValidateProposedKey(Question question, List<AnswerSuggestion> answers)
+    {
+        if (answers.All(a => a.IsCorrect == null))
+        {
+            return null;
+        }
+
+        var correctCount = question.Answers.Count(answer =>
+            answers.FirstOrDefault(a => a.AnswerId == answer.Id)?.IsCorrect ?? answer.IsCorrect);
+        var expected = question.Type == QuestionType.MultipleResponse ? question.SelectCount : 1;
+
+        return correctCount == expected
+            ? null
+            : new ReportResult(ReportOutcome.InvalidSuggestion,
+                $"A suggested key must mark exactly {expected} answer(s) correct, not {correctCount}");
+    }
+
+    private static ReportResult Invalid(string message) =>
+        new(ReportOutcome.InvalidSuggestion, message);
+
+    private static string? Trimmed(string? text) =>
+        string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+
+    private static bool TooLong(string? text) => text is { Length: > MaxSuggestedTextLength };
+
     private static ReportResponseDto ToDto(Report report) => new()
     {
         SubmissionId = report.SubmissionId,
         QuestionId = report.QuestionId,
         Reasons = report.Reasons,
         Comment = report.Comment,
+        Suggestion = report.Suggestion,
         Language = report.Language,
         Status = report.Status,
         CreatedAt = report.CreatedAt,
