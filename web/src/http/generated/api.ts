@@ -769,36 +769,39 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 export const postReports = (
-    createReportRequestDto: CreateReportRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ReportResponseDto>> => {
+    createReportRequestDto: BodyType<CreateReportRequestDto>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
 
 
-    return axios.default.post(
-      `https://api-cloudcertify.snowye.dev/reports`,
-      createReportRequestDto,options
-    );
-  }
+      return customInstance<ReportResponseDto>(
+      {url: `/reports`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createReportRequestDto, signal
+    },
+      options);
+    }
 
 
 
-export const getPostReportsMutationOptions = <TError = AxiosError<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: CreateReportRequestDto}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: CreateReportRequestDto}, TContext> => {
+export const getPostReportsMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: BodyType<CreateReportRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: BodyType<CreateReportRequestDto>}, TContext> => {
 
 const mutationKey = ['postReports'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postReports>>, {data: CreateReportRequestDto}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postReports>>, {data: BodyType<CreateReportRequestDto>}> = (props) => {
           const {data} = props ?? {};
 
-          return  postReports(data,axiosOptions)
+          return  postReports(data,requestOptions)
         }
 
 
@@ -809,15 +812,15 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostReportsMutationResult = NonNullable<Awaited<ReturnType<typeof postReports>>>
-    export type PostReportsMutationBody = CreateReportRequestDto
-    export type PostReportsMutationError = AxiosError<ProblemDetails>
+    export type PostReportsMutationBody = BodyType<CreateReportRequestDto>
+    export type PostReportsMutationError = ErrorType<ProblemDetails>
 
-    export const usePostReports = <TError = AxiosError<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: CreateReportRequestDto}, TContext>, axios?: AxiosRequestConfig}
+    export const usePostReports = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postReports>>, TError,{data: BodyType<CreateReportRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postReports>>,
         TError,
-        {data: CreateReportRequestDto},
+        {data: BodyType<CreateReportRequestDto>},
         TContext
       > => {
       return useMutation(getPostReportsMutationOptions(options), queryClient);
