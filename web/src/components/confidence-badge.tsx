@@ -11,7 +11,8 @@ type ConfidenceBadgeProps = {
 };
 
 /** Same traffic-light vocabulary as the in-attempt rating control, read-only. */
-const STYLES: Record<Confidence, { icon: LucideIcon; fill: string }> = {
+// Confidence admits null on the wire ("unrated"), which is not a style to look up.
+const STYLES: Record<NonNullable<Confidence>, { icon: LucideIcon; fill: string }> = {
   guess: { icon: HelpCircle, fill: 'bg-destructive' },
   unsure: { icon: AlertTriangle, fill: 'bg-warning' },
   confident: { icon: CheckCircle2, fill: 'bg-success' }

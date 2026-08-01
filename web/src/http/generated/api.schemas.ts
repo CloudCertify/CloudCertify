@@ -13,7 +13,10 @@ export interface AnswerDto {
   image?: string | null;
 }
 
-export type Confidence = typeof Confidence[keyof typeof Confidence];
+/**
+ * @nullable
+ */
+export type Confidence = typeof Confidence[keyof typeof Confidence] | null;
 
 
 export const Confidence = {

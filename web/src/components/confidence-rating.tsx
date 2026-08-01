@@ -16,7 +16,11 @@ type ConfidenceRatingProps = {
  * warm ones, so a glance at the card says the same thing the Navigator's
  * revisit marker does.
  */
-const STYLES: Record<Confidence, { icon: LucideIcon; selected: string; icons: string }> =
+// Confidence admits null on the wire ("unrated"), which is not a style to look up.
+const STYLES: Record<
+  NonNullable<Confidence>,
+  { icon: LucideIcon; selected: string; icons: string }
+> =
   {
     // Black on colour throughout: white labels on the red and green fills miss
     // WCAG AA at this size, and black is the theme's ink anyway.

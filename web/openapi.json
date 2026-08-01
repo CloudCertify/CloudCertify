@@ -764,12 +764,7 @@
             }
           },
           "confidence": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Confidence"
-              }
-            ],
-            "nullable": true
+            "$ref": "#/components/schemas/Confidence"
           }
         }
       },
@@ -836,6 +831,11 @@
             "nullable": true
           }
         }
+      },
+      "Confidence": {
+        "enum": ["guess", "unsure", "confident"],
+        "type": "string",
+        "nullable": true
       },
       "CreateReportRequestDto": {
         "type": "object",
@@ -968,10 +968,6 @@
             "format": "date-time"
           }
         }
-      },
-      "Confidence": {
-        "enum": ["guess", "unsure", "confident"],
-        "type": "string"
       },
       "ProblemDetails": {
         "type": "object",
@@ -1204,12 +1200,7 @@
             "nullable": true
           },
           "confidence": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Confidence"
-              }
-            ],
-            "nullable": true
+            "$ref": "#/components/schemas/Confidence"
           },
           "answers": {
             "type": "array",

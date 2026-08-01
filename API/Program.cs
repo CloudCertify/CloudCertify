@@ -48,9 +48,9 @@ builder.Services.AddOpenApi(options =>
     {
         // Unwrap Confidence? and friends: a nullable enum is not itself an enum, so without
         // this it escapes the transformer and ships as a bare integer, which then generates a
-        // number-typed client field for what is a string on the wire. The nullability stays on
-        // the property, not on the shared schema — folding it in here would make every use of
-        // the enum nullable.
+        // number-typed client field for what is a string on the wire. A $ref carries no
+        // "nullable" in OpenAPI 3.0, so the nullability stays on the schema and the generated
+        // type admits null — see NonNullable<Confidence> on the web side.
         var underlying = Nullable.GetUnderlyingType(context.JsonTypeInfo.Type);
         var type = underlying ?? context.JsonTypeInfo.Type;
         if (type.IsEnum)
@@ -61,27 +61,6 @@ builder.Services.AddOpenApi(options =>
                 .Select(n => (IOpenApiAny)new OpenApiString(
                     JsonNamingPolicy.SnakeCaseLower.ConvertName(n)))
                 .ToList();
-        }
-
-        // A $ref cannot carry "nullable" in OpenAPI 3.0, so a property holding a nullable enum
-        // has to say so by wrapping the reference. Without this, "clear my rating" (an
-        // explicit null) is unrepresentable in the published contract.
-        foreach (var property in context.JsonTypeInfo.Properties)
-        {
-            if (Nullable.GetUnderlyingType(property.PropertyType) is not { IsEnum: true })
-            {
-                continue;
-            }
-
-            if (schema.Properties.TryGetValue(property.Name, out var propertySchema) &&
-                propertySchema.Reference != null)
-            {
-                schema.Properties[property.Name] = new OpenApiSchema
-                {
-                    AllOf = [propertySchema],
-                    Nullable = true,
-                };
-            }
         }
 
         return Task.CompletedTask;
