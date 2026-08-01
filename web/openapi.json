@@ -773,9 +773,22 @@
           }
         }
       },
-      "Confidence": {
-        "enum": ["guess", "unsure", "confident"],
-        "type": "string"
+      "AnswerSuggestionDto": {
+        "type": "object",
+        "properties": {
+          "answerId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "isCorrect": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
       },
       "CheckAnswerRequestDto": {
         "type": "object",
@@ -871,6 +884,24 @@
           }
         }
       },
+      "DrillCompositionDto": {
+        "type": "object",
+        "properties": {
+          "missed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unseen": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mastered": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "nullable": true
+      },
       "FinishSubquizRequestDto": {
         "type": "object",
         "properties": {
@@ -937,6 +968,10 @@
             "format": "date-time"
           }
         }
+      },
+      "Confidence": {
+        "enum": ["guess", "unsure", "confident"],
+        "type": "string"
       },
       "ProblemDetails": {
         "type": "object",
@@ -1010,22 +1045,6 @@
       "QuestionType": {
         "enum": ["multiple_choice", "multiple_response"],
         "type": "string"
-      },
-      "QuizAnswer": {
-        "type": "object",
-        "properties": {
-          "questionId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "answerIds": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        }
       },
       "QuizDetailDto": {
         "type": "object",
@@ -1238,6 +1257,9 @@
             "type": "string",
             "nullable": true
           },
+          "suggestion": {
+            "$ref": "#/components/schemas/SuggestionDto"
+          },
           "language": {
             "$ref": "#/components/schemas/Language"
           },
@@ -1247,9 +1269,6 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
-          },
-          "suggestion": {
-            "$ref": "#/components/schemas/SuggestionDto"
           }
         }
       },
@@ -1330,24 +1349,6 @@
           }
         }
       },
-      "DrillCompositionDto": {
-        "required": ["missed", "unseen", "mastered"],
-        "type": "object",
-        "properties": {
-          "missed": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "unseen": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "mastered": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "SubquizDetailDto": {
         "type": "object",
         "properties": {
@@ -1373,12 +1374,7 @@
             "format": "date-time"
           },
           "composition": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DrillCompositionDto"
-              }
-            ],
-            "nullable": true
+            "$ref": "#/components/schemas/DrillCompositionDto"
           },
           "questions": {
             "type": "array",
@@ -1425,23 +1421,6 @@
           }
         },
         "nullable": true
-      },
-      "AnswerSuggestionDto": {
-        "type": "object",
-        "properties": {
-          "answerId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "text": {
-            "type": "string",
-            "nullable": true
-          },
-          "isCorrect": {
-            "type": "boolean",
-            "nullable": true
-          }
-        }
       }
     }
   },

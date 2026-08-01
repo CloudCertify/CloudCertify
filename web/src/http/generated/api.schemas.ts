@@ -29,6 +29,14 @@ export interface AnswerQuestionRequestDto {
   confidence?: Confidence | null;
 }
 
+export interface AnswerSuggestionDto {
+  answerId?: number;
+  /** @nullable */
+  text?: string | null;
+  /** @nullable */
+  isCorrect?: boolean | null;
+}
+
 export interface CheckAnswerRequestDto {
   submissionId?: number;
   questionId?: number;
@@ -52,14 +60,6 @@ export const ReportReason = {
   bad_explanation: 'bad_explanation',
   outdated: 'outdated',
 } as const;
-
-export interface AnswerSuggestionDto {
-  answerId?: number;
-  /** @nullable */
-  text?: string | null;
-  /** @nullable */
-  isCorrect?: boolean | null;
-}
 
 /**
  * @nullable
@@ -85,6 +85,15 @@ export interface DomainResult {
   total: number;
   weight: number;
 }
+
+/**
+ * @nullable
+ */
+export type DrillCompositionDto = {
+  missed?: number;
+  unseen?: number;
+  mastered?: number;
+} | null;
 
 export interface FinishSubquizRequestDto {
   submissionId?: number;
@@ -164,11 +173,6 @@ export interface QuestionDto {
   selectCount?: number;
   difficulty?: QuestionDifficulty;
   answers?: AnswerDto[];
-}
-
-export interface QuizAnswer {
-  questionId?: number;
-  answerIds?: number[];
 }
 
 export interface QuizDetailDto {
@@ -268,10 +272,10 @@ export interface ReportResponseDto {
   reasons: ReportReason[];
   /** @nullable */
   comment?: string | null;
+  suggestion?: SuggestionDto | null;
   language: Language;
   status: ReportStatus;
   createdAt: string;
-  suggestion?: SuggestionDto | null;
 }
 
 export interface StartQuizRequestDto {
@@ -293,12 +297,6 @@ export interface SubmitQuizResponseDto {
   misconceptionCount: number;
   domainBreakdown: DomainResult[];
   questions: QuizResultQuestionDto[];
-}
-
-export interface DrillCompositionDto {
-  missed: number;
-  unseen: number;
-  mastered: number;
 }
 
 export interface SubquizDetailDto {
