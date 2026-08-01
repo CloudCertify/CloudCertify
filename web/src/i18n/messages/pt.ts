@@ -301,6 +301,17 @@ export const pt: Messages = {
       bad_explanation: 'A explicação não ajuda',
       outdated: 'Isto está desatualizado'
     },
+    suggest: {
+      trigger: 'Sugerir uma correção',
+      title: 'Como deveria estar?',
+      hint: 'Edite a questão e marque as respostas que deveriam estar certas.',
+      questionLabel: 'Questão',
+      answerLabel: (index: number) => `Resposta ${String.fromCharCode(65 + index)}`,
+      correct: 'Certa',
+      noChanges: 'Nada alterado ainda.',
+      changes: (count: number) =>
+        count === 1 ? '1 alteração para enviar' : `${count} alterações para enviar`
+    },
     commentLabel: 'Mais alguma coisa? (opcional)',
     commentPlaceholder: 'Conte o que parece errado.',
     commentCounter: (used: number, max: number) => `${used}/${max}`,

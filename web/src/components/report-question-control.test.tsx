@@ -13,8 +13,17 @@ vi.mock('sonner', () => ({
   toast: { success: toastSuccess, error: toastError }
 }));
 
+/** The Question as served, with the key the Check revealed: A is marked correct. */
+const SUGGESTABLE = {
+  text: 'Which service stores objects?',
+  answers: [
+    { id: 101, text: 'A', isCorrect: true },
+    { id: 102, text: 'B', isCorrect: false }
+  ]
+};
+
 /** Owns the session-wide reported set, like the Subquiz session page does. */
-function Harness() {
+function Harness({ suggestable }: { suggestable?: typeof SUGGESTABLE }) {
   const [reported, setReported] = useState<number[]>([]);
   return (
     <ReportQuestionControl
@@ -22,9 +31,17 @@ function Harness() {
       questionId={42}
       reported={reported.includes(42)}
       onReported={id => setReported(current => [...current, id])}
+      suggestable={suggestable}
     />
   );
 }
+
+const startEditing = () =>
+  fireEvent.click(
+    screen.getByRole('button', { name: en.report.suggest.trigger })
+  );
+const answerText = (index: number) =>
+  screen.getByLabelText(en.report.suggest.answerLabel(index));
 
 const openForm = () =>
   fireEvent.click(screen.getByRole('button', { name: en.report.trigger }));
@@ -90,7 +107,8 @@ describe('ReportQuestionControl', () => {
       submissionId: 7,
       questionId: 42,
       reasons: ['bad_explanation'],
-      comment: 'the explanation is circular'
+      comment: 'the explanation is circular',
+      suggestion: null
     });
     expect(toastSuccess).toHaveBeenCalledWith(en.report.success);
     expect(
@@ -131,6 +149,60 @@ describe('ReportQuestionControl', () => {
 
     await waitFor(() => expect(toastError).toHaveBeenCalledWith(en.report.error));
     expect(screen.queryByText(en.report.reported)).not.toBeInTheDocument();
+    expect(reason('wrong_answer_key')).toBeChecked();
+  });
+
+  it('offers the editor only when the key is known', () => {
+    render(<Harness />);
+    openForm();
+    expect(
+      screen.queryByRole('button', { name: en.report.suggest.trigger })
+    ).not.toBeInTheDocument();
+  });
+
+  it('sends only the fields the reporter actually changed', async () => {
+    render(<Harness suggestable={SUGGESTABLE} />);
+    openForm();
+    startEditing();
+
+    fireEvent.change(screen.getByLabelText(en.report.suggest.questionLabel), {
+      target: { value: '  Which service stores objects durably?  ' }
+    });
+    // B becomes the key, A stops being it; B's wording is left alone.
+    fireEvent.change(answerText(0), { target: { value: 'A' } });
+    fireEvent.click(screen.getAllByLabelText(en.report.suggest.correct)[0]);
+    fireEvent.click(screen.getAllByLabelText(en.report.suggest.correct)[1]);
+
+    expect(screen.getByText(en.report.suggest.changes(3))).toBeInTheDocument();
+    fireEvent.click(submitButton());
+
+    await waitFor(() => expect(postReports).toHaveBeenCalled());
+    expect(postReports.mock.calls[0][0].suggestion).toEqual({
+      questionText: 'Which service stores objects durably?',
+      answers: [
+        { answerId: 101, text: undefined, isCorrect: false },
+        { answerId: 102, text: undefined, isCorrect: true }
+      ]
+    });
+  });
+
+  it('takes the reasons from the edit, so an edit alone can be submitted', () => {
+    render(<Harness suggestable={SUGGESTABLE} />);
+    openForm();
+    expect(submitButton()).toBeDisabled();
+    startEditing();
+    expect(screen.getByText(en.report.suggest.noChanges)).toBeInTheDocument();
+
+    fireEvent.change(answerText(1), { target: { value: 'B, but clearer' } });
+
+    // Rewording is an unclear-wording claim, and it cannot be unticked while
+    // the edit stands.
+    expect(reason('unclear_wording')).toBeChecked();
+    expect(reason('unclear_wording')).toBeDisabled();
+    expect(reason('wrong_answer_key')).not.toBeChecked();
+    expect(submitButton()).toBeEnabled();
+
+    fireEvent.click(screen.getAllByLabelText(en.report.suggest.correct)[0]);
     expect(reason('wrong_answer_key')).toBeChecked();
   });
 

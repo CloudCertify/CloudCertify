@@ -18,7 +18,7 @@ type QuestionReviewProps = {
    * Report control for a reviewed Question (issue #41). Omitted for full Quiz
    * results, where reporting is not offered yet.
    */
-  renderReportControl?: (questionId: number) => ReactNode;
+  renderReportControl?: (question: QuizResultQuestionDto) => ReactNode;
 };
 
 export function QuestionReview({
@@ -121,7 +121,7 @@ export function QuestionReview({
                   })}
                   {renderReportControl && (
                     <div className='flex justify-end'>
-                      {renderReportControl(question.id)}
+                      {renderReportControl(question)}
                     </div>
                   )}
                 </div>

@@ -311,6 +311,17 @@ export const en = {
       bad_explanation: "The explanation doesn't help",
       outdated: 'This is out of date'
     },
+    suggest: {
+      trigger: 'Suggest a fix',
+      title: 'How should it read?',
+      hint: 'Edit the question and mark the answers that should be correct.',
+      questionLabel: 'Question',
+      answerLabel: (index: number) => `Answer ${String.fromCharCode(65 + index)}`,
+      correct: 'Correct',
+      noChanges: 'No changes yet.',
+      changes: (count: number) =>
+        count === 1 ? '1 change to send' : `${count} changes to send`
+    },
     commentLabel: 'Anything else? (optional)',
     commentPlaceholder: 'Tell us what looks off.',
     commentCounter: (used: number, max: number) => `${used}/${max}`,

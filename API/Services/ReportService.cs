@@ -242,7 +242,20 @@ public class ReportService(
         QuestionId = report.QuestionId,
         Reasons = report.Reasons,
         Comment = report.Comment,
-        Suggestion = report.Suggestion,
+        Suggestion = report.Suggestion == null
+            ? null
+            : new SuggestionDto
+            {
+                QuestionText = report.Suggestion.QuestionText,
+                Answers = report.Suggestion.Answers
+                    .Select(a => new AnswerSuggestionDto
+                    {
+                        AnswerId = a.AnswerId,
+                        Text = a.Text,
+                        IsCorrect = a.IsCorrect,
+                    })
+                    .ToList(),
+            },
         Language = report.Language,
         Status = report.Status,
         CreatedAt = report.CreatedAt,
