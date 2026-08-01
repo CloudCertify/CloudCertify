@@ -10,6 +10,9 @@ public class ReportResponseDto
     public required List<ReportReason> Reasons { get; set; }
     public string? Comment { get; set; }
 
+    /// <summary>The proposed correction as stored, or null when the Report is a bare claim.</summary>
+    public ReportSuggestion? Suggestion { get; set; }
+
     /// <summary>Taken from the Submission, never from the request.</summary>
     public required Language Language { get; set; }
 

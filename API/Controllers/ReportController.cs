@@ -24,9 +24,12 @@ public class ReportController : ControllerBase
     /// subquiz Submission — that Recorded Answer is the evidence and the anti-abuse gate, so
     /// anonymous visitors may report. The Report's language comes from the Submission
     /// (ADR 0004) and filing never re-grades the attempt (ADR 0001, ADR 0005).
-    /// Returns 400 for an empty reason set, an over-long comment, an unchecked question or a
-    /// full-quiz submission; 404 for an unknown submission; 409 when the same question was
-    /// already reported on that submission.
+    /// The Report may carry a suggested edit — a sparse patch of proposed question/answer text
+    /// and key, stored for a human to read and never applied automatically (ADR 0009).
+    /// Returns 400 for an empty reason set, an over-long comment, an inapplicable suggestion, an
+    /// unchecked question or a full-quiz submission; 404 for an unknown submission; 409 when the
+    /// same question already carries a triaged report on that submission. Re-filing while the
+    /// existing report is still open replaces it, so a claim can be upgraded to a suggestion.
     /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]

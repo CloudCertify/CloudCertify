@@ -6,9 +6,11 @@ namespace API.Repositories;
 public interface IReportRepository
 {
     /// <summary>
-    /// Persists a new Report, or returns null when this Submission already reported this Question.
-    /// The primary key is the one-Report-per-Recorded-Answer limit, so the race between two
-    /// concurrent files is settled by the database rather than by a check-then-insert.
+    /// Persists a Report, replacing an existing one for the same (Submission, Question) while it
+    /// is still <see cref="ReportStatus.Open"/> — a reporter who files a claim and then returns
+    /// to suggest a fix must not be blocked by their own report (ADR 0009). Returns null once
+    /// the existing Report has been triaged, and on the insert race, so both surface as a
+    /// conflict. The primary key remains the one-Report-per-Recorded-Answer limit (ADR 0005).
     /// </summary>
-    Task<Report?> Create(Report report);
+    Task<Report?> Save(Report report);
 }
