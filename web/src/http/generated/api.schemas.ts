@@ -53,12 +53,27 @@ export const ReportReason = {
   outdated: 'outdated',
 } as const;
 
+export interface AnswerSuggestionDto {
+  answerId: number;
+  /** @nullable */
+  text?: string | null;
+  /** @nullable */
+  isCorrect?: boolean | null;
+}
+
+export interface SuggestionDto {
+  /** @nullable */
+  questionText?: string | null;
+  answers: AnswerSuggestionDto[];
+}
+
 export interface CreateReportRequestDto {
   submissionId?: number;
   questionId?: number;
   reasons?: ReportReason[];
   /** @nullable */
   comment?: string | null;
+  suggestion?: SuggestionDto | null;
 }
 
 export interface DomainResult {
@@ -253,6 +268,7 @@ export interface ReportResponseDto {
   language: Language;
   status: ReportStatus;
   createdAt: string;
+  suggestion?: SuggestionDto | null;
 }
 
 export interface StartQuizRequestDto {

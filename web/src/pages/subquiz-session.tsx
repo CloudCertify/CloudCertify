@@ -299,13 +299,21 @@ export function SubquizSessionPage() {
               <QuestionReview
                 questions={resultQuestions ?? []}
                 heading={t.review.reviewHeading}
-                renderReportControl={questionId =>
+                renderReportControl={question =>
                   subquizDetail.submissionId == null ? null : (
                     <ReportQuestionControl
                       submissionId={subquizDetail.submissionId}
-                      questionId={questionId}
-                      reported={reportedQuestionIds.includes(questionId)}
+                      questionId={question.id}
+                      reported={reportedQuestionIds.includes(question.id)}
                       onReported={markReported}
+                      suggestable={{
+                        text: question.text,
+                        answers: question.answers.map(answer => ({
+                          id: answer.id,
+                          text: answer.text ?? '',
+                          isCorrect: answer.isCorrect
+                        }))
+                      }}
                     />
                   )
                 }
@@ -363,6 +371,24 @@ export function SubquizSessionPage() {
                 questionId={currentQuestion.id}
                 reported={reportedQuestionIds.includes(currentQuestion.id)}
                 onReported={markReported}
+                // The key only exists after the Check, which is also the only
+                // moment this control is rendered (issue #41).
+                suggestable={
+                  reveal == null
+                    ? undefined
+                    : {
+                        text: currentQuestion.text ?? '',
+                        answers: (currentQuestion.answers ?? [])
+                          .filter(answer => answer.id != null)
+                          .map(answer => ({
+                            id: answer.id!,
+                            text: answer.text ?? '',
+                            isCorrect: (reveal.correctAnswerIds ?? []).includes(
+                              answer.id!
+                            )
+                          }))
+                      }
+                }
               />
             )
           }

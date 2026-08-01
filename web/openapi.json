@@ -844,6 +844,14 @@
           "comment": {
             "type": "string",
             "nullable": true
+          },
+          "suggestion": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SuggestionDto"
+              }
+            ],
+            "nullable": true
           }
         }
       },
@@ -1244,6 +1252,14 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "suggestion": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SuggestionDto"
+              }
+            ],
+            "nullable": true
           }
         }
       },
@@ -1367,7 +1383,11 @@
             "format": "date-time"
           },
           "composition": {
-            "allOf": [{ "$ref": "#/components/schemas/DrillCompositionDto" }],
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DrillCompositionDto"
+              }
+            ],
             "nullable": true
           },
           "questions": {
@@ -1397,6 +1417,40 @@
           },
           "isAvailable": {
             "type": "boolean"
+          }
+        }
+      },
+      "SuggestionDto": {
+        "required": ["answers"],
+        "type": "object",
+        "properties": {
+          "questionText": {
+            "type": "string",
+            "nullable": true
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnswerSuggestionDto"
+            }
+          }
+        }
+      },
+      "AnswerSuggestionDto": {
+        "required": ["answerId"],
+        "type": "object",
+        "properties": {
+          "answerId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "isCorrect": {
+            "type": "boolean",
+            "nullable": true
           }
         }
       }
