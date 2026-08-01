@@ -846,12 +846,7 @@
             "nullable": true
           },
           "suggestion": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SuggestionDto"
-              }
-            ],
-            "nullable": true
+            "$ref": "#/components/schemas/SuggestionDto"
           }
         }
       },
@@ -1254,12 +1249,7 @@
             "format": "date-time"
           },
           "suggestion": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SuggestionDto"
-              }
-            ],
-            "nullable": true
+            "$ref": "#/components/schemas/SuggestionDto"
           }
         }
       },
@@ -1421,7 +1411,6 @@
         }
       },
       "SuggestionDto": {
-        "required": ["answers"],
         "type": "object",
         "properties": {
           "questionText": {
@@ -1434,10 +1423,10 @@
               "$ref": "#/components/schemas/AnswerSuggestionDto"
             }
           }
-        }
+        },
+        "nullable": true
       },
       "AnswerSuggestionDto": {
-        "required": ["answerId"],
         "type": "object",
         "properties": {
           "answerId": {

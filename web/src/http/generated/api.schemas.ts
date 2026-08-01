@@ -54,18 +54,21 @@ export const ReportReason = {
 } as const;
 
 export interface AnswerSuggestionDto {
-  answerId: number;
+  answerId?: number;
   /** @nullable */
   text?: string | null;
   /** @nullable */
   isCorrect?: boolean | null;
 }
 
-export interface SuggestionDto {
+/**
+ * @nullable
+ */
+export type SuggestionDto = {
   /** @nullable */
   questionText?: string | null;
-  answers: AnswerSuggestionDto[];
-}
+  answers?: AnswerSuggestionDto[];
+} | null;
 
 export interface CreateReportRequestDto {
   submissionId?: number;
