@@ -34,23 +34,56 @@ builder.Services.AddOpenApi(options =>
         return Task.CompletedTask;
     });
 
+    // Confidence? would otherwise be published as "NullableOfConfidence", giving the generated
+    // client a second name for a type that has one name on the wire.
+    options.CreateSchemaReferenceId = info =>
+    {
+        var underlying = Nullable.GetUnderlyingType(info.Type);
+        return underlying is { IsEnum: true }
+            ? underlying.Name
+            : Microsoft.AspNetCore.OpenApi.OpenApiOptions.CreateDefaultSchemaReferenceId(info);
+    };
+
     options.AddSchemaTransformer((schema, context, ct) =>
     {
         // Unwrap Confidence? and friends: a nullable enum is not itself an enum, so without
         // this it escapes the transformer and ships as a bare integer, which then generates a
-        // number-typed client field for what is a string on the wire.
+        // number-typed client field for what is a string on the wire. The nullability stays on
+        // the property, not on the shared schema — folding it in here would make every use of
+        // the enum nullable.
         var underlying = Nullable.GetUnderlyingType(context.JsonTypeInfo.Type);
         var type = underlying ?? context.JsonTypeInfo.Type;
         if (type.IsEnum)
         {
             schema.Type = "string";
             schema.Format = null;
-            schema.Nullable = underlying != null;
             schema.Enum = Enum.GetNames(type)
                 .Select(n => (IOpenApiAny)new OpenApiString(
                     JsonNamingPolicy.SnakeCaseLower.ConvertName(n)))
                 .ToList();
         }
+
+        // A $ref cannot carry "nullable" in OpenAPI 3.0, so a property holding a nullable enum
+        // has to say so by wrapping the reference. Without this, "clear my rating" (an
+        // explicit null) is unrepresentable in the published contract.
+        foreach (var property in context.JsonTypeInfo.Properties)
+        {
+            if (Nullable.GetUnderlyingType(property.PropertyType) is not { IsEnum: true })
+            {
+                continue;
+            }
+
+            if (schema.Properties.TryGetValue(property.Name, out var propertySchema) &&
+                propertySchema.Reference != null)
+            {
+                schema.Properties[property.Name] = new OpenApiSchema
+                {
+                    AllOf = [propertySchema],
+                    Nullable = true,
+                };
+            }
+        }
+
         return Task.CompletedTask;
     });
 });

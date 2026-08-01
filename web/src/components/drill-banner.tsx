@@ -29,15 +29,20 @@ export function DrillBanner({
   const { t } = useI18n();
   const { login } = useAuth();
 
+  // The counts are optional on the wire; a missing count is a zero, not a gap.
+  const missed = composition?.missed ?? 0;
+  const unseen = composition?.unseen ?? 0;
+  const mastered = composition?.mastered ?? 0;
+
   if (composition && place === 'review') {
     // Nothing was owed back, so there is no win to claim — say nothing rather than pad.
-    if (composition.missed === 0) return null;
+    if (missed === 0) return null;
 
     return (
       <div className='mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[5px] border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]'>
         <Sparkles className='h-4 w-4 shrink-0' aria-hidden='true' />
         <span className='text-sm font-bold text-black'>
-          {t.drill.reviewedMissed(composition.missed)}
+          {t.drill.reviewedMissed(missed)}
         </span>
       </div>
     );
@@ -51,11 +56,7 @@ export function DrillBanner({
           {t.drill.label}
         </span>
         <span className='text-sm font-bold text-black/70'>
-          {t.drill.composition(
-            composition.missed,
-            composition.unseen,
-            composition.mastered
-          )}
+          {t.drill.composition(missed, unseen, mastered)}
         </span>
       </div>
     );
