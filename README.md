@@ -6,14 +6,14 @@
 
 ---
 
-## V0 — Functional Exam Simulator (MVP)
+## V0 — Functional Exam Simulator (shipped)
 
-**Goal:** Ship fast to validate demand. V0 persists score + email only.
+Demand-validation MVP. Persists Recorded Answers, Confidence, Outcomes, Users, Providers, Reports, and Language.
 
 **Core Features:**
 
 - [x] AWS exam catalog: CLF-C02, SAA-C03, DVA-C02, SOA-C03, SCS-C03, ANS-C01 (seeded question banks, hash-based reseed)
-- [x] Per-quiz question count (AWS CLF-C02 is a fixed 65; ranged quizzes pick a count within a configured range)
+- [x] Per-quiz question count (each available exam is a fixed length; AWS CLF-C02 is 65)
 - [x] AWS-style multiple choice
 - [x] Shuffled answer options
 - [x] Domain-weighted scaled scoring (100-1000, pass ≥ 700) per exam via grading strategies
@@ -30,20 +30,13 @@
 
 ---
 
-## Ongoing Roadmap
+## Roadmap
 
-**V1 — Real Learning Platform**
+**V1 — Real Learning Platform** (in progress)
 
-> Critical path: behavioral/event capture gates everything below and all of V2.
-> Per-question answer time requires recording answers as they happen in full
-> quiz attempts (today only Subquizzes have Recorded Answers; full quizzes
-> submit one batch) — data-model change, do first.
-
-- [ ] Behavioral data capture + analytics tracking (success rate, most failed, answer time, abandonment, score distribution) — **next milestone**
+- [ ] Per-you performance analytics: success rate, plus Domain and Service performance (logged-in only). Deferred: answer time, abandonment, most failed, score distribution
 - [x] Domain grouped tests focused on user weaknesses: Subquizzes drawn by Drill Mix (9 Missed / 4 Unseen / 2 Mastered) from a logged-in User's per-Question Outcomes, with the drill's make-up shown before the first Question; correctness stamped on Recorded Answers — ADR 0007, ADR 0008
-- [ ] Detailed explanations (why correct/wrong, exam strategy, common traps)
-- [ ] Domain performance tracking by service/concept
-- [ ] Review modes (retry incorrect, flagged, guessed)
+- [ ] Review modes (retry incorrect, Low Confidence)
 - [x] Confidence scoring (Guess/Unsure/Confident, full quizzes only) to detect lucky guesses and misconceptions — ADR 0006
 
 **V2 — Adaptive Learning Engine**

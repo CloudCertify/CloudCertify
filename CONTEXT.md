@@ -1,8 +1,7 @@
 # CloudCertify
 
-Adaptive certification learning system. V0 ships a functional cloud-exam
-simulator (CLF-C02) and is collecting behavioral data to justify later
-adaptive-learning work.
+Adaptive certification learning system. The shipped product is a functional
+cloud-exam simulator across six available exams; V1 is the current effort.
 
 ## Language
 
