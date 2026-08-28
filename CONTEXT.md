@@ -78,8 +78,18 @@ _misconception_ (Confident, incorrect). Optional; an unrated answer is normal
 and carries no Confidence. Never affects a score — it is reported back, not
 graded on. Exists only where correctness is deferred, so a full Quiz has
 Confidence and a Subquiz does not: a Check reveals correctness immediately, so
-the drill already tells the visitor what a rating would have.
+the drill already tells the visitor what a rating would have. Low Confidence
+reads the latest non-null rating; a Check never writes one.
 _Avoid_: Certainty, Sureness, Conviction
+
+**Low Confidence**:
+The visitor's latest non-null Confidence on a finished full Quiz, when that
+rating is Guess or Unsure. Correctness does not matter, so a lucky guess is in.
+An unrated answer does not join and does not evict. A 15-question practice
+draw across the parent Quiz (not one Domain) seats this set first; a short set
+pads Missed then Unseen, never Mastered, and an empty set does not start.
+Logged-in only. The set moves only after the next finished full Quiz.
+_Avoid_: Flagged, Guessed, Retry guessed
 
 **Report**:
 A visitor's claim that a Question's content is defective — wrong answer key,
@@ -129,12 +139,12 @@ Outcomes. Not a quantity — it does not accumulate, and it is not a score.
 _Avoid_: Mastery, Level, Score, Weakness, Streak
 
 **Drill Mix**:
-The target make-up of a Subquiz attempt's served Questions, stated in Outcomes:
-mostly Missed, some Unseen, a little Mastered. A short bucket spills into the
-others rather than shortening the drill, so every attempt is full-length and a
-visitor with no history simply gets all-Unseen. Applies to a Subquiz only — a
-full Quiz is drawn uniformly at random so its Scaled Score keeps predicting the
-real exam.
+The target make-up of a Domain-scoped Subquiz attempt's served Questions,
+stated in Outcomes: mostly Missed, some Unseen, a little Mastered. A short
+bucket spills into the others rather than shortening the drill, so every
+attempt is full-length and a visitor with no history simply gets all-Unseen.
+Not the Low Confidence draw. A full Quiz is drawn uniformly at random so its
+Scaled Score keeps predicting the real exam.
 _Avoid_: Weighting, Algorithm, Selection, Adaptive quiz
 
 **Drill Composition**:
