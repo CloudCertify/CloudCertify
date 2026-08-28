@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-27
 - Related: ADR 0003 (Claiming), ADR 0006 (Confidence), ADR 0008 (Drill Mix),
+  ADR 0010 (Mode and Drill),
   [Define the Low Confidence draw rule](https://github.com/CloudCertify/CloudCertify/issues/63)
 - Amends: ADR 0008 (a practice drill is no longer only a Drill Mix)
 
