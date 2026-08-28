@@ -4,6 +4,8 @@
 - Date: 2026-06-30
 - Supersedes for subquizzes: the batch `SubmitSubquiz` flow
 - Related: ADR 0001, issue #12
+- Amended by: ADR 0010 (the attempt that Checks is Practice on a Drill, not a
+  Subquiz type; the prohibition below is unchanged)
 
 ## Context
 

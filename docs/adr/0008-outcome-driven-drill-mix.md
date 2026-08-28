@@ -6,6 +6,8 @@
   (optional social login, Claiming), ADR 0006 (Confidence), ADR 0007 (stored
   correctness — the evidence this reads)
 - Supersedes the README V1 bullet "Persist per-domain results per attempt"
+- Amended by: ADR 0010 (Subquiz is Drill; Drill Mix is one Draw Rule on
+  Practice, not the only practice draw), ADR 0011 (Low Confidence is another)
 
 ## Context
 
