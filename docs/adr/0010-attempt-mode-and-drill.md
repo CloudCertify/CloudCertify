@@ -5,12 +5,13 @@
 - Related: ADR 0001, ADR 0002, ADR 0006, ADR 0008, ADR 0011,
   [Decide the attempt-model remodel shape](https://github.com/CloudCertify/CloudCertify/issues/59)
 - Amends: ADR 0002, ADR 0008
+- Amended by: ADR 0011 (the review Draw Rule is `Mistakes`, not `LowConfidence`)
 
 ## Context
 
 `Subquiz` bundled three independent axes (draw rule, feedback timing, grading)
 into two presets, and `Submission` discriminated behaviour on a nullable
-`SubquizId`. A cross-Domain Low Confidence review is a new combination of those
+`SubquizId`. A cross-Domain review drill is a new combination of those
 axes and cannot be expressed: `Subquiz.Domain` is non-null. A third attempt
 type as a third nullable FK is the same smell again.
 
@@ -25,14 +26,15 @@ load-bearing: per-Question correctness reveal must not leak into a full Quiz.
    in favour of reading Mode.
 2. **`Subquiz` is renamed `Drill`** and generalised into a named selector over
    a parent Quiz's questions. `Domain` becomes nullable. A **Draw Rule**
-   discriminator is added (`Uniform`, `DrillMix`, `LowConfidence`). A Drill
+   discriminator is added (`Uniform`, `DrillMix`, `LowConfidence`; renamed to
+   `Mistakes` by ADR 0011, which merged the two review modes into one). A Drill
    keeps catalog identity: Title, Slug, IsAvailable, and its linkable route.
 3. **A Drill never owns questions** and is not the questions' link to a Quiz.
    Questions belong to a Quiz via `Question.QuizId`. A Drill points into the
    Quiz and, at attempt start, selects a subset by Domain and/or Draw Rule. An
    Exam attempt uses no Drill and draws from the whole `quiz.Questions` pool.
-4. **The cross-Domain Low Confidence review is one seeded Drill row:**
-   `Domain = null`, `DrawRule = LowConfidence`, with a Slug and Title,
+4. **The cross-Domain review is one seeded Drill row:**
+   `Domain = null`, `DrawRule = Mistakes`, with a Slug and Title,
    computing its questions per user when the attempt starts. The draw itself
    is ADR 0011.
 5. **Start-path invariant**, held at the start paths, not as a runtime guard
@@ -58,7 +60,7 @@ extended *commit* to the full Quiz, not *feedback*; this ADR does not change
 that line.
 
 **ADR 0008 is narrowed, not reversed.** Drill Mix remains the Domain-scoped
-correctness draw. It is no longer the only practice draw: Low Confidence is
+correctness draw. It is no longer the only practice draw: Mistakes is
 another Draw Rule on the same Practice shape (ADR 0011). Full Quizzes stay
 uniformly random. Evidence still flows in from every finished attempt;
 adaptivity still flows out only through Practice draws.

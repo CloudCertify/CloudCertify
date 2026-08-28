@@ -28,7 +28,7 @@ _Avoid_: Attempt type, Kind, Style
 
 **Draw Rule**:
 How a Drill chooses which of the Quiz's questions to serve. Domain-scoped
-Uniform (no Outcomes) and Drill Mix; Low Confidence across the whole Quiz.
+Uniform (no Outcomes) and Drill Mix; Mistakes across the whole Quiz.
 An Exam has no Draw Rule: it draws uniformly from the whole Quiz so the
 Scaled Score still predicts the real exam.
 _Avoid_: Selection, Algorithm
@@ -106,10 +106,9 @@ _Avoid_: Certainty, Sureness, Conviction
 **Low Confidence**:
 The visitor's latest non-null Confidence on a finished full Quiz, when that
 rating is Guess or Unsure. Correctness does not matter, so a lucky guess is in.
-An unrated answer does not join and does not evict. A Draw Rule: a 15-question Practice
-draw across the parent Quiz (not one Domain) seats this set first; a short set
-pads Missed then Unseen, never Mastered, and an empty set does not start.
-Logged-in only. The set moves only after the next finished full Quiz.
+An unrated answer does not join and does not evict. Not a Draw Rule: it is one
+of the two sets Mistakes draws from, alongside Missed. Belongs to a User.
+The set moves only after the next finished full Quiz.
 _Avoid_: Flagged, Guessed, Retry guessed
 
 **Report**:
@@ -133,7 +132,7 @@ _Avoid_: Grid, Palette, Question map, Review screen
 **Domain**:
 An exam content area defined by the certification body (e.g. "Security and
 Compliance"). Carries an official Weight in a full Quiz's grade. A Drill Mix
-Drill is scoped to one Domain; Low Confidence is not.
+Drill is scoped to one Domain; Mistakes is not.
 _Avoid_: Topic, Category, Section, Area
 
 **Scaled Score**:
@@ -161,11 +160,22 @@ _Avoid_: Mastery, Level, Score, Weakness, Streak
 **Drill Mix**:
 The target make-up of a Domain-scoped Drill Mix attempt's served Questions,
 stated in Outcomes: mostly Missed, some Unseen, a little Mastered. A short
-bucket spills into the others rather than shortening the drill, so every
-attempt is full-length and a visitor with no history simply gets all-Unseen.
-One Draw Rule, not the Low Confidence draw. An Exam is drawn uniformly at
+bucket spills into the others rather than shortening the drill, so every Drill
+Mix attempt is full-length and a visitor with no history simply gets all-Unseen.
+One Draw Rule, not the Mistakes draw. An Exam is drawn uniformly at
 random so its Scaled Score keeps predicting the real exam.
 _Avoid_: Weighting, Algorithm, Selection, Adaptive quiz
+
+**Mistakes**:
+The review draw. A Draw Rule across the parent Quiz, not one Domain: it serves
+the Questions whose latest Outcome is Missed together with the Questions the
+visitor last rated Guess or Unsure, so a lucky guess comes back even though it
+was correct. Missed seats first, most recently missed before the rest; low
+ratings take the remaining seats. At most 15, and the only draw that may be
+shorter: 3 in the set is a 3-Question drill, never padded up. An empty set does
+not start. Logged-in only, since both halves need a User. Draws the two sets,
+writes neither.
+_Avoid_: Retry incorrect, Missed drill, Review mode, Mistakes list
 
 **Drill Composition**:
 What a Drill Mix attempt actually came out as — how many of the served
@@ -173,8 +183,8 @@ Questions were Missed, Unseen and Mastered going in. Reported once, at start,
 and shown before the first Question so the adaptivity is visible; the shrinking
 Missed count doubles as progress. Exists only for a logged-in User on a Drill
 Mix: an anonymous Drill Mix is random, so it has none, and the sign-in pitch
-takes that slot instead. Not attached to Low Confidence, whose start gate is
-an empty set. Never attached to an individual Question before it is answered —
+takes that slot instead. Not attached to Mistakes, which shows a plain count of
+what it seated. Never attached to an individual Question before it is answered —
 that would turn recall into recognition.
 _Avoid_: Breakdown, Stats, Mix report
 
