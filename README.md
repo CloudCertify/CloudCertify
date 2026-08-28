@@ -36,7 +36,7 @@ Demand-validation MVP. Persists Recorded Answers, Confidence, Outcomes, Users, P
 
 - [ ] Per-you performance analytics: success rate, plus Domain and Service performance (logged-in only). Deferred: answer time, abandonment, most failed, score distribution
 - [x] Domain grouped tests focused on user weaknesses: Subquizzes drawn by Drill Mix (9 Missed / 4 Unseen / 2 Mastered) from a logged-in User's per-Question Outcomes, with the drill's make-up shown before the first Question; correctness stamped on Recorded Answers — ADR 0007, ADR 0008
-- [ ] Review modes (retry incorrect, Low Confidence)
+- [ ] Mistakes drill: one review draw across the whole quiz, serving what you missed plus what you only guessed at, capped at 15 and never padded up — ADR 0011
 - [x] Confidence scoring (Guess/Unsure/Confident, full quizzes only) to detect lucky guesses and misconceptions — ADR 0006
 
 **V2 — Adaptive Learning Engine**
