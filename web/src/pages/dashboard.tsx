@@ -18,6 +18,7 @@ import type {
   QuizProvider
 } from '@/http/generated/api.schemas';
 import { useState } from 'react';
+import { AnalyticsPrototype } from './analytics-prototype';
 
 function SkeletonCard() {
   return (
@@ -132,6 +133,9 @@ export function DashboardPage() {
   const { t } = useI18n();
   const { data, isLoading, isError } = useGetQuiz();
   const [provider, setProvider] = useState<QuizProvider>('aws');
+  const showAnalyticsPrototype =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).has('variant');
   const quizzes = (data?.data ?? []).filter(q => q.quizProvider === provider);
 
   const tiers = LEVEL_ORDER.map(level => ({
@@ -170,7 +174,10 @@ export function DashboardPage() {
       </header>
 
       <main className='flex-1 container py-8'>
-        <div className='flex flex-col gap-8'>
+        {showAnalyticsPrototype ? (
+          <AnalyticsPrototype />
+        ) : (
+          <div className='flex flex-col gap-8'>
           <div>
             <h1 className='text-3xl font-black tracking-tight text-black'>
               {t.dashboard.title}
@@ -232,7 +239,8 @@ export function DashboardPage() {
                 )}
               </div>
             ))}
-        </div>
+          </div>
+        )}
       </main>
 
       <Footer />
