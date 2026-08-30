@@ -157,6 +157,25 @@ way grading treats it. Belongs to a User: an attempt without one produces no
 Outcomes. Not a quantity — it does not accumulate, and it is not a score.
 _Avoid_: Mastery, Level, Score, Weakness, Streak
 
+**Progress**:
+A User's evidence on one Quiz, folded the same way an Outcome is — finished
+Submissions only, latest attempt wins — and then read per Domain rather than
+per Question. Covers one Quiz at a time and never combines Domains across
+certifications. Belongs to a User, so an anonymous visitor has none. Shares
+Outcome's definition deliberately: the same evidence drives what a drill serves
+and what the visitor is told about themselves, so the two can never disagree.
+_Avoid_: Analytics (implies population metrics, which V1 does not have),
+Dashboard (the exam catalog), Stats, Report
+
+**Standing**:
+Progress narrowed to one Domain: the share of the Domain's seen Questions the
+User has Mastered, as a percentage. Answers the question "where am I weak",
+which is why it names the Domain to drill next. Distinct from a Score, which
+grades one attempt, and from a Scaled Score, which is exam-scale — a Standing
+is about a Quiz's Domain over the visitor's whole history, not about any single
+attempt.
+_Avoid_: Score, Mastery, Progress (the whole, not the slice), Rating
+
 **Drill Mix**:
 The target make-up of a Domain-scoped Drill Mix attempt's served Questions,
 stated in Outcomes: mostly Missed, some Unseen, a little Mastered. A short
