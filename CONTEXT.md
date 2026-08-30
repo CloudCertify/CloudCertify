@@ -149,21 +149,17 @@ Drill titles/descriptions are not yet localized.
 _Avoid_: Locale, Culture, Translation (the act, not the choice)
 
 **Outcome**:
-The visitor's latest evidence on a single Question — Missed, Mastered, or
-Unseen. Read from their finished Submissions only, across both Exam and
-Practice; the most recent attempt wins outright, so improvement erases a past
-miss. A served Question with no Recorded Answer counts as Missed, matching the
-way grading treats it. Belongs to a User: an attempt without one produces no
-Outcomes. Not a quantity — it does not accumulate, and it is not a score.
+The visitor's latest evidence on a single Question: Missed, Mastered, or
+Unseen. Finished Exam and Drill Mix attempts overwrite outright. A Mistakes
+attempt writes Missed on a wrong Check or a served skip, and does not write
+Mastered on a right Check. Belongs to a User. Not a quantity, and not a score.
 _Avoid_: Mastery, Level, Score, Weakness, Streak
 
 **Progress**:
-A User's evidence on one Quiz, folded the same way an Outcome is — finished
-Submissions only, latest attempt wins — and then read per Domain rather than
-per Question. Covers one Quiz at a time and never combines Domains across
-certifications. Belongs to a User, so an anonymous visitor has none. Shares
-Outcome's definition deliberately: the same evidence drives what a drill serves
-and what the visitor is told about themselves, so the two can never disagree.
+A User's evidence on one Quiz, folded the same way an Outcome is, then read
+per Domain rather than per Question. Covers one Quiz at a time and never
+combines Domains across certifications. Belongs to a User. The page and the
+drill cannot disagree, so a Mistakes right Check does not raise Standing.
 _Avoid_: Analytics (implies population metrics, which V1 does not have),
 Dashboard (the exam catalog), Stats, Report
 
@@ -192,8 +188,8 @@ visitor last rated Guess or Unsure, so a lucky guess comes back even though it
 was correct. Missed seats first, most recently missed before the rest; low
 ratings take the remaining seats. At most 15, and the only draw that may be
 shorter: 3 in the set is a 3-Question drill, never padded up. An empty set does
-not start. Logged-in only, since both halves need a User. Draws the two sets,
-writes neither.
+not start. Logged-in only, since both halves need a User. Writes Missed on a
+miss, not Mastered on a right Check, and never Confidence.
 _Avoid_: Retry incorrect, Missed drill, Review mode, Mistakes list
 
 **Drill Composition**:
