@@ -62,8 +62,9 @@ that line.
 **ADR 0008 is narrowed, not reversed.** Drill Mix remains the Domain-scoped
 correctness draw. It is no longer the only practice draw: Mistakes is
 another Draw Rule on the same Practice shape (ADR 0011). Full Quizzes stay
-uniformly random. Evidence still flows in from every finished attempt;
-adaptivity still flows out only through Practice draws.
+uniformly random. Exam and Drill Mix still overwrite Outcome outright. A
+Mistakes miss still writes Missed; a Mistakes right Check does not write
+Mastered. Adaptivity still flows out only through Practice draws.
 
 ## Considered and rejected
 

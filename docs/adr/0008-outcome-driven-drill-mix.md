@@ -7,8 +7,9 @@
   correctness — the evidence this reads)
 - Supersedes the README V1 bullet "Persist per-domain results per attempt"
 - Amended by: ADR 0010 (Subquiz is Drill; Drill Mix is one Draw Rule on
-  Practice, not the only practice draw), ADR 0011 (Mistakes is another, and a
-  practice attempt is no longer always 15 Questions)
+  Practice, not the only practice draw), ADR 0011 (Mistakes is another; a
+  practice attempt is no longer always 15 Questions; a Mistakes right Check
+  does not write Mastered)
 
 ## Context
 
@@ -24,7 +25,8 @@ come back, and the ones you know should get out of the way.
 
 1. **Outcome** is the visitor's latest evidence on one Question — `Missed`,
    `Mastered`, or `Unseen` — read from their **finished** Submissions across both
-   full Quizzes and Subquizzes. The most recent attempt wins outright.
+   full Quizzes and Subquizzes. The most recent Exam or Drill Mix attempt wins
+   outright. A Mistakes attempt is the exception in decision 8.
 2. A served Question with **no Recorded Answer** in a finished attempt is
    `Missed`, mirroring how grading already treats it (ADR 0001). An **unfinished**
    Submission contributes nothing at all.
@@ -42,6 +44,12 @@ come back, and the ones you know should get out of the way.
 6. **Full Quizzes are never adapted.** They feed evidence in; they are always
    drawn uniformly at random.
 7. Correctness alone decides an Outcome. Confidence does not.
+8. **A Mistakes right Check does not write Mastered.** Apply that attempt per
+   Question: a wrong Check, or a served Question with no Recorded Answer, writes
+   `Missed` (recency and miss count included). A right Check is a no-op for
+   that Question's Outcome. The attempt still has a percentage score. Progress
+   uses this same fold, so Standing does not rise from review rights.
+   [Do review-mode attempts feed Outcome?](https://github.com/CloudCertify/CloudCertify/issues/65).
 
 ## Consequences
 
@@ -62,10 +70,11 @@ today's behaviour, no special case in the code. Fully mastered Domain → 4 Unse
 + 11 Mastered, a light review pass. Tiny Domain bank → cooldown drops and the
 drill repeats Questions rather than shrinking.
 
-**Improvement is visible.** Last-outcome-wins means a corrected Question leaves
-the Missed pool immediately, so the drill's composition shrinks toward Unseen as
-the visitor learns. The composition line at drill start (`9 review · 4 new ·
-2 refresh`) is therefore also the progress indicator.
+**Improvement is visible on Exam and Drill Mix.** A corrected Question leaves
+the Missed pool when those attempts write Mastered, so the mix shrinks toward
+Unseen as the visitor learns there. A right Check on Mistakes does not. The
+composition line at Drill Mix start (`9 review · 4 new · 2 refresh`) is therefore
+also the progress indicator for that drill, not for the review list.
 
 **Ratios, bucket sizes, spill order and cooldown scope are tuning knobs**, not
 decisions of record. Change them with data; they are deliberately not fixed here
@@ -107,3 +116,12 @@ beyond the starting values.
 - **Persisting a per-attempt domain breakdown** (the original V1 bullet).
   Cheaper, but a Domain-level tally cannot answer "which Question do I re-serve?",
   and per-Question Outcomes roll up to a Domain breakdown anyway.
+- **Full feed from Mistakes** (a right Check Masters, same as Drill Mix). One
+  fold, no special case. Rejected: the visitor was just shown a list of their
+  misses, so a correct Check is recognition, and V2's spaced practice would
+  inherit Mastered rows that were never retrieved cold.
+- **Mistakes attempts produce no Outcomes.** Clean, but a wrong Check on a lucky
+  guess would leave it Mastered, and Drill Mix would never learn the fail.
+- **N-correct discount before a review can Master.** Closest to a strength bar,
+  and a tiny scheduler V1 does not otherwise have. Rejected; Exam and Drill Mix
+  still Master in one Check, which is enough retrieval for this milestone.
