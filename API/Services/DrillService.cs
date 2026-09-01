@@ -41,8 +41,13 @@ public class DrillService
     /// <remarks>
     /// A logged-in User's drill is drawn to the Drill Mix from their own Outcomes; an anonymous
     /// visitor gets an empty <see cref="OutcomeSnapshot"/>, which the same draw turns into today's
-    /// uniform random 15 — signing in is what makes the drill adaptive (ADR 0008).
+    /// uniform random 15 — signing in is what makes the drill adaptive (ADR 0008). A Mistakes
+    /// Drill draws its own way and refuses to start for an anonymous visitor or an empty union
+    /// (ADR 0011).
     /// </remarks>
+    /// <exception cref="MistakesNotStartableException">
+    /// The Drill is Mistakes and the visitor is anonymous, or has nothing to review.
+    /// </exception>
     public async Task<DrillDetailDto?> StartDrill(int quizId, int drillId, string? email, int? userId, Language language = Language.EnUs)
     {
         AttemptIdentity.EnsureValid(email, userId);
@@ -66,14 +71,23 @@ public class DrillService
             ? quizQuestions.ToList()
             : quizQuestions.Where(q => q.Domain == drill.Domain).ToList();
 
-        var snapshot = userId == null
-            ? OutcomeSnapshot.Empty
-            : OutcomeSnapshot.Build(
-                await _submissionRepository.GetFinishedByUserAndQuiz(userId.Value, quizId),
-                scope.Select(q => q.Id).ToHashSet());
+        List<Question> drillQuestions;
+        // Mistakes is one bucket, so it reports no composition — the served count is the whole
+        // story, and a three-bucket line would be a lie on it (ADR 0011).
+        DrillCompositionDto? composition = null;
 
-        // The Mistakes draw lands in issue #68; until then every Drill draws the Drill Mix.
-        var drillQuestions = DrillMix.Draw(scope, snapshot);
+        if (drill.DrawRule == DrawRule.Mistakes)
+        {
+            drillQuestions = await DrawMistakes(drill, scope, quizId, userId);
+        }
+        else
+        {
+            var snapshot = await MixSnapshot(scope, quizId, userId);
+            drillQuestions = DrillMix.Draw(scope, snapshot);
+            // Anonymous drills carry no composition: there is nothing adaptive to report, and the
+            // absence is what the web app shows the sign-in pitch for.
+            composition = userId == null ? null : Compose(drillQuestions, snapshot);
+        }
 
         var submission = new Submission
         {
@@ -99,9 +113,7 @@ public class DrillService
             Slug = drill.Slug,
             CreatedAt = drill.CreatedAt,
             SubmissionId = submission.Id,
-            // Anonymous drills carry no composition: there is nothing adaptive to report, and the
-            // absence is what the web app shows the sign-in pitch for.
-            Composition = userId == null ? null : Compose(drillQuestions, snapshot),
+            Composition = composition,
             Questions = drillQuestions.Select(q => new QuestionDto
             {
                 Id = q.Id,
@@ -192,6 +204,38 @@ public class DrillService
 
         var strategy = GradingStrategyFactory.GetPracticeStrategy();
         return await _submissionGrader.GradeAndFinish(submissionId, quizId, drillId, strategy, recordedAnswers);
+    }
+
+    /// <summary>
+    /// The evidence the Drill Mix draws on: an anonymous visitor has none, which the same draw
+    /// turns into a uniform random 15 with no special case (ADR 0008).
+    /// </summary>
+    private async Task<OutcomeSnapshot> MixSnapshot(List<Question> scope, int quizId, int? userId) =>
+        userId == null
+            ? OutcomeSnapshot.Empty
+            : OutcomeSnapshot.Build(
+                await _submissionRepository.GetFinishedByUserAndQuiz(userId.Value, quizId),
+                scope.Select(q => q.Id).ToHashSet());
+
+    /// <summary>
+    /// The review draw, plus the two gates that come with it: anonymous is locked, and an empty
+    /// union does not start rather than pad itself up to length (ADR 0011).
+    /// </summary>
+    private async Task<List<Question>> DrawMistakes(Drill drill, List<Question> scope, int quizId, int? userId)
+    {
+        if (userId == null)
+        {
+            throw new MistakesNotStartableException(MistakesGate.SignInRequired);
+        }
+
+        var snapshot = MistakesSnapshot.Build(
+            await _submissionRepository.GetFinishedByUserAndQuiz(userId.Value, quizId),
+            scope.Select(q => q.Id).ToHashSet(),
+            drill.Id);
+
+        var drawn = MistakesDraw.Draw(scope, snapshot);
+
+        return drawn.Count > 0 ? drawn : throw new MistakesNotStartableException(MistakesGate.NothingToReview);
     }
 
     /// <summary>

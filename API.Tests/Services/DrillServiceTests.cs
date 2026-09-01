@@ -2,6 +2,7 @@ using API.Entities;
 using API.Model.Request;
 using API.Repositories;
 using API.Services;
+using API.Services.Drills;
 using Moq;
 using static API.Tests.QuizBuilder;
 
@@ -444,11 +445,9 @@ public class DrillServiceTests
             s.Mode == Mode.Practice && s.DrillId == 2)), Times.Once);
     }
 
-    [Fact]
-    public async Task StartDrill_DrawsFromTheWholeParentQuiz_WhenDomainIsNull()
+    /// <summary>The seeded Mistakes Drill: cross-Domain, and the bank it draws from.</summary>
+    private void SetupMistakesDrill()
     {
-        // A cross-Domain Drill has no Domain to filter on, so its scope is every Question the
-        // parent Quiz owns — across Domains (ADR 0010).
         _drills.Setup(r => r.GetDrillById(2)).ReturnsAsync(new Drill
         {
             Id = 2, QuizId = 1, Title = "Mistakes", Domain = null,
@@ -458,12 +457,86 @@ public class DrillServiceTests
             .Concat(Enumerable.Range(31, 30).Select(i => InDomain(i, "Cloud Concepts")))
             .ToList();
         _questions.Setup(r => r.GetQuestionsByQuizId(1)).ReturnsAsync(bank);
+    }
 
-        var result = await CreateService().StartDrill(1, 2, "u@e.com", null);
+    [Fact]
+    public async Task StartDrill_DrawsFromTheWholeParentQuiz_WhenDomainIsNull()
+    {
+        // A cross-Domain Drill has no Domain to filter on, so its scope is every Question the
+        // parent Quiz owns — across Domains (ADR 0010). Missed in both Domains, so both seat.
+        SetupMistakesDrill();
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync(
+            [FinishedAttempt(1, new DateTime(2026, 1, 1), served: [1, 2, 31, 32], correct: [])]);
 
-        Assert.Equal(15, result!.Questions.Count);
+        var result = await CreateService().StartDrill(1, 2, null, 7);
+
+        Assert.Equal([1, 2, 31, 32], result!.Questions.Select(q => q.Id).Order());
         Assert.Null(result.Domain);
         Assert.Equal(DrawRule.Mistakes, result.DrawRule);
+    }
+
+    [Fact]
+    public async Task StartDrill_ServesTheWholeUnion_EvenWhenItIsShorterThanFifteen()
+    {
+        // The one drill that may be short: two misses and a lucky guess is a three-Question
+        // attempt, and the Submission is served that set (ADR 0011).
+        SetupMistakesDrill();
+        var exam = FinishedAttempt(2, new DateTime(2026, 2, 1), served: [40], correct: [40]);
+        exam.DrillId = null;
+        exam.Mode = Mode.Exam;
+        exam.RecordedAnswers[0].Confidence = Confidence.Guess;
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync(
+            [FinishedAttempt(1, new DateTime(2026, 1, 1), served: [1, 2], correct: []), exam]);
+
+        var result = await CreateService().StartDrill(1, 2, null, 7);
+
+        Assert.Equal([1, 2, 40], result!.Questions.Select(q => q.Id).Order());
+        _submissions.Verify(r => r.Create(It.Is<Submission>(s =>
+            s.ServedQuestionIds.Count == 3 && s.Mode == Mode.Practice && s.DrillId == 2)), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartDrill_ReportsNoComposition_ForMistakes()
+    {
+        // A three-bucket line would be a lie on a single-bucket draw: the web shows a plain
+        // count of what was seated instead (ADR 0011).
+        SetupMistakesDrill();
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync(
+            [FinishedAttempt(1, new DateTime(2026, 1, 1), served: [1, 2], correct: [])]);
+
+        var result = await CreateService().StartDrill(1, 2, null, 7);
+
+        Assert.Null(result!.Composition);
+    }
+
+    [Fact]
+    public async Task StartDrill_RefusesMistakes_ForAnAnonymousVisitor()
+    {
+        // Both halves of the union need a User, so signing in is the lock (ADR 0011).
+        SetupMistakesDrill();
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<MistakesNotStartableException>(
+            () => service.StartDrill(1, 2, "u@e.com", null));
+        Assert.Equal(MistakesGate.SignInRequired, exception.Gate);
+        _submissions.Verify(r => r.Create(It.IsAny<Submission>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task StartDrill_RefusesMistakes_WhenThereIsNothingToReview()
+    {
+        // Empty means no misses and no low ratings — and empty does not start, rather than pad.
+        SetupMistakesDrill();
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync(
+            [FinishedAttempt(1, new DateTime(2026, 1, 1), served: [1, 2], correct: [1, 2])]);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<MistakesNotStartableException>(
+            () => service.StartDrill(1, 2, null, 7));
+        Assert.Equal(MistakesGate.NothingToReview, exception.Gate);
+        _submissions.Verify(r => r.Create(It.IsAny<Submission>()), Times.Never);
     }
 
     [Fact]

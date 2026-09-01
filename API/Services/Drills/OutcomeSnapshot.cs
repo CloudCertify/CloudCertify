@@ -49,6 +49,13 @@ public sealed class OutcomeSnapshot
     /// one simply overwrites, and Exam attempts feed in exactly like Practice ones: evidence
     /// flows in from every Mode, adaptivity flows out only to Practice draws (ADR 0008).
     /// </summary>
+    /// <remarks>
+    /// A finished Mistakes attempt currently folds in like any other, so a right Check on the
+    /// review drill writes Mastered. ADR 0011 decision 3 says it should write Missed and not
+    /// Mastered; that fold is still open in
+    /// <see href="https://github.com/CloudCertify/CloudCertify/issues/65">issue #65</see> and is
+    /// deliberately not decided here.
+    /// </remarks>
     public static OutcomeSnapshot Build(IEnumerable<Submission> submissions, IReadOnlySet<int> scopeQuestionIds)
     {
         var finished = submissions
