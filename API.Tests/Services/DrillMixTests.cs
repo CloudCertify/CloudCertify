@@ -236,7 +236,7 @@ public class OutcomeSnapshotTests
     [Fact]
     public void Build_ReadsEvidenceFromFullQuizAttempts()
     {
-        // A full Quiz Submission (no SubquizId) still feeds the matching Domain's drill.
+        // A full Quiz Submission (no DrillId) still feeds the matching Domain's drill.
         var fullQuiz = Attempt(1, new DateTime(2026, 1, 1), finished: true,
             served: [1, 2, 3, 99], correct: [1], wrong: [2, 3]);
 
@@ -286,5 +286,22 @@ public class OutcomeSnapshotTests
         ], DomainQuestions);
 
         Assert.Equal([3, 4], snapshot.Cooldown.Order());
+    }
+
+    [Fact]
+    public void Build_WalksTheWholeParentQuiz_WhenTheScopeIsNotOneDomain()
+    {
+        // A null-Domain Drill hands Build the whole Quiz's question set, so evidence from every
+        // Domain lands in one snapshot rather than being filtered away (ADR 0010).
+        var wholeQuiz = new HashSet<int> { 1, 2, 99 }; // 99 belongs to another Domain
+        var attempt = Attempt(1, new DateTime(2026, 1, 1), finished: true,
+            served: [1, 2, 99], correct: [1], wrong: [2, 99]);
+
+        var snapshot = OutcomeSnapshot.Build([attempt], wholeQuiz);
+
+        Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
+        Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(2));
+        Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(99)); // cross-Domain, and in scope
+        Assert.Equal([1, 2, 99], snapshot.Cooldown.Order());
     }
 }

@@ -37,10 +37,10 @@ public class GradingStrategyFactoryTests
     }
 
     [Fact]
-    public void GetSubquizStrategy_SelectsDomainSubquizStrategy()
+    public void GetPracticeStrategy_SelectsDomainDrillStrategy()
     {
-        var strategy = GradingStrategyFactory.GetSubquizStrategy();
+        var strategy = GradingStrategyFactory.GetPracticeStrategy();
 
-        Assert.IsType<DomainSubquizGradingStrategy>(strategy);
+        Assert.IsType<PracticeGradingStrategy>(strategy);
     }
 }

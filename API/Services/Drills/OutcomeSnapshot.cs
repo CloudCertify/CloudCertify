@@ -10,7 +10,7 @@ namespace API.Services.Drills;
 public sealed record QuestionOutcome(Outcome Outcome, DateTime LastMissedAt, int MissCount);
 
 /// <summary>
-/// One User's Outcomes for one Domain, plus the soft cooldown set, read off their finished
+/// One User's Outcomes for one Drill's scope, plus the soft cooldown set, read off their finished
 /// Submissions. This is the whole input to <see cref="DrillMix"/> — everything the draw knows
 /// about a visitor's history lives here.
 /// </summary>
@@ -33,7 +33,7 @@ public sealed class OutcomeSnapshot
     public IReadOnlyDictionary<int, QuestionOutcome> Outcomes { get; }
 
     /// <summary>
-    /// Questions served in the User's last finished attempt in this Domain. A preference, not a
+    /// Questions served in the User's last finished attempt touching this scope. A preference, not a
     /// rule: <see cref="DrillMix"/> drops it rather than let a bucket come up short.
     /// </summary>
     public IReadOnlySet<int> Cooldown { get; }
@@ -42,13 +42,14 @@ public sealed class OutcomeSnapshot
         Outcomes.TryGetValue(questionId, out var outcome) ? outcome.Outcome : Outcome.Unseen;
 
     /// <summary>
-    /// Folds a User's Submissions into per-Question Outcomes, scoped to one Domain's Questions.
-    /// Only <see cref="Submission.Finished"/> attempts count — an abandoned one contributes
-    /// nothing. Attempts are replayed oldest-first so the most recent one simply overwrites, and
-    /// full Quizzes feed in exactly like Subquizzes: evidence flows in from every attempt type,
-    /// adaptivity flows out only to drills (ADR 0008).
+    /// Folds a User's Submissions into per-Question Outcomes, scoped to <paramref name="scopeQuestionIds"/>
+    /// — one Domain's Questions for a Domain-scoped Drill, the whole parent Quiz's for a
+    /// null-Domain one (ADR 0010). Only <see cref="Submission.Finished"/> attempts count — an
+    /// abandoned one contributes nothing. Attempts are replayed oldest-first so the most recent
+    /// one simply overwrites, and Exam attempts feed in exactly like Practice ones: evidence
+    /// flows in from every Mode, adaptivity flows out only to Practice draws (ADR 0008).
     /// </summary>
-    public static OutcomeSnapshot Build(IEnumerable<Submission> submissions, IReadOnlySet<int> domainQuestionIds)
+    public static OutcomeSnapshot Build(IEnumerable<Submission> submissions, IReadOnlySet<int> scopeQuestionIds)
     {
         var finished = submissions
             .Where(s => s.Finished)
@@ -62,7 +63,7 @@ public sealed class OutcomeSnapshot
         {
             var correctness = submission.RecordedAnswers.ToDictionary(r => r.QuestionId, r => r.IsCorrect == true);
 
-            foreach (var questionId in submission.ServedQuestionIds.Where(domainQuestionIds.Contains))
+            foreach (var questionId in submission.ServedQuestionIds.Where(scopeQuestionIds.Contains))
             {
                 // A served Question with no Recorded Answer counts as Missed, mirroring grading
                 // (ADR 0001). A null IsCorrect — an answer recorded before correctness was
@@ -77,10 +78,10 @@ public sealed class OutcomeSnapshot
             }
         }
 
-        // The cooldown reads the last finished attempt that touched this Domain — a full Quiz
+        // The cooldown reads the last finished attempt that touched this scope — an Exam
         // counts, but only the slice of it that belongs here.
         var cooldown = finished
-            .Select(s => s.ServedQuestionIds.Where(domainQuestionIds.Contains).ToHashSet())
+            .Select(s => s.ServedQuestionIds.Where(scopeQuestionIds.Contains).ToHashSet())
             .LastOrDefault(served => served.Count > 0) ?? new HashSet<int>();
 
         return new OutcomeSnapshot(outcomes, cooldown);

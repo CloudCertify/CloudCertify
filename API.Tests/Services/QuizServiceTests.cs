@@ -94,6 +94,57 @@ public class QuizServiceTests
     }
 
     [Fact]
+    public async Task StartQuiz_StartsExam_WithNoDrill()
+    {
+        // Start-path invariant, the other half: a full-Quiz start is always Exam and never
+        // references a Drill, so an adaptive or immediate-feedback exam is unreachable (ADR 0010).
+        var quiz = new Quiz
+        {
+            Id = 1, Title = "Quiz", Slug = "q", IsAvailable = true,
+            Questions = new List<Question> { Question(100, "D", correctIds: [1], wrongIds: [2]) }
+        };
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
+
+        await CreateService().StartQuiz(1, "user@example.com", null);
+
+        _submissions.Verify(r => r.Create(It.Is<Submission>(s =>
+            s.Mode == Mode.Exam && s.DrillId == null)), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnswerQuestion_Throws_WhenSubmissionIsPractice()
+    {
+        // Mode is the gate, not the absence of a Drill: a Practice Recorded Answer is committed
+        // at Check and immutable, so it must not be revisable here (ADR 0002, ADR 0010).
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Mode = Mode.Practice, ServedQuestionIds = [100]
+        });
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.AnswerQuestion(1, 5, 100, [7]));
+        _submissions.Verify(r => r.SaveAnswer(It.IsAny<RecordedAnswer>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SubmitQuiz_Throws_WhenSubmissionIsPractice()
+    {
+        // A Practice attempt scores 0-100, so it must not fall through the Scaled Score path
+        // just because it was addressed to the full-Quiz URL (ADR 0010).
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
+        {
+            Id = 5, QuizId = 1, Mode = Mode.Practice, ServedQuestionIds = [100]
+        });
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.SubmitQuiz(1, 5));
+        _submissions.Verify(r => r.Update(It.IsAny<Submission>()), Times.Never);
+    }
+
+    [Fact]
     public async Task StartQuiz_OwnsSubmissionByUser_AndDropsEmail_WhenLoggedIn()
     {
         var quiz = new Quiz
@@ -231,7 +282,7 @@ public class QuizServiceTests
     {
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101]
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101]
         });
 
         await CreateService().AnswerQuestion(1, 5, 100, [7]);
@@ -246,7 +297,7 @@ public class QuizServiceTests
         // Correctness is judged at commit time and stored, though nothing is returned (ADR 0007).
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100]
         });
 
         await CreateService().AnswerQuestion(1, 5, 100, [7]);
@@ -259,7 +310,7 @@ public class QuizServiceTests
     {
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100]
         });
 
         await CreateService().AnswerQuestion(1, 5, 100, [8]);
@@ -273,7 +324,7 @@ public class QuizServiceTests
         // Revising before Submit re-judges the answer that now stands (ADR 0006 + 0007).
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100],
             RecordedAnswers = [Recorded(100, 8)]
         });
         var service = CreateService();
@@ -291,7 +342,7 @@ public class QuizServiceTests
         // The Navigator allows returning to a Question: the later commit wins (ADR 0006).
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100],
             RecordedAnswers = [Recorded(100, 7)]
         });
         var service = CreateService();
@@ -308,7 +359,7 @@ public class QuizServiceTests
     {
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100]
         });
 
         await CreateService().AnswerQuestion(1, 5, 100, [7], Confidence.Guess);
@@ -323,7 +374,7 @@ public class QuizServiceTests
         // Rating is optional: an unrated answer stores no Confidence at all (ADR 0006).
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100]
         });
 
         await CreateService().AnswerQuestion(1, 5, 100, [7]);
@@ -337,7 +388,7 @@ public class QuizServiceTests
         // Changing the answer re-rates it; the latest rating wins.
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100],
             RecordedAnswers = [Recorded(100, 7)]
         });
         var service = CreateService();
@@ -353,7 +404,7 @@ public class QuizServiceTests
     {
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100]
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100]
         });
         var service = CreateService();
 
@@ -362,12 +413,12 @@ public class QuizServiceTests
     }
 
     [Fact]
-    public async Task AnswerQuestion_Throws_WhenSubmissionIsSubquizAttempt()
+    public async Task AnswerQuestion_Throws_WhenSubmissionIsDrillAttempt()
     {
-        // A Subquiz Check is final: it must not be re-answered through the full-quiz path (ADR 0002).
+        // A Drill Check is final: it must not be re-answered through the full-quiz path (ADR 0002).
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, SubquizId = 2, Email = "u@e.com", ServedQuestionIds = [100]
+            Id = 5, QuizId = 1, DrillId = 2, Email = "u@e.com", ServedQuestionIds = [100]
         });
         var service = CreateService();
 
@@ -380,7 +431,7 @@ public class QuizServiceTests
     {
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100], Finished = true, Score = 720
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100], Finished = true, Score = 720
         });
         var service = CreateService();
 
@@ -403,7 +454,7 @@ public class QuizServiceTests
     {
         _submissions.Setup(r => r.GetById(6)).ReturnsAsync(new Submission
         {
-            Id = 6, QuizId = 1, UserId = 42, ServedQuestionIds = [100]
+            Id = 6, QuizId = 1, UserId = 42, Mode = Mode.Exam, ServedQuestionIds = [100]
         });
 
         await CreateService().AnswerQuestion(1, 6, 100, [7]);
@@ -417,7 +468,7 @@ public class QuizServiceTests
         // An attempt answered identically scores the same as before the commit-as-you-go change.
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
             RecordedAnswers = [Recorded(100, 1), Recorded(101, 3)]
         };
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
@@ -446,7 +497,7 @@ public class QuizServiceTests
             var quizzes = new Mock<IQuizRepository>();
             submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
             {
-                Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+                Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
                 RecordedAnswers =
                 [
                     Rated(Recorded(100, 1), confidences[0]),
@@ -491,7 +542,7 @@ public class QuizServiceTests
         // 102: guessed and wrong, 103: unrated — neither is either count (ADR 0006).
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101, 102, 103],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101, 102, 103],
             RecordedAnswers =
             [
                 Rated(Recorded(100, 1), Confidence.Guess),
@@ -521,7 +572,7 @@ public class QuizServiceTests
     {
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100],
             RecordedAnswers = [Recorded(100, 1)]
         };
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
@@ -541,7 +592,7 @@ public class QuizServiceTests
     {
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
             RecordedAnswers = [Rated(Recorded(100, 1), Confidence.Unsure), Recorded(101, 3)]
         };
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
@@ -568,7 +619,7 @@ public class QuizServiceTests
         question.ExplanationPt = "porque AWS";
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100], Language = Language.PtBr,
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100], Language = Language.PtBr,
             RecordedAnswers = [Recorded(100, 1)]
         };
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
@@ -608,12 +659,12 @@ public class QuizServiceTests
     }
 
     [Fact]
-    public async Task SubmitQuiz_Throws_WhenSubmissionBelongsToSubquiz()
+    public async Task SubmitQuiz_Throws_WhenSubmissionBelongsToDrill()
     {
-        // A subquiz submission must not be replayable through the full-quiz path (SubquizId mismatch).
+        // A drill submission must not be replayable through the full-quiz path (DrillId mismatch).
         _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "SAA-C03" });
         _submissions.Setup(r => r.GetById(5))
-            .ReturnsAsync(new Submission { Id = 5, QuizId = 1, SubquizId = 2, Email = "u@e.com" });
+            .ReturnsAsync(new Submission { Id = 5, QuizId = 1, DrillId = 2, Email = "u@e.com" });
 
         var service = CreateService();
 
@@ -657,7 +708,7 @@ public class QuizServiceTests
     {
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", Finished = false, ServedQuestionIds = [100],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, Finished = false, ServedQuestionIds = [100],
             RecordedAnswers = [Recorded(100, 1)] // committed during the attempt, fully correct
         };
         var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" }; // unknown slug -> default strategy
@@ -684,7 +735,7 @@ public class QuizServiceTests
         // Two questions served; the visitor answered only one, leaving the other unanswered.
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
             RecordedAnswers = [Recorded(100, 1)] // only the first, correct; 101 never answered
         };
         var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" }; // default strategy: 0-1000 scaled
@@ -722,7 +773,7 @@ public class QuizServiceTests
         {
             var submission = new Submission
             {
-                Id = 5, QuizId = 1, Email = "u@e.com", ServedQuestionIds = [100, 101],
+                Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
                 RecordedAnswers = recorded
             };
             _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);

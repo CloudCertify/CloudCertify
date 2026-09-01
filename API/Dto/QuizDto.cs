@@ -16,5 +16,5 @@ public class QuizDto
       public int QuestionCount { get; set; }
       public int MinQuestions { get; set; }
       public int MaxQuestions { get; set; }
-      public List<SubquizDto>? SubQuizzes { get; set; }
+      public List<DrillDto>? Drills { get; set; }
 }

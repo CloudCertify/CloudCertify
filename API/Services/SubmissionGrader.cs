@@ -7,7 +7,7 @@ using API.Services.Grading;
 namespace API.Services;
 
 /// <summary>
-/// Single grade-and-finish flow shared by the full-quiz and subquiz submit paths.
+/// Single grade-and-finish flow shared by the Exam and Practice submit paths.
 /// Owns the Submission lifecycle guards (ownership + finished) so the two paths cannot
 /// drift apart and so a finished attempt can never be replayed to overwrite its Score.
 /// See issue #12.
@@ -24,14 +24,14 @@ public class SubmissionGrader
     private readonly ISubmissionRepository _submissionRepository;
 
     /// <summary>
-    /// Validates the submission belongs to the requested quiz/subquiz and is not already
+    /// Validates the submission belongs to the requested quiz/drill and is not already
     /// finished, grades it against its served question set, persists the score, and marks it
-    /// finished. <paramref name="expectedSubquizId"/> is null for a full-quiz attempt.
+    /// finished. <paramref name="expectedDrillId"/> is null for a full-quiz attempt.
     /// </summary>
     public async Task<SubmitQuizResponseDto> GradeAndFinish(
         int submissionId,
         int expectedQuizId,
-        int? expectedSubquizId,
+        int? expectedDrillId,
         IGradingStrategy strategy,
         List<QuizAnswer> answers)
     {
@@ -42,7 +42,7 @@ public class SubmissionGrader
             throw new InvalidOperationException($"Submission {submissionId} not found");
         }
 
-        EnsureBelongsTo(submission, expectedQuizId, expectedSubquizId);
+        EnsureBelongsTo(submission, expectedQuizId, expectedDrillId);
         EnsureNotFinished(submission);
 
         // Grade against the question set served at start, not whatever the client echoes back:
@@ -116,20 +116,36 @@ public class SubmissionGrader
     }
 
     /// <summary>
-    /// Rejects a Submission addressed to the wrong quiz/subquiz, so a Submission id from one
+    /// Rejects a Submission addressed to the wrong quiz/drill, so a Submission id from one
     /// attempt cannot be replayed against another (issue #12). Shared by the full-quiz finish,
-    /// the subquiz finish, and subquiz Check so the ownership rule has one definition.
+    /// the drill finish, and drill Check so the ownership rule has one definition.
     /// </summary>
-    public static void EnsureBelongsTo(Submission submission, int expectedQuizId, int? expectedSubquizId)
+    public static void EnsureBelongsTo(Submission submission, int expectedQuizId, int? expectedDrillId)
     {
-        if (submission.QuizId == expectedQuizId && submission.SubquizId == expectedSubquizId)
+        if (submission.QuizId == expectedQuizId && submission.DrillId == expectedDrillId)
         {
             return;
         }
 
         throw new InvalidOperationException(
-            $"Submission {submission.Id} belongs to quiz {submission.QuizId}/subquiz {Describe(submission.SubquizId)}, " +
-            $"but was addressed to quiz {expectedQuizId}/subquiz {Describe(expectedSubquizId)}");
+            $"Submission {submission.Id} belongs to quiz {submission.QuizId}/drill {Describe(submission.DrillId)}, " +
+            $"but was addressed to quiz {expectedQuizId}/drill {Describe(expectedDrillId)}");
+    }
+
+    /// <summary>
+    /// Rejects a Submission whose Mode does not match the path it arrived on, so an Exam attempt
+    /// cannot reach a Practice-only behaviour (Check, immutable Recorded Answers) or vice versa.
+    /// Mode is the discriminator; the presence of a Drill is not (ADR 0010).
+    /// </summary>
+    public static void EnsureMode(Submission submission, Mode expected)
+    {
+        if (submission.Mode == expected)
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Submission {submission.Id} is a {submission.Mode} attempt, but was addressed to the {expected} path");
     }
 
     /// <summary>Rejects an already-finished Submission so a completed attempt cannot be replayed (issue #12).</summary>
@@ -144,5 +160,5 @@ public class SubmissionGrader
             $"Submission {submission.Id} is already finished (Score {submission.Score}); cannot resubmit");
     }
 
-    private static string Describe(int? subquizId) => subquizId?.ToString() ?? "none";
+    private static string Describe(int? drillId) => drillId?.ToString() ?? "none";
 }

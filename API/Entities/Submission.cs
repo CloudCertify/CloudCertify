@@ -10,12 +10,23 @@ public class Submission
     
     public int QuizId { get; set; }
 
-    public int? SubquizId { get; set; }
-    
+    /// <summary>
+    /// The Drill this attempt was started from. Set for <see cref="Entities.Mode.Practice"/>,
+    /// null for <see cref="Entities.Mode.Exam"/> — but never the behaviour discriminator:
+    /// that is <see cref="Mode"/> (ADR 0010).
+    /// </summary>
+    public int? DrillId { get; set; }
+
+    /// <summary>
+    /// Which attempt shape this is. Sole discriminator for draw, feedback timing, grading,
+    /// mutability, Confidence and Navigator (ADR 0010).
+    /// </summary>
+    public Mode Mode { get; set; }
+
     public bool Finished { get; set; }
 
     /// <summary>
-    /// Question IDs served to the client at StartQuiz/StartSubquiz time. Grading runs
+    /// Question IDs served to the client at start time. Grading runs
     /// against this fixed set so skipped questions count as wrong and the denominator is
     /// stable regardless of what the client submits. See docs/adr/0001-server-authoritative-attempts.md.
     /// </summary>
@@ -23,7 +34,7 @@ public class Submission
 
     /// <summary>
     /// Per-Question answers committed during the attempt, and the only thing its final score is
-    /// graded from. A Subquiz commits them at Check and they are immutable; a full Quiz commits
+    /// graded from. Practice commits them at Check and they are immutable; Exam commits
     /// them as the visitor answers and they are overwritten on re-answer until Submit.
     /// See docs/adr/0002-incremental-subquiz-feedback.md and docs/adr/0006-full-quiz-incremental-answers-and-confidence.md.
     /// </summary>

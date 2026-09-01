@@ -47,11 +47,12 @@ public class QuizService
             QuestionCount = q.Questions?.Count ?? 0,
             MinQuestions = q.MinQuestions,
             MaxQuestions = q.MaxQuestions,
-            SubQuizzes = q.SubQuizzes?.Select(sq => new SubquizDto
+            Drills = q.Drills?.Select(sq => new DrillDto
             {
                 Id = sq.Id,
                 Title = sq.Title,
-                Domain = sq.Domain ?? "",
+                Domain = sq.Domain,
+                DrawRule = sq.DrawRule,
                 Slug = sq.Slug,
                 IsAvailable = sq.IsAvailable
             }).ToList()
@@ -98,6 +99,8 @@ public class QuizService
               Email = userId == null ? email : null,
               UserId = userId,
               QuizId = quizId,
+              // Start-path invariant: a full-Quiz start is Exam with no Drill (ADR 0010).
+              Mode = Mode.Exam,
               Finished = false,
               ServedQuestionIds = randomQuestions.Select(q => q.Id).ToList(),
               Language = language,
@@ -157,7 +160,7 @@ public class QuizService
      /// <summary>
      /// Commits one Question's selected answers to a full-Quiz Submission as the visitor answers
      /// it, overwriting the Question's previous Recorded Answer if it was already answered
-     /// (ADR 0006). Rejects a Submission for the wrong quiz, a Subquiz Submission (a Check is
+     /// (ADR 0006). Rejects a Submission for the wrong quiz, a Practice Submission (a Check is
      /// final — ADR 0002), an already-finished attempt, and a Question that was never served.
      /// Returns nothing: this extends commit, not feedback, so no correctness leaks mid-attempt.
      ///
@@ -178,8 +181,9 @@ public class QuizService
              throw new InvalidOperationException($"Submission {submissionId} not found");
          }
 
-         // expectedSubquizId null: a Subquiz Submission must go through Check, which is immutable.
-         SubmissionGrader.EnsureBelongsTo(submission, quizId, expectedSubquizId: null);
+         SubmissionGrader.EnsureBelongsTo(submission, quizId, expectedDrillId: null);
+         // A Practice Submission must go through Check, which is immutable (ADR 0002).
+         SubmissionGrader.EnsureMode(submission, Mode.Exam);
          SubmissionGrader.EnsureNotFinished(submission);
 
          if (!submission.ServedQuestionIds.Contains(questionId))
@@ -228,6 +232,9 @@ public class QuizService
              throw new InvalidOperationException($"Submission {submissionId} not found");
          }
 
+         // A Practice attempt is graded on the 0-100 scale, never the Scaled Score (ADR 0010).
+         SubmissionGrader.EnsureMode(submission, Mode.Exam);
+
          var answers = submission.RecordedAnswers
              .Select(r => new QuizAnswer { QuestionId = r.QuestionId, AnswerIds = r.SelectedAnswerIds })
              .ToList();
@@ -235,8 +242,8 @@ public class QuizService
          var strategy = GradingStrategyFactory.GetStrategy(quiz);
 
          // Lifecycle guards (ownership + finished) and the grade-and-map flow live in the shared
-         // grader so the full-quiz and subquiz paths cannot diverge again (issue #12).
-         return await _submissionGrader.GradeAndFinish(submissionId, quizId, expectedSubquizId: null, strategy, answers);
+         // grader so the Exam and Practice paths cannot diverge again (issue #12).
+         return await _submissionGrader.GradeAndFinish(submissionId, quizId, expectedDrillId: null, strategy, answers);
      }
 
      public async Task CreateQuiz(Quiz quiz)

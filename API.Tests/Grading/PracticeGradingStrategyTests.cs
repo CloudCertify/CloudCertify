@@ -4,9 +4,9 @@ using static API.Tests.QuizBuilder;
 
 namespace API.Tests.Grading;
 
-public class DomainSubquizGradingStrategyTests
+public class PracticeGradingStrategyTests
 {
-    private readonly DomainSubquizGradingStrategy _strategy = new();
+    private readonly PracticeGradingStrategy _strategy = new();
 
     [Fact]
     public void ScoreIsPlainPercentage_NotScaled()

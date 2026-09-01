@@ -8,29 +8,34 @@ using API.Services.Grading;
 
 namespace API.Services;
 
-public class SubquizService
+/// <summary>
+/// The Practice start path and the behaviours that follow from it — Check, and the 0-100
+/// grade. A Drill is a named selector: it picks the Questions, it does not decide how the
+/// attempt behaves. That is <see cref="Mode"/> (ADR 0010).
+/// </summary>
+public class DrillService
 {
-    public SubquizService(ISubquizRepository subquizRepository, IQuestionRepository questionRepository, ISubmissionRepository submissionRepository, SubmissionGrader submissionGrader)
+    public DrillService(IDrillRepository drillRepository, IQuestionRepository questionRepository, ISubmissionRepository submissionRepository, SubmissionGrader submissionGrader)
     {
-        _subquizRepository = subquizRepository;
+        _drillRepository = drillRepository;
         _questionRepository = questionRepository;
         _submissionRepository = submissionRepository;
         _submissionGrader = submissionGrader;
     }
 
-    private readonly ISubquizRepository _subquizRepository;
+    private readonly IDrillRepository _drillRepository;
     private readonly IQuestionRepository _questionRepository;
     private readonly ISubmissionRepository _submissionRepository;
     private readonly SubmissionGrader _submissionGrader;
 
-    public async Task<List<SubquizDto>> GetSubquizzesByQuizId(int quizId)
+    public async Task<List<DrillDto>> GetDrillsByQuizId(int quizId)
     {
-        var subquizzes = await _subquizRepository.GetSubquizzesByQuizId(quizId);
-        return subquizzes.Select(MapSubquizToDto).ToList();
+        var drills = await _drillRepository.GetDrillsByQuizId(quizId);
+        return drills.Select(MapDrillToDto).ToList();
     }
 
     /// <summary>
-    /// Starts a Subquiz attempt for a logged-in User (userId) or anonymous visitor (email) —
+    /// Starts a Drill attempt for a logged-in User (userId) or anonymous visitor (email) —
     /// exactly one (ADR 0003).
     /// </summary>
     /// <remarks>
@@ -38,40 +43,46 @@ public class SubquizService
     /// visitor gets an empty <see cref="OutcomeSnapshot"/>, which the same draw turns into today's
     /// uniform random 15 — signing in is what makes the drill adaptive (ADR 0008).
     /// </remarks>
-    public async Task<SubquizDetailDto?> StartSubquiz(int quizId, int subquizId, string? email, int? userId, Language language = Language.EnUs)
+    public async Task<DrillDetailDto?> StartDrill(int quizId, int drillId, string? email, int? userId, Language language = Language.EnUs)
     {
         AttemptIdentity.EnsureValid(email, userId);
-        var subquiz = await _subquizRepository.GetSubquizById(subquizId);
+        var drill = await _drillRepository.GetDrillById(drillId);
 
-        if (subquiz == null || subquiz.QuizId != quizId)
+        if (drill == null || drill.QuizId != quizId)
         {
             return null;
         }
 
-        if (!subquiz.IsAvailable)
+        if (!drill.IsAvailable)
         {
-            throw new InvalidOperationException("Subquiz is not available");
+            throw new InvalidOperationException("Drill is not available");
         }
 
-        // Get parent quiz to fetch questions by domain
-        var parentQuiz = await _questionRepository.GetQuestionsByQuizId(quizId);
-
-        var domainQuestions = parentQuiz.Where(q => q.Domain == subquiz.Domain).ToList();
+        // The Drill's scope: its Domain's Questions, or the whole parent Quiz when Domain is
+        // null (ADR 0010). Everything downstream — the Outcome snapshot and the draw — reads
+        // this one pool, so a cross-Domain Drill needs no special case.
+        var quizQuestions = await _questionRepository.GetQuestionsByQuizId(quizId);
+        var scope = drill.Domain == null
+            ? quizQuestions.ToList()
+            : quizQuestions.Where(q => q.Domain == drill.Domain).ToList();
 
         var snapshot = userId == null
             ? OutcomeSnapshot.Empty
             : OutcomeSnapshot.Build(
                 await _submissionRepository.GetFinishedByUserAndQuiz(userId.Value, quizId),
-                domainQuestions.Select(q => q.Id).ToHashSet());
+                scope.Select(q => q.Id).ToHashSet());
 
-        var drillQuestions = DrillMix.Draw(domainQuestions, snapshot);
+        // The Mistakes draw lands in issue #68; until then every Drill draws the Drill Mix.
+        var drillQuestions = DrillMix.Draw(scope, snapshot);
 
         var submission = new Submission
         {
             Email = userId == null ? email : null,
             UserId = userId,
             QuizId = quizId,
-            SubquizId = subquizId,
+            // Start-path invariant: a drill start is Practice with exactly one Drill (ADR 0010).
+            DrillId = drillId,
+            Mode = Mode.Practice,
             Finished = false,
             ServedQuestionIds = drillQuestions.Select(q => q.Id).ToList(),
             Language = language,
@@ -79,13 +90,14 @@ public class SubquizService
 
         await _submissionRepository.Create(submission);
 
-        return new SubquizDetailDto
+        return new DrillDetailDto
         {
-            Id = subquiz.Id,
-            Title = subquiz.Title,
-            Domain = subquiz.Domain,
-            Slug = subquiz.Slug,
-            CreatedAt = subquiz.CreatedAt,
+            Id = drill.Id,
+            Title = drill.Title,
+            Domain = drill.Domain,
+            DrawRule = drill.DrawRule,
+            Slug = drill.Slug,
+            CreatedAt = drill.CreatedAt,
             SubmissionId = submission.Id,
             // Anonymous drills carry no composition: there is nothing adaptive to report, and the
             // absence is what the web app shows the sign-in pitch for.
@@ -105,11 +117,11 @@ public class SubquizService
 
     /// <summary>
     /// Commits one Question's answer (a Check) and returns instant feedback. Records an immutable
-    /// Recorded Answer; rejects a Submission for the wrong quiz/subquiz, an already-finished one,
-    /// and a Question already Checked. Reachable only via the Subquiz path (ADR 0002): the full
-    /// Quiz never reveals per-Question correctness.
+    /// Recorded Answer; rejects a Submission for the wrong quiz/drill, an already-finished one,
+    /// and a Question already Checked. Practice only (ADR 0002, ADR 0010): an Exam attempt never
+    /// reveals per-Question correctness.
     /// </summary>
-    public async Task<CheckAnswerResponseDto> CheckAnswer(int quizId, int subquizId, int submissionId, int questionId, List<int> answerIds)
+    public async Task<CheckAnswerResponseDto> CheckAnswer(int quizId, int drillId, int submissionId, int questionId, List<int> answerIds)
     {
         var submission = await _submissionRepository.GetById(submissionId);
 
@@ -118,7 +130,8 @@ public class SubquizService
             throw new InvalidOperationException($"Submission {submissionId} not found");
         }
 
-        SubmissionGrader.EnsureBelongsTo(submission, quizId, subquizId);
+        SubmissionGrader.EnsureBelongsTo(submission, quizId, drillId);
+        SubmissionGrader.EnsureMode(submission, Mode.Practice);
         SubmissionGrader.EnsureNotFinished(submission);
 
         if (submission.RecordedAnswers.Any(r => r.QuestionId == questionId))
@@ -157,12 +170,12 @@ public class SubquizService
     }
 
     /// <summary>
-    /// Finishes a Subquiz attempt: grades the accumulated Recorded Answers through the shared
-    /// grader and subquiz Grading Strategy against the served set, so unchecked served Questions
+    /// Finishes a Drill attempt: grades the accumulated Recorded Answers through the shared
+    /// grader and drill Grading Strategy against the served set, so unchecked served Questions
     /// count as wrong (ADR 0001) and the Submission is marked Finished. The grade-and-finish flow
-    /// stays in the shared grader so full-quiz and subquiz paths cannot diverge (issue #12).
+    /// stays in the shared grader so Exam and Practice paths cannot diverge (issue #12).
     /// </summary>
-    public async Task<SubmitQuizResponseDto> FinishSubquiz(int quizId, int subquizId, int submissionId)
+    public async Task<SubmitQuizResponseDto> FinishDrill(int quizId, int drillId, int submissionId)
     {
         var submission = await _submissionRepository.GetById(submissionId);
 
@@ -175,8 +188,10 @@ public class SubquizService
             .Select(r => new QuizAnswer { QuestionId = r.QuestionId, AnswerIds = r.SelectedAnswerIds })
             .ToList();
 
-        var strategy = GradingStrategyFactory.GetSubquizStrategy();
-        return await _submissionGrader.GradeAndFinish(submissionId, quizId, subquizId, strategy, recordedAnswers);
+        SubmissionGrader.EnsureMode(submission, Mode.Practice);
+
+        var strategy = GradingStrategyFactory.GetPracticeStrategy();
+        return await _submissionGrader.GradeAndFinish(submissionId, quizId, drillId, strategy, recordedAnswers);
     }
 
     /// <summary>
@@ -195,13 +210,14 @@ public class SubquizService
         };
     }
 
-    private static SubquizDto MapSubquizToDto(Subquiz sq)
+    private static DrillDto MapDrillToDto(Drill sq)
     {
-        return new SubquizDto
+        return new DrillDto
         {
             Id = sq.Id,
             Title = sq.Title,
             Domain = sq.Domain,
+            DrawRule = sq.DrawRule,
             Slug = sq.Slug,
             IsAvailable = sq.IsAvailable
         };

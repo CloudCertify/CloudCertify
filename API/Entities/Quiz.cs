@@ -36,7 +36,7 @@ public class Quiz
      
      public virtual ICollection<Question> Questions { get; set; }
 
-     public virtual ICollection<Subquiz> SubQuizzes { get; set; } = new List<Subquiz>();
+     public virtual ICollection<Drill> Drills { get; set; } = new List<Drill>();
 }
 
 public enum QuizLevel

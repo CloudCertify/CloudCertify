@@ -19,7 +19,7 @@ Demand-validation MVP. Persists Recorded Answers, Confidence, Outcomes, Users, P
 - [x] Domain-weighted scaled scoring (100-1000, pass ≥ 700) per exam via grading strategies
 - [x] End-of-quiz summary: score, pass/fail, percentage
 - [x] Future-proof question schema (domain, concepts, services, categories, difficulty, explanation)
-- [x] Domain based subquizzes (scored as a 0-100 percentage, for focused practice)
+- [x] Domain-scoped Drills (scored as a 0-100 percentage, for focused practice)
 - [x] Server-authoritative attempts (anonymous via email, or logged-in)
 - [x] Optional social login (Google/GitHub) with anonymous-submission claiming — identity building block for per-user behavioral data and personalization in V1/V2
 
@@ -35,7 +35,7 @@ Demand-validation MVP. Persists Recorded Answers, Confidence, Outcomes, Users, P
 **V1 — Real Learning Platform** (in progress)
 
 - [ ] Per-you performance analytics: success rate, plus Domain and Service performance (logged-in only). Deferred: answer time, abandonment, most failed, score distribution
-- [x] Domain grouped tests focused on user weaknesses: Subquizzes drawn by Drill Mix (9 Missed / 4 Unseen / 2 Mastered) from a logged-in User's per-Question Outcomes, with the drill's make-up shown before the first Question; correctness stamped on Recorded Answers — ADR 0007, ADR 0008
+- [x] Domain grouped tests focused on user weaknesses: Drills drawn by Drill Mix (9 Missed / 4 Unseen / 2 Mastered) from a logged-in User's per-Question Outcomes, with the drill's make-up shown before the first Question; correctness stamped on Recorded Answers — ADR 0007, ADR 0008
 - [ ] Mistakes drill: one review draw across the whole quiz, serving what you missed plus what you only guessed at, capped at 15 and never padded up — ADR 0011
 - [x] Confidence scoring (Guess/Unsure/Confident, full quizzes only) to detect lucky guesses and misconceptions — ADR 0006
 

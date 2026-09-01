@@ -6,7 +6,7 @@ namespace API.Services;
 
 /// <summary>
 /// Maps <see cref="Answer"/> entities to the DTO shapes shared by the full-quiz and
-/// subquiz paths. Centralised so the two submit flows cannot drift apart (issue #12).
+/// Practice paths. Centralised so the two submit flows cannot drift apart (issue #12).
 /// </summary>
 public static class AnswerMapper
 {

@@ -17,12 +17,13 @@ public class ReportServiceTests
     private void GivenSubmission(Submission submission) =>
         _submissions.Setup(r => r.GetById(submission.Id)).ReturnsAsync(submission);
 
-    private static Submission SubquizSubmission(Language language = Language.EnUs, params int[] checkedQuestionIds) =>
+    private static Submission DrillSubmission(Language language = Language.EnUs, params int[] checkedQuestionIds) =>
         new()
         {
             Id = 1,
             QuizId = 7,
-            SubquizId = 3,
+            DrillId = 3,
+            Mode = Mode.Practice,
             Language = language,
             Email = "anon@example.com",
             RecordedAnswers = checkedQuestionIds
@@ -64,7 +65,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_PersistsOpenReport_WithSubmissionLanguage()
     {
-        GivenSubmission(SubquizSubmission(Language.PtBr, 10));
+        GivenSubmission(DrillSubmission(Language.PtBr, 10));
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
 
         var result = await CreateService().FileReport(Request(
@@ -83,7 +84,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_CollapsesDuplicateReasons()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
 
         var result = await CreateService().FileReport(Request(
@@ -96,7 +97,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_AllowsAnonymousSubmission()
     {
-        var submission = SubquizSubmission(Language.EnUs, 10);
+        var submission = DrillSubmission(Language.EnUs, 10);
         submission.UserId = null;
         GivenSubmission(submission);
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
@@ -109,7 +110,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Rejects_WhenNoReasons()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
 
         var result = await CreateService().FileReport(Request([]));
 
@@ -120,7 +121,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Rejects_UnknownReason()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
 
         var result = await CreateService().FileReport(Request([(ReportReason)999]));
 
@@ -131,7 +132,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Rejects_WhenCommentTooLong()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
 
         var result = await CreateService().FileReport(Request(comment: new string('x', 201)));
 
@@ -142,7 +143,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Accepts_CommentAtMaxLength()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
 
         var result = await CreateService().FileReport(Request(comment: new string('x', 200)));
@@ -153,7 +154,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Rejects_WhenQuestionNotChecked()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 11)); // served/checked another question
+        GivenSubmission(DrillSubmission(Language.EnUs, 11)); // served/checked another question
 
         var result = await CreateService().FileReport(Request(questionId: 10));
 
@@ -162,22 +163,23 @@ public class ReportServiceTests
     }
 
     [Fact]
-    public async Task FileReport_Rejects_WhenSubmissionIsFullQuiz()
+    public async Task FileReport_Rejects_WhenSubmissionIsExam()
     {
-        var submission = SubquizSubmission(Language.EnUs, 10);
-        submission.SubquizId = null;
+        var submission = DrillSubmission(Language.EnUs, 10);
+        submission.DrillId = null;
+        submission.Mode = Mode.Exam;
         GivenSubmission(submission);
 
         var result = await CreateService().FileReport(Request());
 
-        Assert.Equal(ReportOutcome.NotSubquiz, result.Outcome);
+        Assert.Equal(ReportOutcome.NotPractice, result.Outcome);
         _reports.Verify(r => r.Save(It.IsAny<Report>()), Times.Never);
     }
 
     [Fact]
     public async Task FileReport_Rejects_WhenAlreadyReported()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report?)null); // primary key already taken
 
         var result = await CreateService().FileReport(Request());
@@ -188,7 +190,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_StoresSuggestionAsSparsePatch()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         GivenQuestion();
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
 
@@ -218,7 +220,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_StoresNullSuggestion_WhenNothingActuallyChanged()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         GivenQuestion();
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
 
@@ -235,7 +237,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Rejects_SuggestionForAnotherQuestionsAnswer()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         GivenQuestion();
 
         var result = await CreateService().FileReport(Request(suggestion: new SuggestionDto
@@ -250,7 +252,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Rejects_SuggestedKeyWithWrongNumberOfCorrectAnswers()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         GivenQuestion();
 
         // Marking B correct without unmarking A leaves two correct answers on a single-choice.
@@ -266,7 +268,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Accepts_SuggestedKeyMatchingSelectCount()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         GivenQuestion(QuestionType.MultipleResponse, selectCount: 2);
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report r) => r);
 
@@ -282,7 +284,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Rejects_SuggestedTextOverTheCap()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         GivenQuestion();
 
         var result = await CreateService().FileReport(Request(suggestion: new SuggestionDto
@@ -297,7 +299,7 @@ public class ReportServiceTests
     [Fact]
     public async Task FileReport_Rejects_DuplicateAnswerInSuggestion()
     {
-        GivenSubmission(SubquizSubmission(Language.EnUs, 10));
+        GivenSubmission(DrillSubmission(Language.EnUs, 10));
         GivenQuestion();
 
         var result = await CreateService().FileReport(Request(suggestion: new SuggestionDto

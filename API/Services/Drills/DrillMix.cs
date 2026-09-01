@@ -3,7 +3,7 @@ using API.Entities;
 namespace API.Services.Drills;
 
 /// <summary>
-/// Draws a Subquiz's 15 Questions from a Domain to a fixed mix of Outcomes — 9 Missed, 4 Unseen,
+/// Draws a Drill's 15 Questions from a Domain to a fixed mix of Outcomes — 9 Missed, 4 Unseen,
 /// 2 Mastered — instead of uniformly at random, so the Questions a visitor missed come back and
 /// the ones they know get out of the way (ADR 0008).
 /// </summary>

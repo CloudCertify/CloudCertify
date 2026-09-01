@@ -42,7 +42,8 @@ public class MeController(IUserRepository userRepository, ISubmissionRepository 
         {
             Id = s.Id,
             QuizId = s.QuizId,
-            SubquizId = s.SubquizId,
+            DrillId = s.DrillId,
+            Mode = s.Mode,
             Finished = s.Finished,
             Score = s.Score,
             CreatedAt = s.CreatedAt,

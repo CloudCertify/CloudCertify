@@ -28,7 +28,7 @@ public interface ISubmissionRepository
     Task<List<Submission>> GetByUserId(int userId);
 
     /// <summary>
-    /// Finished Submissions a User made on a Quiz — full Quizzes and Subquizzes alike — with their
+    /// Finished Submissions a User made on a Quiz — Exam and Practice alike — with their
     /// Recorded Answers. This is the evidence Outcomes are read from (ADR 0008); unfinished
     /// attempts are excluded at the source because they contribute nothing.
     /// </summary>
