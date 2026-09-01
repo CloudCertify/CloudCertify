@@ -220,7 +220,7 @@ export const en = {
     emailPlaceholder: 'you@example.com',
     emailInvalid: 'Please enter a valid email address.',
     startExamError: 'Failed to start the exam. Please try again.',
-    startPracticeError: 'Failed to start the practice. Please try again.',
+    startPracticeError: 'Failed to start the drill. Please try again.',
     fullExamHeading: 'Full simulation exam',
     fullExamBody:
       "Full-length exam simulation. At the end you'll see your scaled score, whether you'd pass, and which domains need work.",
@@ -230,9 +230,9 @@ export const en = {
     passFailBadge: 'Pass / Fail',
     domainBreakdownBadge: 'Domain Breakdown',
     startExam: 'Start Exam',
-    practiceHeading: 'Domain practice',
+    practiceHeading: 'Drills',
     practiceSubtitle:
-      '15-question focused quizzes per domain. Fast feedback, no pass/fail pressure.',
+      '15-question focused drills per domain. Fast feedback, no pass/fail pressure.',
     practice: 'Practice',
     notFound: 'Quiz not found.'
   },
@@ -244,7 +244,7 @@ export const en = {
     check: 'Check',
     checking: 'Checking...',
     continue: 'Continue',
-    finishPractice: 'Finish Practice',
+    finishPractice: 'Finish drill',
     finishing: 'Finishing...',
     notQuite: 'Not quite'
   },
@@ -346,7 +346,7 @@ export const en = {
 
   results: {
     quizTitle: 'Quiz results',
-    practiceTitle: 'Practice results',
+    practiceTitle: 'Drill results',
     passingScore: (passed: boolean, score: string) =>
       `${passed ? 'PASS' : 'FAIL'} (Passing score: ${score})`,
     scoreLine: (correct: number, total: number) =>

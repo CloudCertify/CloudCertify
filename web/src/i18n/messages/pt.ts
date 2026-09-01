@@ -220,7 +220,7 @@ export const pt: Messages = {
     passFailBadge: 'Aprovado / Reprovado',
     domainBreakdownBadge: 'Detalhe por domínio',
     startExam: 'Iniciar simulado',
-    practiceHeading: 'Treino por domínio',
+    practiceHeading: 'Treinos',
     practiceSubtitle:
       'Treinos focados de 15 questões por domínio. Feedback rápido, sem pressão de aprovação.',
     practice: 'Treinar',

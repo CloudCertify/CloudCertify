@@ -12,7 +12,7 @@ type QuestionNavigatorProps = {
   answered: boolean[];
   /**
    * needsReview[i] is true when question i was rated Guess or Unsure — the
-   * visitor's own "come back to this". Optional: a Subquiz has no Confidence.
+   * visitor's own "come back to this". Optional: a Drill has no Confidence.
    */
   needsReview?: boolean[];
   onJump: (index: number) => void;
@@ -21,7 +21,7 @@ type QuestionNavigatorProps = {
 /**
  * Navigator (CONTEXT.md): numbered jump control for a full Quiz attempt.
  * Marks every served question as answered, unanswered, or current, and jumps
- * directly to any of them. Never rendered for a Subquiz — those are
+ * directly to any of them. Never rendered for a Drill — those are
  * forward-only (ADR 0002).
  *
  * Usage: <QuestionNavigator currentIndex={i} answered={flags} onJump={setIndex} />

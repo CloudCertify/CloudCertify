@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "CloudCertify API",
-    "description": "CloudCertify API — a cloud certification quiz and exam prep platform.",
+    "description": "CloudCertify API \u2014 a cloud certification quiz and exam prep platform.",
     "version": "v1"
   },
   "servers": [
@@ -17,7 +17,9 @@
   "paths": {
     "/auth/{provider}/login": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "provider",
@@ -44,7 +46,9 @@
     },
     "/auth/{provider}/callback": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "provider",
@@ -78,7 +82,9 @@
     },
     "/me": {
       "get": {
-        "tags": ["Me"],
+        "tags": [
+          "Me"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -105,7 +111,9 @@
     },
     "/me/submissions": {
       "get": {
-        "tags": ["Me"],
+        "tags": [
+          "Me"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -141,7 +149,9 @@
     },
     "/quiz": {
       "get": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -177,7 +187,9 @@
     },
     "/quiz/{quizId}": {
       "get": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -215,7 +227,9 @@
     },
     "/quiz/{quizId}/start": {
       "post": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -273,7 +287,9 @@
     },
     "/quiz/{quizId}/answer": {
       "post": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -314,7 +330,9 @@
     },
     "/quiz/{quizId}/submit": {
       "post": {
-        "tags": ["Quiz"],
+        "tags": [
+          "Quiz"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -372,7 +390,9 @@
     },
     "/reports": {
       "post": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -477,9 +497,11 @@
         }
       }
     },
-    "/quiz/{quizId}/subquizzes": {
+    "/quiz/{quizId}/drills": {
       "get": {
-        "tags": ["Subquiz"],
+        "tags": [
+          "Drill"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -499,7 +521,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/SubquizDto"
+                    "$ref": "#/components/schemas/DrillDto"
                   }
                 }
               },
@@ -507,7 +529,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/SubquizDto"
+                    "$ref": "#/components/schemas/DrillDto"
                   }
                 }
               },
@@ -515,7 +537,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/SubquizDto"
+                    "$ref": "#/components/schemas/DrillDto"
                   }
                 }
               }
@@ -524,9 +546,11 @@
         }
       }
     },
-    "/quiz/{quizId}/subquizzes/{subquizId}/start": {
+    "/quiz/{quizId}/drills/{drillId}/start": {
       "post": {
-        "tags": ["Subquiz"],
+        "tags": [
+          "Drill"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -538,7 +562,7 @@
             }
           },
           {
-            "name": "subquizId",
+            "name": "drillId",
             "in": "path",
             "required": true,
             "schema": {
@@ -573,17 +597,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubquizDetailDto"
+                  "$ref": "#/components/schemas/DrillDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubquizDetailDto"
+                  "$ref": "#/components/schemas/DrillDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubquizDetailDto"
+                  "$ref": "#/components/schemas/DrillDetailDto"
                 }
               }
             }
@@ -591,9 +615,11 @@
         }
       }
     },
-    "/quiz/{quizId}/subquizzes/{subquizId}/check": {
+    "/quiz/{quizId}/drills/{drillId}/check": {
       "post": {
-        "tags": ["Subquiz"],
+        "tags": [
+          "Drill"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -605,7 +631,7 @@
             }
           },
           {
-            "name": "subquizId",
+            "name": "drillId",
             "in": "path",
             "required": true,
             "schema": {
@@ -658,9 +684,11 @@
         }
       }
     },
-    "/quiz/{quizId}/subquizzes/{subquizId}/finish": {
+    "/quiz/{quizId}/drills/{drillId}/finish": {
       "post": {
-        "tags": ["Subquiz"],
+        "tags": [
+          "Drill"
+        ],
         "parameters": [
           {
             "name": "quizId",
@@ -672,7 +700,7 @@
             }
           },
           {
-            "name": "subquizId",
+            "name": "drillId",
             "in": "path",
             "required": true,
             "schema": {
@@ -685,17 +713,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FinishSubquizRequestDto"
+                "$ref": "#/components/schemas/FinishDrillRequestDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/FinishSubquizRequestDto"
+                "$ref": "#/components/schemas/FinishDrillRequestDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/FinishSubquizRequestDto"
+                "$ref": "#/components/schemas/FinishDrillRequestDto"
               }
             }
           },
@@ -806,7 +834,11 @@
         }
       },
       "CheckAnswerResponseDto": {
-        "required": ["isCorrect", "correctAnswerIds", "selectedAnswerIds"],
+        "required": [
+          "isCorrect",
+          "correctAnswerIds",
+          "selectedAnswerIds"
+        ],
         "type": "object",
         "properties": {
           "isCorrect": {
@@ -833,7 +865,11 @@
         }
       },
       "Confidence": {
-        "enum": ["guess", "unsure", "confident"],
+        "enum": [
+          "guess",
+          "unsure",
+          "confident"
+        ],
         "type": "string",
         "nullable": true
       },
@@ -864,7 +900,12 @@
         }
       },
       "DomainResult": {
-        "required": ["domain", "correct", "total", "weight"],
+        "required": [
+          "domain",
+          "correct",
+          "total",
+          "weight"
+        ],
         "type": "object",
         "properties": {
           "domain": {
@@ -902,17 +943,11 @@
         },
         "nullable": true
       },
-      "FinishSubquizRequestDto": {
-        "type": "object",
-        "properties": {
-          "submissionId": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "Language": {
-        "enum": ["en_us", "pt_br"],
+        "enum": [
+          "en_us",
+          "pt_br"
+        ],
         "type": "string"
       },
       "MeDto": {
@@ -951,11 +986,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "subquizId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
           "finished": {
             "type": "boolean"
           },
@@ -966,6 +996,14 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "drillId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
           }
         }
       },
@@ -996,11 +1034,18 @@
         }
       },
       "ProviderKind": {
-        "enum": ["google", "git_hub"],
+        "enum": [
+          "google",
+          "git_hub"
+        ],
         "type": "string"
       },
       "QuestionDifficulty": {
-        "enum": ["easy", "medium", "hard"],
+        "enum": [
+          "easy",
+          "medium",
+          "hard"
+        ],
         "type": "string"
       },
       "QuestionDto": {
@@ -1039,7 +1084,10 @@
         }
       },
       "QuestionType": {
-        "enum": ["multiple_choice", "multiple_response"],
+        "enum": [
+          "multiple_choice",
+          "multiple_response"
+        ],
         "type": "string"
       },
       "QuizDetailDto": {
@@ -1118,25 +1166,38 @@
             "type": "integer",
             "format": "int32"
           },
-          "subQuizzes": {
+          "drills": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SubquizDto"
+              "$ref": "#/components/schemas/DrillDto"
             },
             "nullable": true
           }
         }
       },
       "QuizLevel": {
-        "enum": ["foundational", "associate", "professional", "specialist"],
+        "enum": [
+          "foundational",
+          "associate",
+          "professional",
+          "specialist"
+        ],
         "type": "string"
       },
       "QuizProvider": {
-        "enum": ["azure", "aws", "gcp"],
+        "enum": [
+          "azure",
+          "aws",
+          "gcp"
+        ],
         "type": "string"
       },
       "QuizResultAnswerDto": {
-        "required": ["id", "isCorrect", "wasSelected"],
+        "required": [
+          "id",
+          "isCorrect",
+          "wasSelected"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -1160,7 +1221,12 @@
         }
       },
       "QuizResultQuestionDto": {
-        "required": ["id", "text", "type", "answers"],
+        "required": [
+          "id",
+          "text",
+          "type",
+          "answers"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -1264,7 +1330,11 @@
         }
       },
       "ReportStatus": {
-        "enum": ["open", "resolved", "rejected"],
+        "enum": [
+          "open",
+          "resolved",
+          "rejected"
+        ],
         "type": "string"
       },
       "StartQuizRequestDto": {
@@ -1340,7 +1410,55 @@
           }
         }
       },
-      "SubquizDetailDto": {
+      "SuggestionDto": {
+        "type": "object",
+        "properties": {
+          "questionText": {
+            "type": "string",
+            "nullable": true
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnswerSuggestionDto"
+            }
+          }
+        },
+        "nullable": true
+      },
+      "FinishDrillRequestDto": {
+        "type": "object",
+        "properties": {
+          "submissionId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DrawRule": {
+        "enum": [
+          "uniform",
+          "drill_mix",
+          "mistakes"
+        ],
+        "type": "string"
+      },
+      "Mode": {
+        "enum": [
+          "practice",
+          "exam"
+        ],
+        "type": "string"
+      },
+      "DrillDto": {
+        "required": [
+          "id",
+          "title",
+          "domain",
+          "drawRule",
+          "slug",
+          "isAvailable"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -1351,7 +1469,38 @@
             "type": "string"
           },
           "domain": {
+            "type": "string",
+            "nullable": true,
+            "description": "Null for a Drill that draws across the whole parent Quiz (ADR 0010)."
+          },
+          "drawRule": {
+            "$ref": "#/components/schemas/DrawRule"
+          },
+          "slug": {
             "type": "string"
+          },
+          "isAvailable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DrillDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string",
+            "nullable": true,
+            "description": "Null for a Drill that draws across the whole parent Quiz (ADR 0010)."
+          },
+          "drawRule": {
+            "$ref": "#/components/schemas/DrawRule"
           },
           "slug": {
             "type": "string"
@@ -1374,44 +1523,6 @@
             }
           }
         }
-      },
-      "SubquizDto": {
-        "required": ["id", "title", "domain", "slug", "isAvailable"],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "title": {
-            "type": "string"
-          },
-          "domain": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "isAvailable": {
-            "type": "boolean"
-          }
-        }
-      },
-      "SuggestionDto": {
-        "type": "object",
-        "properties": {
-          "questionText": {
-            "type": "string",
-            "nullable": true
-          },
-          "answers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AnswerSuggestionDto"
-            }
-          }
-        },
-        "nullable": true
       }
     }
   },
@@ -1429,7 +1540,7 @@
       "name": "Report"
     },
     {
-      "name": "Subquiz"
+      "name": "Drill"
     }
   ]
 }

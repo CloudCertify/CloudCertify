@@ -29,7 +29,9 @@ import type {
   CheckAnswerRequestDto,
   CheckAnswerResponseDto,
   CreateReportRequestDto,
-  FinishSubquizRequestDto,
+  DrillDetailDto,
+  DrillDto,
+  FinishDrillRequestDto,
   GetAuthProviderCallbackParams,
   GetAuthProviderLoginParams,
   MeDto,
@@ -40,9 +42,7 @@ import type {
   ReportResponseDto,
   StartQuizRequestDto,
   SubmitQuizRequestDto,
-  SubmitQuizResponseDto,
-  SubquizDetailDto,
-  SubquizDto
+  SubmitQuizResponseDto
 } from './api.schemas';
 
 import { customInstance } from '../axios-instance';
@@ -826,14 +826,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getPostReportsMutationOptions(options), queryClient);
     }
 
-export const getQuizQuizIdSubquizzes = (
+export const getQuizQuizIdDrills = (
     quizId: number,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<SubquizDto[]>(
-      {url: `/quiz/${quizId}/subquizzes`, method: 'GET', signal
+      return customInstance<DrillDto[]>(
+      {url: `/quiz/${quizId}/drills`, method: 'GET', signal
     },
       options);
     }
@@ -841,66 +841,66 @@ export const getQuizQuizIdSubquizzes = (
 
 
 
-export const getGetQuizQuizIdSubquizzesQueryKey = (quizId: number,) => {
+export const getGetQuizQuizIdDrillsQueryKey = (quizId: number,) => {
     return [
-    `/quiz/${quizId}/subquizzes`
+    `/quiz/${quizId}/drills`
     ] as const;
     }
 
 
-export const getGetQuizQuizIdSubquizzesQueryOptions = <TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetQuizQuizIdDrillsQueryOptions = <TData = Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError = ErrorType<unknown>>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetQuizQuizIdSubquizzesQueryKey(quizId);
+  const queryKey =  queryOptions?.queryKey ?? getGetQuizQuizIdDrillsQueryKey(quizId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>> = ({ signal }) => getQuizQuizIdSubquizzes(quizId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuizQuizIdDrills>>> = ({ signal }) => getQuizQuizIdDrills(quizId, requestOptions, signal);
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: !!(quizId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: !!(quizId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetQuizQuizIdSubquizzesQueryResult = NonNullable<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>>
-export type GetQuizQuizIdSubquizzesQueryError = ErrorType<unknown>
+export type GetQuizQuizIdDrillsQueryResult = NonNullable<Awaited<ReturnType<typeof getQuizQuizIdDrills>>>
+export type GetQuizQuizIdDrillsQueryError = ErrorType<unknown>
 
 
-export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(
- quizId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>> & Pick<
+export function useGetQuizQuizIdDrills<TData = Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError = ErrorType<unknown>>(
+ quizId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>,
+          Awaited<ReturnType<typeof getQuizQuizIdDrills>>,
           TError,
-          Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>
+          Awaited<ReturnType<typeof getQuizQuizIdDrills>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(
- quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>> & Pick<
+export function useGetQuizQuizIdDrills<TData = Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>,
+          Awaited<ReturnType<typeof getQuizQuizIdDrills>>,
           TError,
-          Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>
+          Awaited<ReturnType<typeof getQuizQuizIdDrills>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(
- quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export function useGetQuizQuizIdDrills<TData = Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError = ErrorType<unknown>>(
- quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdSubquizzes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export function useGetQuizQuizIdDrills<TData = Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuizQuizIdDrills>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetQuizQuizIdSubquizzesQueryOptions(quizId,options)
+  const queryOptions = getGetQuizQuizIdDrillsQueryOptions(quizId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -913,16 +913,16 @@ export function useGetQuizQuizIdSubquizzes<TData = Awaited<ReturnType<typeof get
 
 
 
-export const postQuizQuizIdSubquizzesSubquizIdStart = (
+export const postQuizQuizIdDrillsDrillIdStart = (
     quizId: number,
-    subquizId: number,
+    drillId: number,
     startQuizRequestDto: BodyType<StartQuizRequestDto>,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<SubquizDetailDto>(
-      {url: `/quiz/${quizId}/subquizzes/${subquizId}/start`, method: 'POST',
+      return customInstance<DrillDetailDto>(
+      {url: `/quiz/${quizId}/drills/${drillId}/start`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: startQuizRequestDto, signal
     },
@@ -931,11 +931,11 @@ export const postQuizQuizIdSubquizzesSubquizIdStart = (
 
 
 
-export const getPostQuizQuizIdSubquizzesSubquizIdStartMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>}, TContext> => {
+export const getPostQuizQuizIdDrillsDrillIdStartMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdStart>>, TError,{quizId: number;drillId: number;data: BodyType<StartQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdStart>>, TError,{quizId: number;drillId: number;data: BodyType<StartQuizRequestDto>}, TContext> => {
 
-const mutationKey = ['postQuizQuizIdSubquizzesSubquizIdStart'];
+const mutationKey = ['postQuizQuizIdDrillsDrillIdStart'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -945,10 +945,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, {quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>}> = (props) => {
-          const {quizId,subquizId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdStart>>, {quizId: number;drillId: number;data: BodyType<StartQuizRequestDto>}> = (props) => {
+          const {quizId,drillId,data} = props ?? {};
 
-          return  postQuizQuizIdSubquizzesSubquizIdStart(quizId,subquizId,data,requestOptions)
+          return  postQuizQuizIdDrillsDrillIdStart(quizId,drillId,data,requestOptions)
         }
 
 
@@ -958,31 +958,31 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostQuizQuizIdSubquizzesSubquizIdStartMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>>
-    export type PostQuizQuizIdSubquizzesSubquizIdStartMutationBody = BodyType<StartQuizRequestDto>
-    export type PostQuizQuizIdSubquizzesSubquizIdStartMutationError = ErrorType<unknown>
+    export type PostQuizQuizIdDrillsDrillIdStartMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdStart>>>
+    export type PostQuizQuizIdDrillsDrillIdStartMutationBody = BodyType<StartQuizRequestDto>
+    export type PostQuizQuizIdDrillsDrillIdStartMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdSubquizzesSubquizIdStart = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>, TError,{quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+    export const usePostQuizQuizIdDrillsDrillIdStart = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdStart>>, TError,{quizId: number;drillId: number;data: BodyType<StartQuizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdStart>>,
+        Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdStart>>,
         TError,
-        {quizId: number;subquizId: number;data: BodyType<StartQuizRequestDto>},
+        {quizId: number;drillId: number;data: BodyType<StartQuizRequestDto>},
         TContext
       > => {
-      return useMutation(getPostQuizQuizIdSubquizzesSubquizIdStartMutationOptions(options), queryClient);
+      return useMutation(getPostQuizQuizIdDrillsDrillIdStartMutationOptions(options), queryClient);
     }
 
-export const postQuizQuizIdSubquizzesSubquizIdCheck = (
+export const postQuizQuizIdDrillsDrillIdCheck = (
     quizId: number,
-    subquizId: number,
+    drillId: number,
     checkAnswerRequestDto: BodyType<CheckAnswerRequestDto>,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<CheckAnswerResponseDto>(
-      {url: `/quiz/${quizId}/subquizzes/${subquizId}/check`, method: 'POST',
+      {url: `/quiz/${quizId}/drills/${drillId}/check`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: checkAnswerRequestDto, signal
     },
@@ -991,11 +991,11 @@ export const postQuizQuizIdSubquizzesSubquizIdCheck = (
 
 
 
-export const getPostQuizQuizIdSubquizzesSubquizIdCheckMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>}, TContext> => {
+export const getPostQuizQuizIdDrillsDrillIdCheckMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdCheck>>, TError,{quizId: number;drillId: number;data: BodyType<CheckAnswerRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdCheck>>, TError,{quizId: number;drillId: number;data: BodyType<CheckAnswerRequestDto>}, TContext> => {
 
-const mutationKey = ['postQuizQuizIdSubquizzesSubquizIdCheck'];
+const mutationKey = ['postQuizQuizIdDrillsDrillIdCheck'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -1005,10 +1005,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, {quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>}> = (props) => {
-          const {quizId,subquizId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdCheck>>, {quizId: number;drillId: number;data: BodyType<CheckAnswerRequestDto>}> = (props) => {
+          const {quizId,drillId,data} = props ?? {};
 
-          return  postQuizQuizIdSubquizzesSubquizIdCheck(quizId,subquizId,data,requestOptions)
+          return  postQuizQuizIdDrillsDrillIdCheck(quizId,drillId,data,requestOptions)
         }
 
 
@@ -1018,44 +1018,44 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostQuizQuizIdSubquizzesSubquizIdCheckMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>>
-    export type PostQuizQuizIdSubquizzesSubquizIdCheckMutationBody = BodyType<CheckAnswerRequestDto>
-    export type PostQuizQuizIdSubquizzesSubquizIdCheckMutationError = ErrorType<unknown>
+    export type PostQuizQuizIdDrillsDrillIdCheckMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdCheck>>>
+    export type PostQuizQuizIdDrillsDrillIdCheckMutationBody = BodyType<CheckAnswerRequestDto>
+    export type PostQuizQuizIdDrillsDrillIdCheckMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdSubquizzesSubquizIdCheck = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>, TError,{quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+    export const usePostQuizQuizIdDrillsDrillIdCheck = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdCheck>>, TError,{quizId: number;drillId: number;data: BodyType<CheckAnswerRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdCheck>>,
+        Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdCheck>>,
         TError,
-        {quizId: number;subquizId: number;data: BodyType<CheckAnswerRequestDto>},
+        {quizId: number;drillId: number;data: BodyType<CheckAnswerRequestDto>},
         TContext
       > => {
-      return useMutation(getPostQuizQuizIdSubquizzesSubquizIdCheckMutationOptions(options), queryClient);
+      return useMutation(getPostQuizQuizIdDrillsDrillIdCheckMutationOptions(options), queryClient);
     }
 
-export const postQuizQuizIdSubquizzesSubquizIdFinish = (
+export const postQuizQuizIdDrillsDrillIdFinish = (
     quizId: number,
-    subquizId: number,
-    finishSubquizRequestDto: BodyType<FinishSubquizRequestDto>,
+    drillId: number,
+    finishDrillRequestDto: BodyType<FinishDrillRequestDto>,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<SubmitQuizResponseDto>(
-      {url: `/quiz/${quizId}/subquizzes/${subquizId}/finish`, method: 'POST',
+      {url: `/quiz/${quizId}/drills/${drillId}/finish`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: finishSubquizRequestDto, signal
+      data: finishDrillRequestDto, signal
     },
       options);
     }
 
 
 
-export const getPostQuizQuizIdSubquizzesSubquizIdFinishMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>}, TContext> => {
+export const getPostQuizQuizIdDrillsDrillIdFinishMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdFinish>>, TError,{quizId: number;drillId: number;data: BodyType<FinishDrillRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdFinish>>, TError,{quizId: number;drillId: number;data: BodyType<FinishDrillRequestDto>}, TContext> => {
 
-const mutationKey = ['postQuizQuizIdSubquizzesSubquizIdFinish'];
+const mutationKey = ['postQuizQuizIdDrillsDrillIdFinish'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -1065,10 +1065,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, {quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>}> = (props) => {
-          const {quizId,subquizId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdFinish>>, {quizId: number;drillId: number;data: BodyType<FinishDrillRequestDto>}> = (props) => {
+          const {quizId,drillId,data} = props ?? {};
 
-          return  postQuizQuizIdSubquizzesSubquizIdFinish(quizId,subquizId,data,requestOptions)
+          return  postQuizQuizIdDrillsDrillIdFinish(quizId,drillId,data,requestOptions)
         }
 
 
@@ -1078,18 +1078,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostQuizQuizIdSubquizzesSubquizIdFinishMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>>
-    export type PostQuizQuizIdSubquizzesSubquizIdFinishMutationBody = BodyType<FinishSubquizRequestDto>
-    export type PostQuizQuizIdSubquizzesSubquizIdFinishMutationError = ErrorType<unknown>
+    export type PostQuizQuizIdDrillsDrillIdFinishMutationResult = NonNullable<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdFinish>>>
+    export type PostQuizQuizIdDrillsDrillIdFinishMutationBody = BodyType<FinishDrillRequestDto>
+    export type PostQuizQuizIdDrillsDrillIdFinishMutationError = ErrorType<unknown>
 
-    export const usePostQuizQuizIdSubquizzesSubquizIdFinish = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>, TError,{quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+    export const usePostQuizQuizIdDrillsDrillIdFinish = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdFinish>>, TError,{quizId: number;drillId: number;data: BodyType<FinishDrillRequestDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postQuizQuizIdSubquizzesSubquizIdFinish>>,
+        Awaited<ReturnType<typeof postQuizQuizIdDrillsDrillIdFinish>>,
         TError,
-        {quizId: number;subquizId: number;data: BodyType<FinishSubquizRequestDto>},
+        {quizId: number;drillId: number;data: BodyType<FinishDrillRequestDto>},
         TContext
       > => {
-      return useMutation(getPostQuizQuizIdSubquizzesSubquizIdFinishMutationOptions(options), queryClient);
+      return useMutation(getPostQuizQuizIdDrillsDrillIdFinishMutationOptions(options), queryClient);
     }
 

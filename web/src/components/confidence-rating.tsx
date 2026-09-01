@@ -45,7 +45,7 @@ const OPTIONS = [Confidence.guess, Confidence.unsure, Confidence.confident] as c
 
 /**
  * How sure the visitor is about the answer they just gave, in a full Quiz only —
- * a Subquiz Check reveals correctness immediately, so it collects none (ADR 0006).
+ * a Drill Check reveals correctness immediately, so it collects none (ADR 0006).
  *
  * Always optional: nothing here gates Submit, and there is no "unrated" option
  * because unrated is the absence of a rating, not a value. Plain buttons on

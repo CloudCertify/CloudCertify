@@ -21,30 +21,30 @@ import { LanguageSwitcher } from '@/components/language-switcher';
 import { useI18n } from '@/i18n/context';
 import { toast } from 'sonner';
 import {
-  postQuizQuizIdSubquizzesSubquizIdStart,
-  postQuizQuizIdSubquizzesSubquizIdCheck,
-  postQuizQuizIdSubquizzesSubquizIdFinish
+  postQuizQuizIdDrillsDrillIdStart,
+  postQuizQuizIdDrillsDrillIdCheck,
+  postQuizQuizIdDrillsDrillIdFinish
 } from '@/http/generated/api';
 
-// Subquiz attempts are scored as a 0–100 percentage; pass is server-decided (issue #10).
+// Drill attempts are scored as a 0–100 percentage; pass is server-decided (issue #10).
 const PASS_THRESHOLD = 70;
 import type {
-  SubquizDetailDto,
+  DrillDetailDto,
   CheckAnswerResponseDto,
   QuizResultQuestionDto
 } from '@/http/generated/api.schemas';
 
 type SessionData = {
-  subquizDetail: SubquizDetailDto;
+  drillDetail: DrillDetailDto;
   email: string | null;
 };
 
 type Phase = 'quiz' | 'results';
 
-export function SubquizSessionPage() {
-  const params = useParams<{ id: string; subquizId: string }>();
+export function DrillSessionPage() {
+  const params = useParams<{ id: string; drillId: string }>();
   const quizId = Number(params.id);
-  const subquizId = Number(params.subquizId);
+  const drillId = Number(params.drillId);
   const [, navigate] = useLocation();
   const { t } = useI18n();
 
@@ -76,9 +76,7 @@ export function SubquizSessionPage() {
     );
 
   useEffect(() => {
-    const raw = sessionStorage.getItem(
-      `subquiz-session-${quizId}-${subquizId}`
-    );
+    const raw = sessionStorage.getItem(`drill-session-${quizId}-${drillId}`);
     if (!raw) {
       navigate(`/quiz/${quizId}`);
       return;
@@ -88,12 +86,12 @@ export function SubquizSessionPage() {
     } catch {
       navigate(`/quiz/${quizId}`);
     }
-  }, [quizId, subquizId, navigate]);
+  }, [quizId, drillId, navigate]);
 
   if (!sessionData) return null;
 
-  const { subquizDetail, email } = sessionData;
-  const questions = subquizDetail.questions ?? [];
+  const { drillDetail, email } = sessionData;
+  const questions = drillDetail.questions ?? [];
   const questionsCount = questions.length;
   const currentQuestion = questions[currentIndex];
 
@@ -121,15 +119,11 @@ export function SubquizSessionPage() {
     if (currentQuestion.id == null) return;
     setIsChecking(true);
     try {
-      const res = await postQuizQuizIdSubquizzesSubquizIdCheck(
-        quizId,
-        subquizId,
-        {
-          submissionId: subquizDetail.submissionId,
-          questionId: currentQuestion.id,
-          answerIds: selectedIds
-        }
-      );
+      const res = await postQuizQuizIdDrillsDrillIdCheck(quizId, drillId, {
+        submissionId: drillDetail.submissionId,
+        questionId: currentQuestion.id,
+        answerIds: selectedIds
+      });
       setReveal(res.data);
       setQuestionPhase('revealed');
     } catch {
@@ -140,16 +134,12 @@ export function SubquizSessionPage() {
     }
   };
 
-  const finishSubquiz = async () => {
+  const finishDrill = async () => {
     setIsFinishing(true);
     try {
-      const res = await postQuizQuizIdSubquizzesSubquizIdFinish(
-        quizId,
-        subquizId,
-        {
-          submissionId: subquizDetail.submissionId
-        }
-      );
+      const res = await postQuizQuizIdDrillsDrillIdFinish(quizId, drillId, {
+        submissionId: drillDetail.submissionId
+      });
       setScore(res.data.score);
       setPassed(res.data.passed);
       setCorrectCount(res.data.correctCount);
@@ -166,7 +156,7 @@ export function SubquizSessionPage() {
 
   const handleContinue = () => {
     if (isLast) {
-      finishSubquiz();
+      finishDrill();
       return;
     }
     // Advance to the next question and reset its reveal state. No going back.
@@ -179,14 +169,12 @@ export function SubquizSessionPage() {
   const handleTryAgain = async () => {
     setIsRestarting(true);
     try {
-      const res = await postQuizQuizIdSubquizzesSubquizIdStart(
-        quizId,
-        subquizId,
-        { email }
-      );
-      const newData: SessionData = { subquizDetail: res.data, email };
+      const res = await postQuizQuizIdDrillsDrillIdStart(quizId, drillId, {
+        email
+      });
+      const newData: SessionData = { drillDetail: res.data, email };
       sessionStorage.setItem(
-        `subquiz-session-${quizId}-${subquizId}`,
+        `drill-session-${quizId}-${drillId}`,
         JSON.stringify(newData)
       );
       setSessionData(newData);
@@ -255,15 +243,15 @@ export function SubquizSessionPage() {
                 {t.results.practiceTitle}
               </CardTitle>
               <p className='text-black/70 font-medium mt-1'>
-                {subquizDetail.title}
+                {drillDetail.title}
               </p>
-              {subquizDetail.domain && (
+              {drillDetail.domain && (
                 <div className='flex justify-center mt-2'>
                   <Badge
                     variant='outline'
                     className='border-2 border-black font-bold'
                   >
-                    {subquizDetail.domain}
+                    {drillDetail.domain}
                   </Badge>
                 </div>
               )}
@@ -292,7 +280,7 @@ export function SubquizSessionPage() {
               {/* After the Check the same fact is a reward, not a prime (issue #53): over the
                   review it lands as a win, and an anonymous visitor sees the pitch here too. */}
               <DrillBanner
-                composition={subquizDetail.composition}
+                composition={drillDetail.composition}
                 place='review'
               />
 
@@ -300,9 +288,9 @@ export function SubquizSessionPage() {
                 questions={resultQuestions ?? []}
                 heading={t.review.reviewHeading}
                 renderReportControl={question =>
-                  subquizDetail.submissionId == null ? null : (
+                  drillDetail.submissionId == null ? null : (
                     <ReportQuestionControl
-                      submissionId={subquizDetail.submissionId}
+                      submissionId={drillDetail.submissionId}
                       questionId={question.id}
                       reported={reportedQuestionIds.includes(question.id)}
                       onReported={markReported}
@@ -347,13 +335,13 @@ export function SubquizSessionPage() {
         {/* Only before the first answer: once the drill is under way the slot has said its
             piece, and repeating it would just be noise. */}
         {currentIndex === 0 && questionPhase === 'answering' && (
-          <DrillBanner composition={subquizDetail.composition} />
+          <DrillBanner composition={drillDetail.composition} />
         )}
         <PracticeQuestionCard
           index={currentIndex}
           total={questionsCount}
           question={currentQuestion}
-          meta={<Badge>{subquizDetail.title}</Badge>}
+          meta={<Badge>{drillDetail.title}</Badge>}
           selectedIds={selectedIds}
           onSelect={handleAnswerSelect}
           phase={questionPhase}
@@ -365,9 +353,9 @@ export function SubquizSessionPage() {
           isLast={isLast}
           reportControl={
             currentQuestion.id != null &&
-            subquizDetail.submissionId != null && (
+            drillDetail.submissionId != null && (
               <ReportQuestionControl
-                submissionId={subquizDetail.submissionId}
+                submissionId={drillDetail.submissionId}
                 questionId={currentQuestion.id}
                 reported={reportedQuestionIds.includes(currentQuestion.id)}
                 onReported={markReported}

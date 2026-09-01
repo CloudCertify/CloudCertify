@@ -1,13 +1,21 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Route, Router } from 'wouter';
 import { memoryLocation } from 'wouter/memory-location';
 import { QuizDetailPage } from './quiz-detail';
 import { AuthProvider } from '@/auth/context';
-import { setToken } from '@/auth/token';
+import { clearToken, setToken } from '@/auth/token';
 
-const postQuizQuizIdStart = vi.fn().mockResolvedValue({ data: { id: 1 } });
+const {
+  postQuizQuizIdStart,
+  postQuizQuizIdDrillsDrillIdStart
+} = vi.hoisted(() => ({
+  postQuizQuizIdStart: vi.fn().mockResolvedValue({ data: { id: 1 } }),
+  postQuizQuizIdDrillsDrillIdStart: vi
+    .fn()
+    .mockResolvedValue({ data: { id: 2, title: 'Cloud Concepts', submissionId: 9 } })
+}));
 
 vi.mock('@/http/generated/api', () => ({
   useGetQuizQuizId: () => ({
@@ -16,13 +24,23 @@ vi.mock('@/http/generated/api', () => ({
         id: 1,
         title: 'AWS Cloud Practitioner',
         isAvailable: true,
-        subQuizzes: []
+        drills: [
+          {
+            id: 2,
+            title: 'Cloud Concepts',
+            domain: 'Cloud Concepts',
+            drawRule: 'drill_mix',
+            slug: 'cloud-concepts',
+            isAvailable: true
+          }
+        ]
       }
     },
     isLoading: false
   }),
   postQuizQuizIdStart: (...args: unknown[]) => postQuizQuizIdStart(...args),
-  postQuizQuizIdSubquizzesSubquizIdStart: vi.fn(),
+  postQuizQuizIdDrillsDrillIdStart: (...args: unknown[]) =>
+    postQuizQuizIdDrillsDrillIdStart(...args),
   useGetMe: () => ({ data: undefined }),
   getGetMeQueryKey: () => ['me']
 }));
@@ -34,19 +52,26 @@ function makeJwt(payload: object): string {
 }
 
 function renderPage() {
-  const { hook } = memoryLocation({ path: '/quiz/1' });
+  const location = memoryLocation({ path: '/quiz/1', record: true });
   render(
     <QueryClientProvider client={new QueryClient()}>
       <AuthProvider>
-        <Router hook={hook}>
+        <Router hook={location.hook}>
           <Route path='/quiz/:id' component={QuizDetailPage} />
         </Router>
       </AuthProvider>
     </QueryClientProvider>
   );
+  return location;
 }
 
 describe('QuizDetailPage start flow', () => {
+  beforeEach(() => {
+    clearToken();
+    postQuizQuizIdStart.mockClear();
+    postQuizQuizIdDrillsDrillIdStart.mockClear();
+  });
+
   it('renders the email input for anonymous visitors and sends the email', async () => {
     renderPage();
     const input = screen.getByLabelText(/your email/i);
@@ -73,5 +98,19 @@ describe('QuizDetailPage start flow', () => {
     await waitFor(() => {
       expect(postQuizQuizIdStart).toHaveBeenCalledWith(1, {});
     });
+  });
+
+  it('starts a drill and opens the per-drill session route', async () => {
+    const location = renderPage();
+    const input = screen.getByLabelText(/your email/i);
+    fireEvent.change(input, { target: { value: 'visitor@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /practice/i }));
+
+    await waitFor(() => {
+      expect(postQuizQuizIdDrillsDrillIdStart).toHaveBeenCalledWith(1, 2, {
+        email: 'visitor@example.com'
+      });
+    });
+    expect(location.history.at(-1)).toBe('/quiz/1/drill/2/session');
   });
 });
