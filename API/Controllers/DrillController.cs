@@ -3,6 +3,7 @@ using API.Model.Request;
 using API.Model.Response;
 using API.Services;
 using API.Services.Auth;
+using API.Services.Drills;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -37,6 +38,8 @@ public class DrillController : ControllerBase
     /// makes the attempt User-owned and any body email is ignored (ADR 0003).
     /// Question content is served in the Accept-Language header's language
     /// (en-US default, pt-BR supported) and fixed on the Submission (ADR 0004).
+    /// A Mistakes drill is logged-in only (401) and does not start on an empty union (409) —
+    /// both are states of the visitor's history, not faults (ADR 0011).
     /// </summary>
     [HttpPost("{drillId}/start")]
     public async Task<ActionResult<DrillDetailDto>> StartDrill(int quizId, int drillId, [FromBody] StartQuizRequestDto request)
@@ -49,7 +52,18 @@ public class DrillController : ControllerBase
 
         var language = LanguageResolver.Resolve(Request.Headers.AcceptLanguage);
         Response.Headers.Vary = "Accept-Language"; // cache-safe: response body varies by language (ADR 0004)
-        var drillDetail = await _drillService.StartDrill(quizId, drillId, request.Email, userId, language);
+
+        DrillDetailDto? drillDetail;
+        try
+        {
+            drillDetail = await _drillService.StartDrill(quizId, drillId, request.Email, userId, language);
+        }
+        catch (MistakesNotStartableException exception)
+        {
+            return exception.Gate == MistakesGate.SignInRequired
+                ? Unauthorized(exception.Message)
+                : Conflict(exception.Message);
+        }
 
         if (drillDetail == null)
         {

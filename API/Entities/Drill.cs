@@ -48,6 +48,9 @@ public enum DrawRule
     /// <summary>Outcome-driven Missed/Unseen/Mastered mix over one Domain (ADR 0008).</summary>
     DrillMix,
 
-    /// <summary>Cross-Domain review of what the User got wrong (ADR 0011). Draw lands in issue #68.</summary>
+    /// <summary>
+    /// Cross-Domain review of what the User got wrong or was unsure of: the union of Missed
+    /// Outcomes and Guess/Unsure ratings, capped at 15 and never padded (ADR 0011).
+    /// </summary>
     Mistakes,
 }

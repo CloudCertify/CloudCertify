@@ -58,11 +58,40 @@ public class QuizCatalogSeederTests : IDisposable
         Assert.All(clf.Questions, q => Assert.Equal(QuestionDifficulty.Hard, q.Difficulty));
         Assert.NotNull(clf.QuestionsHash);
 
-        // One drill per distinct domain per quiz with a questions file.
+        // One drill per distinct domain per quiz with a questions file, plus one Mistakes drill.
         var clfDrills = _drills.Store.Where(s => s.QuizId == clf.Id).ToList();
-        Assert.Equal(2, clfDrills.Count);
+        Assert.Equal(3, clfDrills.Count);
         Assert.Contains(clfDrills, s => s.Slug == "CLF-C02-domain-a");
-        Assert.Equal(SeededFileSlugs.Length * 2, _drills.Store.Count);
+        Assert.Equal(SeededFileSlugs.Length * 3, _drills.Store.Count);
+    }
+
+    [Fact]
+    public async Task SeedCatalog_SeedsOneCrossDomainMistakesDrill_PerQuiz()
+    {
+        await CreateSeeder().SeedCatalog();
+
+        var clf = _quizzes.Store.Single(q => q.Slug == "CLF-C02");
+        var mistakes = Assert.Single(_drills.Store, s => s.QuizId == clf.Id && s.DrawRule == DrawRule.Mistakes);
+
+        Assert.Equal("CLF-C02-mistakes", mistakes.Slug);
+        Assert.Equal("Mistakes (CLF-C02)", mistakes.Title);
+        Assert.Null(mistakes.Domain); // the review runs across the parent Quiz (ADR 0010)
+        Assert.True(mistakes.IsAvailable);
+    }
+
+    [Fact]
+    public async Task SeedCatalog_LeavesTheMistakesDrillAlone_WhenADomainVanishes()
+    {
+        // It is scoped to no Domain, so no change to the file can make it stale.
+        var seeder = CreateSeeder();
+        await seeder.SeedCatalog();
+
+        WriteQuestionsFile("clf-c02", BuildQuestionPayloads("Domain A"));
+        await seeder.SeedCatalog();
+
+        var clf = _quizzes.Store.Single(q => q.Slug == "CLF-C02");
+        var mistakes = Assert.Single(_drills.Store, s => s.QuizId == clf.Id && s.DrawRule == DrawRule.Mistakes);
+        Assert.True(mistakes.IsAvailable);
     }
 
     [Fact]
