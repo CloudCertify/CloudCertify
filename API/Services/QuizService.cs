@@ -28,10 +28,10 @@ public class QuizService
     {
         var quizzes = await _quizRepository.GetQuizzes();
         return quizzes
-            .Select(q => MapQuizToDto(q));
+            .Select(ToDto);
     }
 
-    private static QuizDto MapQuizToDto(Quiz q)
+    public static QuizDto ToDto(Quiz q)
     {
         return new QuizDto
         {
@@ -68,7 +68,7 @@ public class QuizService
             return null;
         }
 
-        return MapQuizToDto(quiz);
+        return ToDto(quiz);
     }
     
      /// <summary>

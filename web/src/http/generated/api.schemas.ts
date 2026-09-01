@@ -123,6 +123,29 @@ export interface MeDto {
   providers?: ProviderKind[];
 }
 
+export interface DomainStandingDto {
+  name: string;
+  standing: number;
+  seen: number;
+  /** @nullable */
+  delta: number | null;
+}
+
+export interface TrendPointDto {
+  submissionId: number;
+  createdAt: string;
+  percent: number;
+}
+
+export interface ProgressDto {
+  domains: DomainStandingDto[];
+  trend: TrendPointDto[];
+  finishedExams: number;
+  finishedDrills: number;
+  /** @nullable */
+  lead: string | null;
+}
+
 export type Mode = typeof Mode[keyof typeof Mode];
 
 

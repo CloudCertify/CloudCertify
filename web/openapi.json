@@ -147,6 +147,84 @@
         }
       }
     },
+    "/me/progress": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuizDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuizDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuizDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/progress/{quizId}": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/quiz": {
       "get": {
         "tags": [
@@ -972,6 +1050,91 @@
             "items": {
               "$ref": "#/components/schemas/ProviderKind"
             }
+          }
+        }
+      },
+      "DomainStandingDto": {
+        "required": [
+          "name",
+          "standing",
+          "seen",
+          "delta"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "standing": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seen": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "delta": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "ProgressDto": {
+        "required": [
+          "domains",
+          "trend",
+          "finishedExams",
+          "finishedDrills",
+          "lead"
+        ],
+        "type": "object",
+        "properties": {
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainStandingDto"
+            }
+          },
+          "trend": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrendPointDto"
+            }
+          },
+          "finishedExams": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "finishedDrills": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lead": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TrendPointDto": {
+        "required": [
+          "submissionId",
+          "createdAt",
+          "percent"
+        ],
+        "type": "object",
+        "properties": {
+          "submissionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "percent": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
