@@ -5,7 +5,7 @@ type UseQuizKeyboardOptions = {
   count: number;
   /**
    * Whether selection keys (digits, arrows, Space) are live. Enter stays
-   * active regardless so the primary action works while a Subquiz question
+   * active regardless so the primary action works while a Drill question
    * is revealed.
    */
   selectionEnabled: boolean;
@@ -15,7 +15,7 @@ type UseQuizKeyboardOptions = {
   onPrimary: () => void;
   /**
    * ArrowLeft/ArrowRight — move between questions. Omit for forward-only
-   * flows (Subquiz, ADR 0002) where revisiting a checked question is not
+   * flows (Drill, ADR 0002) where revisiting a checked question is not
    * allowed.
    */
   onNavigate?: (direction: -1 | 1) => void;
@@ -29,7 +29,7 @@ type UseQuizKeyboardOptions = {
  * - ArrowUp/Down moves focus only (wrapping); Space selects/toggles the
  *   focused option — arrows never change the selection;
  * - ArrowLeft/Right move between questions when `onNavigate` is provided
- *   (full Quiz only — Subquiz flows omit it);
+ *   (full Quiz only — Drill flows omit it);
  * - Enter fires the primary action, except when a button/link/dialog has
  *   focus (native activation wins) or focus is in an editable field.
  *

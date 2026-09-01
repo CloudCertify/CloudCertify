@@ -98,10 +98,6 @@ export type DrillCompositionDto = {
   mastered?: number;
 } | null;
 
-export interface FinishSubquizRequestDto {
-  submissionId?: number;
-}
-
 export type Language = typeof Language[keyof typeof Language];
 
 
@@ -127,14 +123,23 @@ export interface MeDto {
   providers?: ProviderKind[];
 }
 
+export type Mode = typeof Mode[keyof typeof Mode];
+
+
+export const Mode = {
+  practice: 'practice',
+  exam: 'exam',
+} as const;
+
 export interface MySubmissionDto {
   id?: number;
   quizId?: number;
-  /** @nullable */
-  subquizId?: number | null;
   finished?: boolean;
   score?: number;
   createdAt?: string;
+  /** @nullable */
+  drillId?: number | null;
+  mode?: Mode;
 }
 
 export interface ProblemDetails {
@@ -207,10 +212,24 @@ export const QuizLevel = {
   specialist: 'specialist',
 } as const;
 
-export interface SubquizDto {
+export type DrawRule = typeof DrawRule[keyof typeof DrawRule];
+
+
+export const DrawRule = {
+  uniform: 'uniform',
+  drill_mix: 'drill_mix',
+  mistakes: 'mistakes',
+} as const;
+
+export interface DrillDto {
   id: number;
   title: string;
-  domain: string;
+  /**
+     * Null for a Drill that draws across the whole parent Quiz (ADR 0010).
+     * @nullable
+     */
+  domain: string | null;
+  drawRule: DrawRule;
   slug: string;
   isAvailable: boolean;
 }
@@ -229,7 +248,7 @@ export interface QuizDto {
   minQuestions?: number;
   maxQuestions?: number;
   /** @nullable */
-  subQuizzes?: SubquizDto[] | null;
+  drills?: DrillDto[] | null;
 }
 
 export interface QuizResultAnswerDto {
@@ -302,10 +321,19 @@ export interface SubmitQuizResponseDto {
   questions: QuizResultQuestionDto[];
 }
 
-export interface SubquizDetailDto {
+export interface FinishDrillRequestDto {
+  submissionId?: number;
+}
+
+export interface DrillDetailDto {
   id?: number;
   title?: string;
-  domain?: string;
+  /**
+     * Null for a Drill that draws across the whole parent Quiz (ADR 0010).
+     * @nullable
+     */
+  domain?: string | null;
+  drawRule?: DrawRule;
   slug?: string;
   submissionId?: number;
   createdAt?: string;

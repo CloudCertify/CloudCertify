@@ -30,7 +30,7 @@ type PracticeQuestionCardProps = {
   index: number;
   total: number;
   question: QuestionDto;
-  /** Right-side badges (subquiz title, domain, …). */
+  /** Right-side badges (drill title, domain, …). */
   meta?: ReactNode;
   /** Answer ids the user has currently selected for this question. */
   selectedIds: number[];

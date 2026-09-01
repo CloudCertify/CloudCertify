@@ -5,7 +5,7 @@ import { QuizPage } from './pages/quiz';
 import { DashboardPage } from './pages/dashboard';
 import { QuizDetailPage } from './pages/quiz-detail';
 import { QuizSessionPage } from './pages/quiz-session';
-import { SubquizSessionPage } from './pages/subquiz-session';
+import { DrillSessionPage } from './pages/drill-session';
 import { AuthCallbackPage } from './pages/auth-callback';
 import { Providers } from './providers';
 
@@ -32,7 +32,7 @@ export function App() {
         <Route path='/quiz' component={QuizPage} />
         <Route path='/quiz/:id' component={QuizDetailPage} />
         <Route path='/quiz/:id/session' component={QuizSessionPage} />
-        <Route path='/quiz/:id/subquiz/:subquizId/session' component={SubquizSessionPage} />
+        <Route path='/quiz/:id/drill/:drillId/session' component={DrillSessionPage} />
         <Route path='/dashboard' component={DashboardPage} />
         <Route path='/auth/callback' component={AuthCallbackPage} />
       </Router>

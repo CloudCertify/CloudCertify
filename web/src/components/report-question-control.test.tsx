@@ -22,7 +22,7 @@ const SUGGESTABLE = {
   ]
 };
 
-/** Owns the session-wide reported set, like the Subquiz session page does. */
+/** Owns the session-wide reported set, like the Drill session page does. */
 function Harness({ suggestable }: { suggestable?: typeof SUGGESTABLE }) {
   const [reported, setReported] = useState<number[]>([]);
   return (

@@ -23,10 +23,10 @@ import { Badge } from '@/components/ui/badge';
 import { Footer } from '@/components/footer';
 import {
   postQuizQuizIdStart,
-  postQuizQuizIdSubquizzesSubquizIdStart,
+  postQuizQuizIdDrillsDrillIdStart,
   useGetQuizQuizId
 } from '@/http/generated/api';
-import type { SubquizDto } from '@/http/generated/api.schemas';
+import type { DrillDto } from '@/http/generated/api.schemas';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { getLevelStyle } from '@/lib/quiz-level';
 import { capitalize } from '@/lib/utils';
@@ -71,9 +71,7 @@ export function QuizDetailPage() {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const [isStartingExam, setIsStartingExam] = useState(false);
-  const [startingSubquizId, setStartingSubquizId] = useState<number | null>(
-    null
-  );
+  const [startingDrillId, setStartingDrillId] = useState<number | null>(null);
 
   const validateEmail = (): boolean => {
     // Logged-in Users are identified by their Bearer token; no email needed.
@@ -112,32 +110,32 @@ export function QuizDetailPage() {
     }
   };
 
-  const handleStartSubquiz = async (subquiz: SubquizDto) => {
+  const handleStartDrill = async (drill: DrillDto) => {
     if (!validateEmail()) return;
-    setStartingSubquizId(subquiz.id);
+    setStartingDrillId(drill.id);
     try {
-      const response = await postQuizQuizIdSubquizzesSubquizIdStart(
+      const response = await postQuizQuizIdDrillsDrillIdStart(
         quizId,
-        subquiz.id,
+        drill.id,
         isAuthenticated ? {} : { email: email.trim() }
       );
       sessionStorage.setItem(
-        `subquiz-session-${quizId}-${subquiz.id}`,
+        `drill-session-${quizId}-${drill.id}`,
         JSON.stringify({
-          subquizDetail: response.data,
+          drillDetail: response.data,
           email: isAuthenticated ? null : email.trim()
         })
       );
-      navigate(`/quiz/${quizId}/subquiz/${subquiz.id}/session`);
+      navigate(`/quiz/${quizId}/drill/${drill.id}/session`);
     } catch {
       toast.error(t.quizDetail.startPracticeError);
     } finally {
-      setStartingSubquizId(null);
+      setStartingDrillId(null);
     }
   };
 
   const { bg: levelColor, ink: levelInk } = getLevelStyle(quiz?.quizLevel);
-  const subquizzes = quiz?.subQuizzes ?? [];
+  const drills = quiz?.drills ?? [];
   const examQuestionCount = formatExamQuestionRange(
     quiz?.minQuestions,
     quiz?.maxQuestions
@@ -319,8 +317,7 @@ export function QuizDetailPage() {
               </Card>
             </section>
 
-            {/* Domain Practice Subquizzes */}
-            {subquizzes.length > 0 && (
+            {drills.length > 0 && (
               <section className='space-y-4'>
                 <div className='flex items-center gap-2'>
                   <Zap className='h-5 w-5 text-black' />
@@ -332,12 +329,12 @@ export function QuizDetailPage() {
                   {t.quizDetail.practiceSubtitle}
                 </p>
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                  {subquizzes.map(sq => (
-                    <SubquizCard
-                      key={sq.id}
-                      subquiz={sq}
-                      isStarting={startingSubquizId === sq.id}
-                      onStart={() => handleStartSubquiz(sq)}
+                  {drills.map(drill => (
+                    <DrillCard
+                      key={drill.id}
+                      drill={drill}
+                      isStarting={startingDrillId === drill.id}
+                      onStart={() => handleStartDrill(drill)}
                     />
                   ))}
                 </div>
@@ -358,17 +355,17 @@ export function QuizDetailPage() {
   );
 }
 
-function SubquizCard({
-  subquiz,
+function DrillCard({
+  drill,
   isStarting,
   onStart
 }: {
-  subquiz: SubquizDto;
+  drill: DrillDto;
   isStarting: boolean;
   onStart: () => void;
 }) {
   const { t } = useI18n();
-  const isUnavailable = !subquiz.isAvailable;
+  const isUnavailable = !drill.isAvailable;
 
   return (
     <Card
@@ -381,18 +378,20 @@ function SubquizCard({
       <CardHeader className='pb-2'>
         <div className='flex items-start justify-between gap-2'>
           <CardTitle className='text-base font-black text-black leading-tight'>
-            {subquiz.title}
+            {drill.title}
           </CardTitle>
           {isUnavailable && (
             <Lock className='h-4 w-4 text-black/40 shrink-0 mt-0.5' />
           )}
         </div>
-        <Badge
-          variant='outline'
-          className='border-2 border-black font-bold text-xs w-fit mt-1'
-        >
-          {subquiz.domain}
-        </Badge>
+        {drill.domain ? (
+          <Badge
+            variant='outline'
+            className='border-2 border-black font-bold text-xs w-fit mt-1'
+          >
+            {drill.domain}
+          </Badge>
+        ) : null}
       </CardHeader>
       <CardFooter className='pt-0'>
         <div className='flex items-center justify-between w-full'>
