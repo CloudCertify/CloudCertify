@@ -121,6 +121,7 @@ builder.Services.AddScoped<SubmissionGrader>();
 builder.Services.AddScoped<QuizService>();
 builder.Services.AddScoped<DrillService>();
 builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<ProgressService>();
 
 var app = builder.Build();
 

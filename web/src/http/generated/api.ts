@@ -37,6 +37,7 @@ import type {
   MeDto,
   MySubmissionDto,
   ProblemDetails,
+  ProgressDto,
   QuizDetailDto,
   QuizDto,
   ReportResponseDto,
@@ -405,6 +406,180 @@ export function useGetMeSubmissions<TData = Awaited<ReturnType<typeof getMeSubmi
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMeSubmissionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getMeProgress = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<QuizDto[]>(
+      {url: `/me/progress`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetMeProgressQueryKey = () => {
+    return [
+    `/me/progress`
+    ] as const;
+    }
+
+
+export const getGetMeProgressQueryOptions = <TData = Awaited<ReturnType<typeof getMeProgress>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgress>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMeProgressQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMeProgress>>> = ({ signal }) => getMeProgress(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMeProgress>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMeProgressQueryResult = NonNullable<Awaited<ReturnType<typeof getMeProgress>>>
+export type GetMeProgressQueryError = ErrorType<unknown>
+
+
+export function useGetMeProgress<TData = Awaited<ReturnType<typeof getMeProgress>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgress>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMeProgress>>,
+          TError,
+          Awaited<ReturnType<typeof getMeProgress>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMeProgress<TData = Awaited<ReturnType<typeof getMeProgress>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgress>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMeProgress>>,
+          TError,
+          Awaited<ReturnType<typeof getMeProgress>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMeProgress<TData = Awaited<ReturnType<typeof getMeProgress>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgress>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMeProgress<TData = Awaited<ReturnType<typeof getMeProgress>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgress>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMeProgressQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getMeProgressQuizId = (
+    quizId: number,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ProgressDto>(
+      {url: `/me/progress/${quizId}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetMeProgressQuizIdQueryKey = (quizId: number,) => {
+    return [
+    `/me/progress/${quizId}`
+    ] as const;
+    }
+
+
+export const getGetMeProgressQuizIdQueryOptions = <TData = Awaited<ReturnType<typeof getMeProgressQuizId>>, TError = ErrorType<unknown>>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgressQuizId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMeProgressQuizIdQueryKey(quizId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMeProgressQuizId>>> = ({ signal }) => getMeProgressQuizId(quizId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(quizId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMeProgressQuizId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMeProgressQuizIdQueryResult = NonNullable<Awaited<ReturnType<typeof getMeProgressQuizId>>>
+export type GetMeProgressQuizIdQueryError = ErrorType<unknown>
+
+
+export function useGetMeProgressQuizId<TData = Awaited<ReturnType<typeof getMeProgressQuizId>>, TError = ErrorType<unknown>>(
+ quizId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgressQuizId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMeProgressQuizId>>,
+          TError,
+          Awaited<ReturnType<typeof getMeProgressQuizId>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMeProgressQuizId<TData = Awaited<ReturnType<typeof getMeProgressQuizId>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgressQuizId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMeProgressQuizId>>,
+          TError,
+          Awaited<ReturnType<typeof getMeProgressQuizId>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMeProgressQuizId<TData = Awaited<ReturnType<typeof getMeProgressQuizId>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgressQuizId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMeProgressQuizId<TData = Awaited<ReturnType<typeof getMeProgressQuizId>>, TError = ErrorType<unknown>>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMeProgressQuizId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMeProgressQuizIdQueryOptions(quizId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
