@@ -22,14 +22,14 @@ public class QuizRepository(ApplicationDbContext context) : IQuizRepository
         return await context.Quiz
             .Include(q => q.Questions)
             .ThenInclude(q => q.Answers)
-            .Include(q => q.SubQuizzes)
+            .Include(q => q.Drills)
             .FirstOrDefaultAsync(q => q.Id == quizId);
     }
     
     public async Task<Quiz?> GetQuizBySlug(string slug)
     {
         return await context.Quiz
-            .Include(q => q.SubQuizzes)
+            .Include(q => q.Drills)
             .FirstOrDefaultAsync(q => q.Slug == slug);
     }
 
@@ -64,7 +64,7 @@ public class QuizRepository(ApplicationDbContext context) : IQuizRepository
     {
         return await context.Quiz
             .Include(q => q.Questions)
-            .Include(q => q.SubQuizzes)
+            .Include(q => q.Drills)
             .ToListAsync();
     }
 }

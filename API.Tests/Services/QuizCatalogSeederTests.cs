@@ -14,7 +14,7 @@ public class QuizCatalogSeederTests : IDisposable
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "External", "questions");
 
     private readonly InMemoryQuizRepository _quizzes = new();
-    private readonly InMemorySubquizRepository _subquizzes = new();
+    private readonly InMemoryDrillRepository _drills = new();
 
     public QuizCatalogSeederTests()
     {
@@ -27,7 +27,7 @@ public class QuizCatalogSeederTests : IDisposable
 
     public void Dispose() => Directory.Delete(_questionsDir, recursive: true);
 
-    private QuizCatalogSeeder CreateSeeder() => new(_quizzes, _subquizzes);
+    private QuizCatalogSeeder CreateSeeder() => new(_quizzes, _drills);
 
     private void WriteQuestionsFile(string slug, List<QuestionPayload> payloads)
     {
@@ -48,7 +48,7 @@ public class QuizCatalogSeederTests : IDisposable
     }
 
     [Fact]
-    public async Task SeedCatalog_PopulatesQuizzesQuestionsAndDomainSubquizzes_OnFreshDatabase()
+    public async Task SeedCatalog_PopulatesQuizzesQuestionsAndDomainDrills_OnFreshDatabase()
     {
         await CreateSeeder().SeedCatalog();
 
@@ -58,11 +58,11 @@ public class QuizCatalogSeederTests : IDisposable
         Assert.All(clf.Questions, q => Assert.Equal(QuestionDifficulty.Hard, q.Difficulty));
         Assert.NotNull(clf.QuestionsHash);
 
-        // One subquiz per distinct domain per quiz with a questions file.
-        var clfSubquizzes = _subquizzes.Store.Where(s => s.QuizId == clf.Id).ToList();
-        Assert.Equal(2, clfSubquizzes.Count);
-        Assert.Contains(clfSubquizzes, s => s.Slug == "CLF-C02-domain-a");
-        Assert.Equal(SeededFileSlugs.Length * 2, _subquizzes.Store.Count);
+        // One drill per distinct domain per quiz with a questions file.
+        var clfDrills = _drills.Store.Where(s => s.QuizId == clf.Id).ToList();
+        Assert.Equal(2, clfDrills.Count);
+        Assert.Contains(clfDrills, s => s.Slug == "CLF-C02-domain-a");
+        Assert.Equal(SeededFileSlugs.Length * 2, _drills.Store.Count);
     }
 
     [Fact]
@@ -71,13 +71,13 @@ public class QuizCatalogSeederTests : IDisposable
         var seeder = CreateSeeder();
         await seeder.SeedCatalog();
         var quizCount = _quizzes.Store.Count;
-        var subquizCount = _subquizzes.Store.Count;
+        var drillCount = _drills.Store.Count;
 
         await seeder.SeedCatalog();
 
         // Same file hash on second boot: no re-seed, no extra rows.
         Assert.Equal(quizCount, _quizzes.Store.Count);
-        Assert.Equal(subquizCount, _subquizzes.Store.Count);
+        Assert.Equal(drillCount, _drills.Store.Count);
         Assert.Equal(0, _quizzes.ReplaceQuestionsCalls);
     }
 
@@ -92,11 +92,11 @@ public class QuizCatalogSeederTests : IDisposable
 
         Assert.Equal(1, _quizzes.ReplaceQuestionsCalls);
         var clf = _quizzes.Store.Single(q => q.Slug == "CLF-C02");
-        var clfSubquizzes = _subquizzes.Store.Where(s => s.QuizId == clf.Id).ToList();
+        var clfDrills = _drills.Store.Where(s => s.QuizId == clf.Id).ToList();
 
-        // New domain gains a subquiz; vanished domain is disabled, not deleted.
-        Assert.Contains(clfSubquizzes, s => s.Slug == "CLF-C02-domain-c" && s.IsAvailable);
-        Assert.Contains(clfSubquizzes, s => s.Slug == "CLF-C02-domain-b" && !s.IsAvailable);
+        // New domain gains a drill; vanished domain is disabled, not deleted.
+        Assert.Contains(clfDrills, s => s.Slug == "CLF-C02-domain-c" && s.IsAvailable);
+        Assert.Contains(clfDrills, s => s.Slug == "CLF-C02-domain-b" && !s.IsAvailable);
     }
 
     [Fact]
@@ -188,22 +188,22 @@ internal class InMemoryQuizRepository : IQuizRepository
     };
 }
 
-/// <summary>In-memory <see cref="ISubquizRepository"/> capturing what the seeder persists.</summary>
-internal class InMemorySubquizRepository : ISubquizRepository
+/// <summary>In-memory <see cref="IDrillRepository"/> capturing what the seeder persists.</summary>
+internal class InMemoryDrillRepository : IDrillRepository
 {
-    public List<Subquiz> Store { get; } = new();
+    public List<Drill> Store { get; } = new();
 
-    public Task CreateMany(List<Subquiz> subquizzes)
+    public Task CreateMany(List<Drill> drills)
     {
-        Store.AddRange(subquizzes);
+        Store.AddRange(drills);
         return Task.CompletedTask;
     }
 
-    public Task<List<Subquiz>> GetSubquizzesByQuizId(int quizId) =>
+    public Task<List<Drill>> GetDrillsByQuizId(int quizId) =>
         Task.FromResult(Store.Where(s => s.QuizId == quizId).ToList());
 
-    public Task UpdateMany(List<Subquiz> subquizzes) => Task.CompletedTask;
-    public Task<List<Subquiz>> GetAllSubquizzes() => Task.FromResult(Store.ToList());
-    public Task Create(Subquiz subquiz) => throw new NotSupportedException();
-    public Task<Subquiz?> GetSubquizById(int subquizId) => throw new NotSupportedException();
+    public Task UpdateMany(List<Drill> drills) => Task.CompletedTask;
+    public Task<List<Drill>> GetAllDrills() => Task.FromResult(Store.ToList());
+    public Task Create(Drill drill) => throw new NotSupportedException();
+    public Task<Drill?> GetDrillById(int drillId) => throw new NotSupportedException();
 }

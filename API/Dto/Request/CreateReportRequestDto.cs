@@ -3,7 +3,7 @@ using API.Entities;
 namespace API.Model.Request;
 
 /// <summary>
-/// Files a Report against a Subquiz Question the Submission has already Checked.
+/// Files a Report against a Practice Question the Submission has already Checked.
 /// The Report's Language comes from the Submission, so it is deliberately not part of
 /// this body (ADR 0004).
 /// </summary>

@@ -1,10 +1,14 @@
+using API.Entities;
+
 namespace API.Dto;
 
-public class SubquizDetailDto
+public class DrillDetailDto
 {
     public int Id { get; set; }
     public string Title { get; set; }
-    public string Domain { get; set; }
+    /// <summary>Null for a Drill that draws across the whole parent Quiz (ADR 0010).</summary>
+    public string? Domain { get; set; }
+    public DrawRule DrawRule { get; set; }
     public string Slug { get; set; }
     public int SubmissionId { get; set; }
     public DateTime CreatedAt { get; init; }

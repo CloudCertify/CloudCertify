@@ -9,9 +9,9 @@ using static API.Tests.QuizBuilder;
 namespace API.Tests.Services;
 
 /// <summary>
-/// The full-quiz and subquiz submit paths funnel through one <see cref="SubmissionGrader"/>,
+/// The full-quiz and drill submit paths funnel through one <see cref="SubmissionGrader"/>,
 /// so the lifecycle guards (ownership + finished) are proven once here against both shapes:
-/// a full-quiz attempt (expectedSubquizId null) and a subquiz attempt (expectedSubquizId set).
+/// a full-quiz attempt (expectedDrillId null) and a drill attempt (expectedDrillId set).
 /// </summary>
 public class SubmissionGraderTests
 {
@@ -33,27 +33,27 @@ public class SubmissionGraderTests
 
     [Theory]
     [InlineData(null)] // full-quiz caller
-    [InlineData(2)]    // subquiz caller
-    public async Task GradeAndFinish_Throws_OnQuizMismatch_ForBothPaths(int? expectedSubquizId)
+    [InlineData(2)]    // drill caller
+    public async Task GradeAndFinish_Throws_OnQuizMismatch_ForBothPaths(int? expectedDrillId)
     {
         _submissions.Setup(r => r.GetById(5))
-            .ReturnsAsync(new Submission { Id = 5, QuizId = 99, SubquizId = expectedSubquizId });
+            .ReturnsAsync(new Submission { Id = 5, QuizId = 99, DrillId = expectedDrillId });
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => CreateGrader().GradeAndFinish(5, 1, expectedSubquizId, AnyStrategy, new List<QuizAnswer>()));
+            () => CreateGrader().GradeAndFinish(5, 1, expectedDrillId, AnyStrategy, new List<QuizAnswer>()));
         _submissions.Verify(r => r.Update(It.IsAny<Submission>()), Times.Never);
     }
 
     [Theory]
     [InlineData(null)] // full-quiz caller
-    [InlineData(2)]    // subquiz caller
-    public async Task GradeAndFinish_Throws_AndPreservesScore_WhenFinished_ForBothPaths(int? expectedSubquizId)
+    [InlineData(2)]    // drill caller
+    public async Task GradeAndFinish_Throws_AndPreservesScore_WhenFinished_ForBothPaths(int? expectedDrillId)
     {
-        var finished = new Submission { Id = 5, QuizId = 1, SubquizId = expectedSubquizId, Finished = true, Score = 88 };
+        var finished = new Submission { Id = 5, QuizId = 1, DrillId = expectedDrillId, Finished = true, Score = 88 };
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(finished);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => CreateGrader().GradeAndFinish(5, 1, expectedSubquizId, AnyStrategy, new List<QuizAnswer>()));
+            () => CreateGrader().GradeAndFinish(5, 1, expectedDrillId, AnyStrategy, new List<QuizAnswer>()));
 
         Assert.Equal(88, finished.Score);
         _submissions.Verify(r => r.Update(It.IsAny<Submission>()), Times.Never);

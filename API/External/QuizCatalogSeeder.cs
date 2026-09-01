@@ -9,21 +9,21 @@ using Entities;
 
 /// <summary>
 /// Idempotently seeds the quiz catalog at startup. Each quiz with a questions file gets
-/// its question bank inserted and one subquiz generated per distinct question domain.
+/// its question bank inserted and one drill generated per distinct question domain.
 /// The file's SHA-256 is stamped on the quiz; when the file changes on disk the quiz's
-/// questions are wiped and re-seeded on next boot. Subquizzes whose domain disappeared
+/// questions are wiped and re-seeded on next boot. Drills whose domain disappeared
 /// from the file are disabled (not deleted — submissions may reference them).
 /// </summary>
 /// <example>await seeder.SeedCatalog();</example>
 public class QuizCatalogSeeder
 {
     private readonly IQuizRepository _quizRepository;
-    private readonly ISubquizRepository _subquizRepository;
+    private readonly IDrillRepository _drillRepository;
 
-    public QuizCatalogSeeder(IQuizRepository quizRepository, ISubquizRepository subquizRepository)
+    public QuizCatalogSeeder(IQuizRepository quizRepository, IDrillRepository drillRepository)
     {
         _quizRepository = quizRepository;
-        _subquizRepository = subquizRepository;
+        _drillRepository = drillRepository;
     }
 
     public async Task SeedCatalog()
@@ -54,7 +54,7 @@ public class QuizCatalogSeeder
         }
 
         quiz = await UpsertQuizWithQuestions(seed, quiz, bank);
-        await SyncSubquizzes(seed, quiz, bank.Payloads);
+        await SyncDrills(seed, quiz, bank.Payloads);
     }
 
     private async Task<Quiz> UpsertQuizWithQuestions(QuizSeed seed, Quiz? quiz, QuestionBank bank)
@@ -97,7 +97,7 @@ public class QuizCatalogSeeder
         await _quizRepository.Update(quiz);
     }
 
-    private async Task SyncSubquizzes(QuizSeed seed, Quiz quiz, List<QuestionPayload> payloads)
+    private async Task SyncDrills(QuizSeed seed, Quiz quiz, List<QuestionPayload> payloads)
     {
         var domains = payloads
             .Select(p => p.Domain)
@@ -106,32 +106,34 @@ public class QuizCatalogSeeder
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var existing = await _subquizRepository.GetSubquizzesByQuizId(quiz.Id);
-        var desiredSlugs = domains.ToDictionary(d => BuildSubquizSlug(seed.Slug, d), d => d, StringComparer.OrdinalIgnoreCase);
+        var existing = await _drillRepository.GetDrillsByQuizId(quiz.Id);
+        var desiredSlugs = domains.ToDictionary(d => BuildDrillSlug(seed.Slug, d), d => d, StringComparer.OrdinalIgnoreCase);
 
         var toCreate = desiredSlugs
             .Where(pair => existing.All(s => !string.Equals(s.Slug, pair.Key, StringComparison.OrdinalIgnoreCase)))
-            .Select(pair => BuildSubquiz(seed, quiz.Id, pair.Key, pair.Value))
+            .Select(pair => BuildDrill(seed, quiz.Id, pair.Key, pair.Value))
             .ToList();
 
-        // Domain vanished from the file: hide the subquiz but keep the row —
-        // Submission.SubquizId still points at it.
+        // Domain vanished from the file: hide the drill but keep the row —
+        // Submission.DrillId still points at it. Only Domain-scoped Drills are the seeder's to
+        // disable; a cross-Domain Drill has no domain to vanish (ADR 0010).
         var toDisable = existing
-            .Where(s => s.IsAvailable && !desiredSlugs.ContainsKey(s.Slug))
+            .Where(s => s.IsAvailable && s.Domain != null && !desiredSlugs.ContainsKey(s.Slug))
             .ToList();
         toDisable.ForEach(s => s.IsAvailable = false);
 
-        if (toCreate.Count > 0) await _subquizRepository.CreateMany(toCreate);
-        if (toDisable.Count > 0) await _subquizRepository.UpdateMany(toDisable);
+        if (toCreate.Count > 0) await _drillRepository.CreateMany(toCreate);
+        if (toDisable.Count > 0) await _drillRepository.UpdateMany(toDisable);
     }
 
-    private static Subquiz BuildSubquiz(QuizSeed seed, int quizId, string slug, string domain)
+    private static Drill BuildDrill(QuizSeed seed, int quizId, string slug, string domain)
     {
-        return new Subquiz
+        return new Drill
         {
             QuizId = quizId,
             Title = $"{domain} ({seed.Slug})",
             Domain = domain,
+            DrawRule = DrawRule.DrillMix,
             Slug = slug,
             IsAvailable = seed.IsAvailable,
             CreatedAt = DateTime.UtcNow
@@ -139,7 +141,7 @@ public class QuizCatalogSeeder
     }
 
     /// <summary>Turns "Security and Compliance" + "CLF-C02" into "CLF-C02-security-and-compliance".</summary>
-    private static string BuildSubquizSlug(string quizSlug, string domain)
+    private static string BuildDrillSlug(string quizSlug, string domain)
     {
         var normalized = new string(domain.ToLowerInvariant()
             .Select(c => char.IsLetterOrDigit(c) ? c : '-')

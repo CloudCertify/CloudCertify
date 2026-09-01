@@ -3,7 +3,7 @@ using API.Model.Request;
 
 namespace API.Services.Grading;
 
-public class DomainSubquizGradingStrategy : IGradingStrategy
+public class PracticeGradingStrategy : IGradingStrategy
 {
     public GradingResult Grade(IEnumerable<Question> questions, List<QuizAnswer> userAnswers)
     {

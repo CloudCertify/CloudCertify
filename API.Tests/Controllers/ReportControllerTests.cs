@@ -19,13 +19,14 @@ public class ReportControllerTests
     private ReportController CreateController() =>
         new(new ReportService(_submissions.Object, _reports.Object, _questions.Object));
 
-    private void GivenCheckedSubquizSubmission()
+    private void GivenCheckedDrillSubmission()
     {
         _submissions.Setup(r => r.GetById(1)).ReturnsAsync(new Submission
         {
             Id = 1,
             QuizId = 7,
-            SubquizId = 3,
+            DrillId = 3,
+            Mode = Mode.Practice,
             Email = "anon@example.com",
             RecordedAnswers = [new RecordedAnswer { SubmissionId = 1, QuestionId = 10, SelectedAnswerIds = [42] }],
         });
@@ -38,7 +39,7 @@ public class ReportControllerTests
     [Fact]
     public async Task CreateReport_Returns201_WithPersistedReport()
     {
-        GivenCheckedSubquizSubmission();
+        GivenCheckedDrillSubmission();
 
         var result = await CreateController().CreateReport(Request());
 
@@ -51,7 +52,7 @@ public class ReportControllerTests
     [Fact]
     public async Task CreateReport_Returns400_WhenReasonsEmpty()
     {
-        GivenCheckedSubquizSubmission();
+        GivenCheckedDrillSubmission();
 
         var result = await CreateController().CreateReport(Request([]));
 
@@ -61,7 +62,7 @@ public class ReportControllerTests
     [Fact]
     public async Task CreateReport_Returns400_WhenCommentTooLong()
     {
-        GivenCheckedSubquizSubmission();
+        GivenCheckedDrillSubmission();
 
         var result = await CreateController().CreateReport(Request(comment: new string('x', 201)));
 
@@ -71,7 +72,7 @@ public class ReportControllerTests
     [Fact]
     public async Task CreateReport_Returns400_WhenQuestionNotChecked()
     {
-        _submissions.Setup(r => r.GetById(1)).ReturnsAsync(new Submission { Id = 1, QuizId = 7, SubquizId = 3 });
+        _submissions.Setup(r => r.GetById(1)).ReturnsAsync(new Submission { Id = 1, QuizId = 7, DrillId = 3, Mode = Mode.Practice });
 
         var result = await CreateController().CreateReport(Request());
 
@@ -79,13 +80,14 @@ public class ReportControllerTests
     }
 
     [Fact]
-    public async Task CreateReport_Returns400_WhenFullQuizSubmission()
+    public async Task CreateReport_Returns400_WhenExamSubmission()
     {
         _submissions.Setup(r => r.GetById(1)).ReturnsAsync(new Submission
         {
             Id = 1,
             QuizId = 7,
-            SubquizId = null,
+            DrillId = null,
+            Mode = Mode.Exam,
             RecordedAnswers = [new RecordedAnswer { SubmissionId = 1, QuestionId = 10 }],
         });
 
@@ -107,7 +109,7 @@ public class ReportControllerTests
     [Fact]
     public async Task CreateReport_Returns400_WhenSuggestionIsInapplicable()
     {
-        GivenCheckedSubquizSubmission();
+        GivenCheckedDrillSubmission();
         _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync([
             new Question
             {
@@ -132,7 +134,7 @@ public class ReportControllerTests
     [Fact]
     public async Task CreateReport_Returns409_WhenAlreadyReported()
     {
-        GivenCheckedSubquizSubmission();
+        GivenCheckedDrillSubmission();
         _reports.Setup(r => r.Save(It.IsAny<Report>())).ReturnsAsync((Report?)null);
 
         var result = await CreateController().CreateReport(Request());

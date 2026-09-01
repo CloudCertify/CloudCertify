@@ -10,7 +10,7 @@ public enum ReportOutcome
 {
     Filed,
     SubmissionNotFound,
-    NotSubquiz,
+    NotPractice,
     NotChecked,
     NoReasons,
     CommentTooLong,
@@ -44,7 +44,7 @@ public class ReportService(
 
     /// <summary>
     /// Validates and persists a Report. Rejects a missing Submission, a full-Quiz Submission
-    /// (Subquiz only for now), a Question the Submission never Checked, an empty reason set,
+    /// (Practice only for now), a Question the Submission never Checked, an empty reason set,
     /// an over-long comment, and a second Report for the same (Submission, Question).
     /// </summary>
     /// <example><code>var result = await reportService.FileReport(request);</code></example>
@@ -112,7 +112,7 @@ public class ReportService(
     }
 
     /// <summary>
-    /// Whether this Submission may report this Question: it must exist, be a Subquiz attempt
+    /// Whether this Submission may report this Question: it must exist, be a Practice attempt
     /// (full-Quiz reporting is deferred, and the restriction lives here rather than in the URL),
     /// and already carry a Recorded Answer for the Question (ADR 0005).
     /// </summary>
@@ -123,9 +123,9 @@ public class ReportService(
             return new ReportResult(ReportOutcome.SubmissionNotFound, $"Submission {submissionId} not found");
         }
 
-        if (submission.SubquizId == null)
+        if (submission.Mode != Mode.Practice)
         {
-            return new ReportResult(ReportOutcome.NotSubquiz, "Reports can only be filed from a subquiz attempt");
+            return new ReportResult(ReportOutcome.NotPractice, "Reports can only be filed from a Practice attempt");
         }
 
         // No Recorded Answer means the Question was never Checked on this Submission —

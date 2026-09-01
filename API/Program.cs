@@ -111,7 +111,7 @@ builder.Services.AddScoped<SocialLoginService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
-builder.Services.AddScoped<ISubquizRepository, SubquizRepository>();
+builder.Services.AddScoped<IDrillRepository, DrillRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<ISubmissionRepository, SubmissionRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
@@ -119,7 +119,7 @@ builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<QuizCatalogSeeder>();
 builder.Services.AddScoped<SubmissionGrader>();
 builder.Services.AddScoped<QuizService>();
-builder.Services.AddScoped<SubquizService>();
+builder.Services.AddScoped<DrillService>();
 builder.Services.AddScoped<ReportService>();
 
 var app = builder.Build();

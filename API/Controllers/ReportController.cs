@@ -21,7 +21,7 @@ public class ReportController : ControllerBase
 
     /// <summary>
     /// File a Report against a defective Question. Only for a Question already Checked on a
-    /// subquiz Submission — that Recorded Answer is the evidence and the anti-abuse gate, so
+    /// Practice Submission — that Recorded Answer is the evidence and the anti-abuse gate, so
     /// anonymous visitors may report. The Report's language comes from the Submission
     /// (ADR 0004) and filing never re-grades the attempt (ADR 0001, ADR 0005).
     /// The Report may carry a suggested edit — a sparse patch of proposed question/answer text

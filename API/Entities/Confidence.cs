@@ -8,7 +8,7 @@ namespace API.Entities;
 ///
 /// There is deliberately no Unrated member: an unrated answer stores no Confidence at all
 /// (a nullable property), so an "unrated" bucket cannot show up in a GROUP BY (ADR 0006).
-/// Collected in a full Quiz only — a Subquiz Check reveals correctness immediately.
+/// Collected in Exam only — a Practice Check reveals correctness immediately.
 /// </summary>
 public enum Confidence
 {

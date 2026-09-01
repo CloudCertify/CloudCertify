@@ -20,7 +20,7 @@ public class ApplicationDbContext: DbContext
     }
 
     public DbSet<Quiz> Quiz { get; set; }
-    public DbSet<Subquiz> Subquiz { get; set; }
+    public DbSet<Drill> Drill { get; set; }
     public DbSet<Question> Question { get; set; }
     public DbSet<Answer> Answer { get; set; }
     public DbSet<Submission> Submission { get; set; }
@@ -46,23 +46,30 @@ public class ApplicationDbContext: DbContext
                 .WithOne(q => q.Quiz)
                 .HasForeignKey(q => q.QuizId);
 
-            entity.HasMany(q => q.SubQuizzes)
+            entity.HasMany(q => q.Drills)
                 .WithOne(sq => sq.Quiz)
                 .HasForeignKey(sq => sq.QuizId);
         });
 
-        modelBuilder.Entity<Subquiz>(entity =>
+        modelBuilder.Entity<Drill>(entity =>
         {
             entity.HasKey(sq => sq.Id);
             entity.Property(sq => sq.QuizId).IsRequired();
             entity.Property(sq => sq.Title).IsRequired().HasMaxLength(255);
-            entity.Property(sq => sq.Domain).IsRequired().HasMaxLength(255);
+            // Nullable: a cross-Domain Drill (Mistakes) is scoped to the whole Quiz (ADR 0010).
+            entity.Property(sq => sq.Domain).HasMaxLength(255);
+            // No database default: Uniform is the CLR default, so a column default would
+            // silently overwrite a Uniform Drill on insert. The backfill lives in the migration.
+            entity.Property(sq => sq.DrawRule)
+                .IsRequired()
+                .HasMaxLength(32)
+                .HasConversion<string>();
             entity.Property(sq => sq.Slug).IsRequired().HasMaxLength(255);
             entity.Property(sq => sq.IsAvailable).IsRequired().HasDefaultValue(true);
             entity.Property(sq => sq.CreatedAt).IsRequired();
 
             entity.HasOne(sq => sq.Quiz)
-                .WithMany(q => q.SubQuizzes)
+                .WithMany(q => q.Drills)
                 .HasForeignKey(sq => sq.QuizId);
         });
 
@@ -116,6 +123,12 @@ public class ApplicationDbContext: DbContext
             // Nullable since social login: logged-in attempts carry UserId instead (ADR 0003).
             entity.Property(s => s.Email).HasMaxLength(255);
             entity.Property(s => s.Finished).IsRequired();
+            // Stored as the name, like every other discriminator here: Mode is read in psql
+            // far more often than it is written (ADR 0010).
+            entity.Property(s => s.Mode)
+                .IsRequired()
+                .HasMaxLength(16)
+                .HasConversion<string>();
             entity.Property(s => s.ServedQuestionIds).HasColumnType("integer[]").IsRequired();
             entity.Property(s => s.Score).IsRequired();
             // Persisted as the IETF tag ("en-US"/"pt-BR"), not the enum name (ADR 0004).
@@ -130,9 +143,9 @@ public class ApplicationDbContext: DbContext
                 .WithMany()
                 .HasForeignKey(s => s.QuizId);
 
-            entity.HasOne<Subquiz>()
+            entity.HasOne<Drill>()
                 .WithMany()
-                .HasForeignKey(s => s.SubquizId);
+                .HasForeignKey(s => s.DrillId);
 
             entity.HasOne<User>()
                 .WithMany()
@@ -142,7 +155,7 @@ public class ApplicationDbContext: DbContext
             entity.HasIndex(s => s.Email);
 
             // Recorded Answers belong to the Submission: one row per (Submission, Question), so a
-            // Question is Checked at most once in a Subquiz and re-answering in a full Quiz
+            // Question is Checked at most once in Practice and re-answering in Exam
             // overwrites the row rather than appending (ADR 0002, ADR 0006).
             entity.HasMany(s => s.RecordedAnswers)
                 .WithOne()
