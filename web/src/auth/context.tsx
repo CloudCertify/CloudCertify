@@ -7,7 +7,7 @@ import {
   useState
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useGetMe, getGetMeQueryKey } from '@/http/generated/api';
+import { useGetMe } from '@/http/generated/api';
 import type { MeDto } from '@/http/generated/api.schemas';
 import { registerAuthInterceptor } from './interceptor';
 import {
@@ -40,12 +40,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resetToAnonymous = useCallback(() => {
     clearToken();
     setTokenState(null);
-    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+    queryClient.removeQueries({
+      predicate: query => {
+        const scope = query.queryKey[0];
+        return (
+          typeof scope === 'string' &&
+          (scope === '/me' || scope.startsWith('/me/'))
+        );
+      }
+    });
   }, [queryClient]);
 
   useEffect(() => {
-    registerAuthInterceptor(() => setTokenState(null));
-  }, []);
+    registerAuthInterceptor(resetToAnonymous);
+  }, [resetToAnonymous]);
 
   const { data } = useGetMe({
     query: {
