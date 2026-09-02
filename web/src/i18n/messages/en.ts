@@ -211,6 +211,62 @@ export const en = {
       `No ${provider} certifications are available yet. Check back soon.`
   },
 
+  progress: {
+    eyebrow: 'Per-Quiz Progress',
+    title: 'Know what to drill next.',
+    subtitle:
+      'Your current Domain standing and Exam movement, one Quiz at a time.',
+    quizSelector: 'Selected Quiz',
+    finishedExams: (count: number) =>
+      count === 1 ? '1 finished Exam' : `${count} finished Exams`,
+    finishedDrills: (count: number) =>
+      count === 1 ? '1 finished Drill' : `${count} finished Drills`,
+    signInTitle: 'Your history needs a home.',
+    signInBody:
+      'Sign in to claim past Submissions and see your weakest Domains, Drill Mix actions, and progress over time.',
+    emptyTitle: 'No Progress yet.',
+    emptyBody:
+      'Finish an Exam or Drill and this page will turn that evidence into your next move.',
+    browseQuizzes: 'Browse Quizzes',
+    loadErrorTitle: 'Progress is unavailable.',
+    loadErrorBody: 'We could not load your Quiz history. Please try again.',
+    detailErrorBody:
+      'We could not load Progress for this Quiz. Please try again.',
+    nextMove: 'Your next move',
+    leadTitle: (domain: string) => `Focus on ${domain}.`,
+    leadBody: (standing: number, seen: number) =>
+      `${standing}% Standing across ${seen} seen Questions. It is your weakest eligible Domain.`,
+    buildBaselineTitle: 'Build a useful baseline.',
+    buildBaselineBody:
+      'Finish more Questions so CloudCertify can identify the Domain where a Drill Mix will help most.',
+    startDomainDrill: (domain: string) => `Start ${domain} Drill Mix`,
+    startExam: 'Start an Exam',
+    nextExam: 'Start the next Exam',
+    startExamError: 'Could not start the Exam. Please try again.',
+    startDrillError: 'Could not start the Drill. Please try again.',
+    currentStanding: 'Current standing',
+    byDomain: 'By Domain',
+    latestSnapshot: 'Latest snapshot',
+    noDomains: 'Finish some Questions to establish Domain standing.',
+    domainMeta: (index: number, seen: number) =>
+      `Domain ${String(index).padStart(2, '0')} / ${seen} seen`,
+    delta: (value: number) => `${value >= 0 ? '+' : ''}${value} pts`,
+    standingLabel: (domain: string, standing: number) =>
+      `${domain}: ${standing}% Standing`,
+    movement: 'Movement',
+    examScore: 'Exam percent correct',
+    noExamEyebrow: 'No Exam baseline',
+    firstExamTitle: 'Put the first point on the line.',
+    firstExamBody:
+      'Your Drill history already shapes Domain standing. Finish an Exam to start movement tracking.',
+    baselineSet: 'Baseline set',
+    baselineBody:
+      'Finish one more Exam to see movement from this baseline. Your Domain standing is already useful now.',
+    trendLabel: (first: number, last: number, count: number) =>
+      `Exam percent correct moved from ${first}% to ${last}% across ${count} finished Exams`,
+    finishedOnly: 'Finished Submissions only / newest 10 Exams'
+  },
+
   certificationCard: {
     startLearning: 'Start Learning'
   },

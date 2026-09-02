@@ -201,6 +201,63 @@ export const pt: Messages = {
       `Ainda não há certificações da ${provider} disponíveis. Volte em breve.`
   },
 
+  progress: {
+    eyebrow: 'Progresso por Quiz',
+    title: 'Saiba o que treinar agora.',
+    subtitle:
+      'Seu desempenho atual por domínio e sua evolução nos simulados, um Quiz por vez.',
+    quizSelector: 'Quiz selecionado',
+    finishedExams: (count: number) =>
+      count === 1 ? '1 simulado concluído' : `${count} simulados concluídos`,
+    finishedDrills: (count: number) =>
+      count === 1 ? '1 treino concluído' : `${count} treinos concluídos`,
+    signInTitle: 'Seu histórico precisa de um lugar.',
+    signInBody:
+      'Entre para recuperar suas atividades anteriores e ver os domínios mais fracos, treinos recomendados e sua evolução.',
+    emptyTitle: 'Ainda não há progresso.',
+    emptyBody:
+      'Conclua um simulado ou treino e esta página transformará os resultados no seu próximo passo.',
+    browseQuizzes: 'Ver Quizzes',
+    loadErrorTitle: 'O progresso está indisponível.',
+    loadErrorBody:
+      'Não foi possível carregar seu histórico de Quizzes. Tente de novo.',
+    detailErrorBody:
+      'Não foi possível carregar o progresso deste Quiz. Tente de novo.',
+    nextMove: 'Seu próximo passo',
+    leadTitle: (domain: string) => `Foque em ${domain}.`,
+    leadBody: (standing: number, seen: number) =>
+      `${standing}% de desempenho em ${seen} questões vistas. Este é seu domínio elegível mais fraco.`,
+    buildBaselineTitle: 'Crie uma base útil.',
+    buildBaselineBody:
+      'Conclua mais questões para o CloudCertify identificar onde um treino personalizado mais ajudará.',
+    startDomainDrill: (domain: string) => `Treinar ${domain}`,
+    startExam: 'Iniciar um simulado',
+    nextExam: 'Iniciar o próximo simulado',
+    startExamError: 'Não foi possível iniciar o simulado. Tente de novo.',
+    startDrillError: 'Não foi possível iniciar o treino. Tente de novo.',
+    currentStanding: 'Desempenho atual',
+    byDomain: 'Por domínio',
+    latestSnapshot: 'Retrato mais recente',
+    noDomains: 'Conclua algumas questões para medir seu desempenho por domínio.',
+    domainMeta: (index: number, seen: number) =>
+      `Domínio ${String(index).padStart(2, '0')} / ${seen} vistas`,
+    delta: (value: number) => `${value >= 0 ? '+' : ''}${value} pts`,
+    standingLabel: (domain: string, standing: number) =>
+      `${domain}: ${standing}% de desempenho`,
+    movement: 'Evolução',
+    examScore: 'Percentual de acertos no simulado',
+    noExamEyebrow: 'Sem base de simulado',
+    firstExamTitle: 'Coloque o primeiro ponto na linha.',
+    firstExamBody:
+      'Seu histórico de treinos já forma o desempenho por domínio. Conclua um simulado para começar a acompanhar a evolução.',
+    baselineSet: 'Base definida',
+    baselineBody:
+      'Conclua mais um simulado para ver a evolução a partir desta base. Seu desempenho por domínio já é útil agora.',
+    trendLabel: (first: number, last: number, count: number) =>
+      `O percentual de acertos foi de ${first}% para ${last}% em ${count} simulados concluídos`,
+    finishedOnly: 'Somente atividades concluídas / 10 simulados mais recentes'
+  },
+
   certificationCard: {
     startLearning: 'Começar a estudar'
   },

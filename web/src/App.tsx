@@ -8,6 +8,7 @@ import { QuizSessionPage } from './pages/quiz-session';
 import { DrillSessionPage } from './pages/drill-session';
 import { AuthCallbackPage } from './pages/auth-callback';
 import { Providers } from './providers';
+import { ProgressPage } from './pages/progress';
 
 export function App() {
   useEffect(() => {
@@ -34,6 +35,7 @@ export function App() {
         <Route path='/quiz/:id/session' component={QuizSessionPage} />
         <Route path='/quiz/:id/drill/:drillId/session' component={DrillSessionPage} />
         <Route path='/dashboard' component={DashboardPage} />
+        <Route path='/progress' component={ProgressPage} />
         <Route path='/auth/callback' component={AuthCallbackPage} />
       </Router>
     </Providers>
