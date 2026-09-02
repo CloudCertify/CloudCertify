@@ -1,27 +1,35 @@
-version: '3.8'
-
 services:
   postgres:
-    image: postgres:latest
-    container_name: postgres
+    image: postgres:17
     environment:
       POSTGRES_USER: cloudcertify
       POSTGRES_PASSWORD: cloudcertify
       POSTGRES_DB: cloudcertify
-    ports:
-      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cloudcertify']
+      interval: 2s
+      timeout: 5s
+      retries: 10
     networks:
       - postgres_network
 
   api:
-    build: ./API
-    container_name: cloud-certify-api
+    build:
+      context: .
+      dockerfile: API/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Username=cloudcertify;Password=cloudcertify;Database=cloudcertify
+      Auth__JwtSecret: local-docker-secret-at-least-32-characters
+      Auth__WebAppUrl: http://localhost:5173
+      Auth__PublicBaseUrl: http://localhost:8080
     ports:
       - '8080:8080'
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - postgres_network
 
