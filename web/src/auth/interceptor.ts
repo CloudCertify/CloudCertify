@@ -3,14 +3,20 @@ import { apiClient } from '@/http/axios-instance';
 import { clearToken, getValidToken } from './token';
 
 let registered = false;
+let onUnauthorized: (() => void) | undefined;
 
 /**
  * Attaches `Authorization: Bearer <token>` to every request made through the
  * app's axios instance (the orval-generated client goes through `apiClient`).
  * Expired tokens are dropped, never sent. A 401 response resets the client
  * to anonymous by clearing the stored token (no refresh tokens per ADR 0003).
+ *
+ * Interceptors are installed at module load so the first React Query fetch
+ * (useSyncExternalStore subscribe, before AuthProvider's useEffect) still
+ * carries the Bearer header. `onUnauthorized` can be attached later.
  */
-export function registerAuthInterceptor(onUnauthorized?: () => void): void {
+export function registerAuthInterceptor(handler?: () => void): void {
+  if (handler) onUnauthorized = handler;
   if (registered) return;
   registered = true;
 
@@ -33,3 +39,5 @@ export function registerAuthInterceptor(onUnauthorized?: () => void): void {
     }
   );
 }
+
+registerAuthInterceptor();
