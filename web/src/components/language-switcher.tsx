@@ -1,4 +1,8 @@
 import { Languages } from 'lucide-react';
+import {
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/i18n/context';
 import { LANGUAGES } from '@/i18n/language';
@@ -52,6 +56,59 @@ export function LanguageSwitcher({ locked = false, className }: LanguageSwitcher
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * The same segmented control adapted to a menu's roving-focus semantics, so
+ * arrow keys reach both language choices without dismissing the menu.
+ */
+export function MenuLanguageSwitcher({ locked = false }: { locked?: boolean }) {
+  const { language, setLanguage, t } = useI18n();
+
+  const changeLanguage = (value: string) => {
+    if (value === 'en-US' || value === 'pt-BR') setLanguage(value);
+  };
+
+  return (
+    <div
+      role='group'
+      aria-label={t.language.switcherAriaLabel}
+      title={locked ? t.language.lockedDuringAttempt : t.language.label}
+      className={cn(
+        'flex items-center gap-1 rounded-[5px] border-2 border-black bg-white p-1 shadow-[2px_2px_0px_0px_#000]',
+        locked && 'opacity-60'
+      )}
+    >
+      <Languages className='ml-1 h-4 w-4 shrink-0' aria-hidden='true' />
+      <DropdownMenuRadioGroup
+        value={language}
+        onValueChange={changeLanguage}
+        className='flex items-center gap-1'
+      >
+        {LANGUAGES.map(code => {
+          const isActive = code === language;
+          return (
+            <DropdownMenuRadioItem
+              key={code}
+              value={code}
+              disabled={locked}
+              aria-label={t.language.names[code]}
+              onSelect={event => event.preventDefault()}
+              className={cn(
+                'h-auto rounded-[3px] border-2 px-2 py-0.5 text-xs font-black',
+                isActive
+                  ? 'border-black bg-primary text-white focus:bg-primary'
+                  : 'border-transparent text-black focus:bg-background focus:text-black',
+                locked ? 'cursor-not-allowed' : 'cursor-pointer'
+              )}
+            >
+              {t.language.short[code]}
+            </DropdownMenuRadioItem>
+          );
+        })}
+      </DropdownMenuRadioGroup>
     </div>
   );
 }

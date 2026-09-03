@@ -15,8 +15,8 @@ type SampleQuestion = {
 export const en = {
   common: {
     dashboard: 'Dashboard',
+    progress: 'Progress',
     backToDashboard: 'Back to Dashboard',
-    backToHome: 'Back to Home',
     backToCertification: 'Back to Certification',
     back: 'Back',
     soon: 'Soon',
@@ -59,6 +59,8 @@ export const en = {
 
   auth: {
     continueWith: (provider: string) => `Continue with ${provider}`,
+    profile: 'Profile',
+    profileMenu: (name: string) => `Profile menu for ${name}`,
     logOut: 'Log out',
     signingIn: 'Signing you in...',
     failedTitle: "Login didn't work",

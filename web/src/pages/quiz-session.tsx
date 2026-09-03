@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Cloud } from 'lucide-react';
 import { Link, useLocation, useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +18,8 @@ import { ConfidenceSummary } from '@/components/confidence-summary';
 import { ConfidenceRating } from '@/components/confidence-rating';
 import { needsReview } from '@/lib/confidence';
 import { Footer } from '@/components/footer';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { AppHeader } from '@/components/app-header';
+import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/context';
 import { toast } from 'sonner';
 import {
@@ -205,30 +205,6 @@ export function QuizSessionPage() {
     }
   };
 
-  const header = (backHref: string, backLabel: string) => (
-    <header className='sticky top-0 z-50 w-full border-b-2 border-black bg-white'>
-      <div className='container flex h-16 items-center justify-between'>
-        <Link href='/' className='flex gap-2 items-center text-xl font-black'>
-          <div className='h-10 w-10 rounded-[5px] border-2 border-black bg-primary flex items-center justify-center shadow-[2px_2px_0px_0px_#000]'>
-            <Cloud className='h-5 w-5 text-white' />
-          </div>
-          <span>CloudCertify</span>
-        </Link>
-        <div className='flex items-center gap-4'>
-          {/* A Submission's Language is fixed at start — lock the switcher
-              until the attempt is over. */}
-          <LanguageSwitcher locked={phase === 'quiz'} />
-          <Button variant='outline' size='sm' asChild>
-            <Link href={backHref}>
-              <ArrowLeft className='mr-2 h-4 w-4' />
-              {backLabel}
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </header>
-  );
-
   if (phase === 'results') {
     // Scaled score runs 100–1000; map onto the 0–100 progress bar.
     const barValue =
@@ -238,8 +214,11 @@ export function QuizSessionPage() {
 
     return (
       <div className='flex min-h-dvh flex-col bg-background'>
-        {header('/dashboard', t.common.backToDashboard)}
+        <AppHeader />
         <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+          <PageBackLink href='/dashboard' className='mb-6'>
+            {t.common.backToDashboard}
+          </PageBackLink>
           <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
             <CardHeader className='text-center border-b-2 border-black pb-6'>
               <CardTitle className='text-2xl md:text-3xl font-black text-black'>
@@ -333,8 +312,11 @@ export function QuizSessionPage() {
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
-      {header(`/quiz/${quizId}`, t.common.back)}
+      <AppHeader languageLocked />
       <main className='container mx-auto flex-1 max-w-7xl px-4 py-12'>
+        <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
+          {t.common.back}
+        </PageBackLink>
         <div className='relative flex items-start justify-center gap-0 pt-12 lg:gap-6 lg:pt-0'>
           <QuestionNavigator
             currentIndex={currentIndex}

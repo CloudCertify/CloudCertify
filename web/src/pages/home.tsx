@@ -3,7 +3,6 @@ import {
   ArrowRight,
   Award,
   CheckCircle,
-  Cloud,
   Sparkles
 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -25,7 +24,7 @@ import { Marquee } from '@/components/marquee';
 import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useGetQuiz } from '@/http/generated/api';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { AppHeader } from '@/components/app-header';
 import { useI18n } from '@/i18n/context';
 import type { QuestionDifficulty } from '@/http/generated/api.schemas';
 
@@ -38,36 +37,28 @@ export function HomePage() {
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
-      <header className='sticky top-0 z-50 w-full border-b-2 border-black bg-white'>
-        <div className='container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0'>
-          <Link href='/' className='flex gap-2 items-center text-xl font-black'>
-            <div className='h-10 w-10 rounded-[5px] border-2 border-black bg-primary flex items-center justify-center shadow-[2px_2px_0px_0px_#000]'>
-              <Cloud className='h-5 w-5 text-white' />
-            </div>
-            <span>CloudCertify</span>
-          </Link>
-          <div className='flex flex-1 items-center justify-end'>
-            <nav className='flex items-center space-x-6'>
-              <a
-                href='#certifications'
-                className='hidden text-sm font-bold text-black transition-colors hover:underline sm:inline'
-              >
-                {t.nav.certifications}
-              </a>
-              <a
-                href='#pricing'
-                className='hidden text-sm font-bold text-black transition-colors hover:underline sm:inline'
-              >
-                {t.nav.pricing}
-              </a>
-              <LanguageSwitcher />
-              <Button asChild size='sm'>
-                <a href='/dashboard'>{t.common.dashboard}</a>
-              </Button>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        anonymousActions={
+          <Button asChild size='sm'>
+            <Link href='/dashboard'>{t.common.dashboard}</Link>
+          </Button>
+        }
+      >
+        <nav className='flex items-center gap-6'>
+          <a
+            href='#certifications'
+            className='text-sm font-bold text-black transition-colors hover:underline'
+          >
+            {t.nav.certifications}
+          </a>
+          <a
+            href='#pricing'
+            className='text-sm font-bold text-black transition-colors hover:underline'
+          >
+            {t.nav.pricing}
+          </a>
+        </nav>
+      </AppHeader>
 
       <main className='flex-1'>
         {/* ---------------------------------------------------------------- HERO */}

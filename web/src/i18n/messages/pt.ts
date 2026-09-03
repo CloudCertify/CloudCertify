@@ -8,8 +8,8 @@ import type { Messages } from './en';
 export const pt: Messages = {
   common: {
     dashboard: 'Painel',
+    progress: 'Progresso',
     backToDashboard: 'Voltar ao painel',
-    backToHome: 'Voltar ao início',
     backToCertification: 'Voltar à certificação',
     back: 'Voltar',
     soon: 'Em breve',
@@ -53,6 +53,8 @@ export const pt: Messages = {
 
   auth: {
     continueWith: (provider: string) => `Continuar com ${provider}`,
+    profile: 'Perfil',
+    profileMenu: (name: string) => `Menu do perfil de ${name}`,
     logOut: 'Sair',
     signingIn: 'Entrando...',
     failedTitle: 'O login não funcionou',
