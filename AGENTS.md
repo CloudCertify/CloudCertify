@@ -58,3 +58,18 @@ Using gpt-5.6 inside workflows and subagents (the model parameter only takes Cla
 - Codex runs can exceed Bash's 10-minute timeout: pass an explicit timeout, or run in the background and poll for the report file.
 - Parallel gpt-5.6 implementation agents must use `isolation: 'worktree'` so codex edits don't collide in the shared checkout.
 - Workflow token budgets only count Claude tokens; codex work is free and invisible to `budget.spent()`. -->
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on `CloudCertify/CloudCertify`, via `gh`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
+
