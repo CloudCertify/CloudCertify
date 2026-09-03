@@ -1,7 +1,19 @@
-import { LogOut } from 'lucide-react';
+import { LayoutDashboard, LogOut, TrendingUp } from 'lucide-react';
+import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/auth/context';
 import { useI18n } from '@/i18n/context';
+import type { MeDto } from '@/http/generated/api.schemas';
+import { MenuLanguageSwitcher } from '@/components/language-switcher';
 
 function GoogleIcon() {
   return (
@@ -25,12 +37,26 @@ function GitHubIcon() {
   );
 }
 
+function UserAvatar({ user, className }: { user: MeDto | null; className: string }) {
+  if (user?.avatarUrl) {
+    return <img src={user.avatarUrl} alt='' className={`${className} object-cover`} />;
+  }
+
+  return (
+    <span
+      className={`${className} flex items-center justify-center bg-primary text-sm font-black text-white`}
+      aria-hidden='true'
+    >
+      {(user?.displayName ?? user?.email ?? '?').charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
 /**
- * Header auth controls: "Continue with ..." entry points when anonymous,
- * name + avatar + logout when a User is logged in. Login stays optional —
- * this never blocks any anonymous flow.
+ * Anonymous sign-in entry points and the authenticated profile menu. Login
+ * stays optional — this never blocks an anonymous flow.
  */
-export function AuthMenu() {
+export function AuthMenu({ languageLocked = false }: { languageLocked?: boolean }) {
   const { isAuthenticated, user, login, logout } = useAuth();
   const { t } = useI18n();
 
@@ -55,28 +81,64 @@ export function AuthMenu() {
     );
   }
 
+  const profileName = user?.displayName ?? user?.email ?? t.auth.profile;
+
   return (
-    <div className='flex items-center gap-3'>
-      <div className='flex items-center gap-2'>
-        {user?.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt=''
-            className='h-8 w-8 rounded-[5px] border-2 border-black object-cover'
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant='outline'
+          size='icon'
+          aria-label={t.auth.profileMenu(profileName)}
+        >
+          <UserAvatar
+            user={user}
+            className='h-8 w-8 rounded-[3px] border-2 border-black'
           />
-        ) : (
-          <div className='flex h-8 w-8 items-center justify-center rounded-[5px] border-2 border-black bg-primary text-sm font-black text-white'>
-            {(user?.displayName ?? user?.email ?? '?').charAt(0).toUpperCase()}
-          </div>
-        )}
-        <span className='hidden max-w-40 truncate text-sm font-bold text-black md:inline'>
-          {user?.displayName ?? user?.email}
-        </span>
-      </div>
-      <Button variant='outline' size='sm' onClick={logout} aria-label={t.auth.logOut}>
-        <LogOut className='h-4 w-4' />
-        <span className='ml-2 hidden sm:inline'>{t.auth.logOut}</span>
-      </Button>
-    </div>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align='end' className='w-72'>
+        <DropdownMenuLabel className='flex items-center gap-3 py-3'>
+          <UserAvatar
+            user={user}
+            className='h-10 w-10 shrink-0 rounded-[5px] border-2 border-black'
+          />
+          <span className='min-w-0'>
+            <span className='block truncate font-black'>
+              {user?.displayName ?? t.auth.profile}
+            </span>
+            {user?.email ? (
+              <span className='block truncate text-xs font-medium text-black/60'>
+                {user.email}
+              </span>
+            ) : null}
+          </span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link href='/dashboard'>
+              <LayoutDashboard aria-hidden='true' />
+              {t.common.dashboard}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href='/progress'>
+              <TrendingUp aria-hidden='true' />
+              {t.common.progress}
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <div className='px-3 py-2'>
+          <MenuLanguageSwitcher locked={languageLocked} />
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={logout}>
+          <LogOut aria-hidden='true' />
+          {t.auth.logOut}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

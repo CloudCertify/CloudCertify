@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Cloud } from 'lucide-react';
 import { Link, useLocation, useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +16,8 @@ import { QuestionReview } from '@/components/question-review';
 import { DrillBanner } from '@/components/drill-banner';
 import { ReportQuestionControl } from '@/components/report-question-control';
 import { Footer } from '@/components/footer';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { AppHeader } from '@/components/app-header';
+import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/context';
 import { toast } from 'sonner';
 import {
@@ -197,30 +197,6 @@ export function DrillSessionPage() {
     }
   };
 
-  const pageHeader = (backLabel: string) => (
-    <header className='sticky top-0 z-50 w-full border-b-2 border-black bg-white'>
-      <div className='container flex h-16 items-center justify-between'>
-        <Link href='/' className='flex gap-2 items-center text-xl font-black'>
-          <div className='h-10 w-10 rounded-[5px] border-2 border-black bg-primary flex items-center justify-center shadow-[2px_2px_0px_0px_#000]'>
-            <Cloud className='h-5 w-5 text-white' />
-          </div>
-          <span>CloudCertify</span>
-        </Link>
-        <div className='flex items-center gap-4'>
-          {/* A Submission's Language is fixed at start — lock the switcher
-              until the attempt is over. */}
-          <LanguageSwitcher locked={phase === 'quiz'} />
-          <Button variant='outline' size='sm' asChild>
-            <Link href={`/quiz/${quizId}`}>
-              <ArrowLeft className='mr-2 h-4 w-4' />
-              {backLabel}
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </header>
-  );
-
   if (phase === 'results') {
     const total = totalQuestions ?? 0;
     const correct = correctCount ?? 0;
@@ -235,8 +211,11 @@ export function DrillSessionPage() {
 
     return (
       <div className='flex min-h-dvh flex-col bg-background'>
-        {pageHeader(t.common.backToCertification)}
+        <AppHeader />
         <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+          <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
+            {t.common.backToCertification}
+          </PageBackLink>
           <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
             <CardHeader className='text-center border-b-2 border-black pb-6'>
               <CardTitle className='text-2xl md:text-3xl font-black text-black'>
@@ -330,8 +309,11 @@ export function DrillSessionPage() {
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
-      {pageHeader(t.common.back)}
+      <AppHeader languageLocked />
       <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
+          {t.common.back}
+        </PageBackLink>
         {/* Only before the first answer: once the drill is under way the slot has said its
             piece, and repeating it would just be noise. */}
         {currentIndex === 0 && questionPhase === 'answering' && (

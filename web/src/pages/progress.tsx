@@ -1,19 +1,18 @@
 import axios from 'axios';
 import { useState, type ReactNode } from 'react';
 import {
-  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  Cloud,
   LockKeyhole,
   Target,
   TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link, useLocation } from 'wouter';
+import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
+import { PageBackLink } from '@/components/page-back-link';
 import { Footer } from '@/components/footer';
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/auth/context';
 import {
@@ -48,26 +47,10 @@ function ProgressShell({ children }: { children: ReactNode }) {
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
-      <header className='sticky top-0 z-50 w-full border-b-2 border-black bg-white'>
-        <div className='container flex h-16 items-center justify-between'>
-          <Link href='/' className='flex items-center gap-2 text-xl font-black'>
-            <div className='flex h-10 w-10 items-center justify-center rounded-[5px] border-2 border-black bg-primary shadow-[2px_2px_0px_0px_#000]'>
-              <Cloud className='h-5 w-5 text-white' aria-hidden='true' />
-            </div>
-            <span>CloudCertify</span>
-          </Link>
-          <div className='flex items-center gap-4'>
-            <LanguageSwitcher />
-            <AuthMenu />
-            <Button variant='outline' size='sm' asChild>
-              <Link href='/dashboard'>
-                <ArrowLeft className='mr-2 h-4 w-4' />
-                {t.common.backToDashboard}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader anonymousActions={<AuthMenu />} />
+      <div className='container pt-6'>
+        <PageBackLink href='/dashboard'>{t.common.backToDashboard}</PageBackLink>
+      </div>
       {children}
       <Footer />
     </div>

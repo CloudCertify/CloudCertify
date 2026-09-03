@@ -1,13 +1,10 @@
-import { ArrowLeft, Cloud } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Link } from 'wouter';
 import { Footer } from '@/components/footer';
 import { CertificationCard } from '@/components/certification-card';
 import { useGetQuiz } from '@/http/generated/api';
 import { getLucideIcon } from '@/lib/quiz-icon';
+import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { useI18n } from '@/i18n/context';
 import { getLevelStyle, LEVEL_ORDER } from '@/lib/quiz-level';
 import { cn } from '@/lib/utils';
@@ -148,26 +145,7 @@ export function DashboardPage() {
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
-      <header className='sticky top-0 z-50 w-full border-b-2 border-black bg-white'>
-        <div className='container flex h-16 items-center justify-between'>
-          <Link href='/' className='flex gap-2 items-center text-xl font-black'>
-            <div className='h-10 w-10 rounded-[5px] border-2 border-black bg-primary flex items-center justify-center shadow-[2px_2px_0px_0px_#000]'>
-              <Cloud className='h-5 w-5 text-white' />
-            </div>
-            <span>CloudCertify</span>
-          </Link>
-          <div className='flex items-center gap-4'>
-            <LanguageSwitcher />
-            <AuthMenu />
-            <Button variant='outline' size='sm' asChild>
-              <Link href='/'>
-                <ArrowLeft className='mr-2 h-4 w-4' />
-                {t.common.backToHome}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader anonymousActions={<AuthMenu />} />
 
       <main className='flex-1 container py-8'>
         <div className='flex flex-col gap-8'>
