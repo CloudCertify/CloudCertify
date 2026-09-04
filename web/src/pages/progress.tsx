@@ -21,6 +21,7 @@ import {
   useGetMeProgress,
   useGetMeProgressQuizId
 } from '@/http/generated/api';
+import { drillStartErrorMessage } from '@/http/drill-start-error';
 import {
   DrawRule,
   type DomainStandingDto,
@@ -599,8 +600,14 @@ export function ProgressPage() {
         JSON.stringify({ drillDetail: response.data, email: null })
       );
       navigate(`/quiz/${selectedQuiz.id}/drill/${drill.id}/session`);
-    } catch {
-      toast.error(t.progress.startDrillError);
+    } catch (error) {
+      toast.error(
+        drillStartErrorMessage(error, {
+          nothingToReview: t.drill.nothingToReview,
+          signInRequired: t.drill.signInRequired,
+          fallback: t.progress.startDrillError
+        })
+      );
       setStarting(null);
     }
   };

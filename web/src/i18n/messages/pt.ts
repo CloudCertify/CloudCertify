@@ -308,7 +308,16 @@ export const pt: Messages = {
     reviewedMissed: (count: number) =>
       count === 1
         ? 'Você acabou de refazer 1 questão que tinha errado antes.'
-        : `Você acabou de refazer ${count} questões que tinha errado antes.`
+        : `Você acabou de refazer ${count} questões que tinha errado antes.`,
+    mistakesCount: (count: number) =>
+      count === 1 ? '1 erro' : `${count} erros`,
+    mistakesReviewed: (count: number) =>
+      count === 1
+        ? 'Você acabou de revisar 1 erro.'
+        : `Você acabou de revisar ${count} erros.`,
+    nothingToReview:
+      'Nada para revisar ainda. Faça um simulado ou um treino de domínio primeiro.',
+    signInRequired: 'Entre para revisar seus erros.'
   },
 
   confidence: {

@@ -315,7 +315,16 @@ export const en = {
     reviewedMissed: (count: number) =>
       count === 1
         ? "You just retook 1 question you'd missed before."
-        : `You just retook ${count} questions you'd missed before.`
+        : `You just retook ${count} questions you'd missed before.`,
+    mistakesCount: (count: number) =>
+      count === 1 ? '1 mistake' : `${count} mistakes`,
+    mistakesReviewed: (count: number) =>
+      count === 1
+        ? 'You just reviewed 1 mistake.'
+        : `You just reviewed ${count} mistakes.`,
+    nothingToReview:
+      'Nothing to review yet. Take an Exam or a Domain Drill first.',
+    signInRequired: 'Sign in to review your mistakes.'
   },
 
   confidence: {
