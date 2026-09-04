@@ -114,7 +114,7 @@ export function QuestionCard({
                 role={isMultiResponse ? 'checkbox' : 'radio'}
                 aria-checked={isSelected}
                 aria-disabled={isDisabled || undefined}
-                className={`p-4 rounded-[5px] border-2 border-black ${
+                className={`p-4 rounded-none border-2 border-black ${
                   isSelected
                     ? 'bg-primary shadow-none translate-x-[2px] translate-y-[2px]'
                     : 'bg-white hover:bg-background shadow-[4px_4px_0px_0px_#000]'
@@ -124,7 +124,7 @@ export function QuestionCard({
                 onClick={() => !isDisabled && answer.id != null && onSelect(answer.id)}
               >
                 <div
-                  className={`w-6 h-6 rounded-[5px] flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
+                  className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
                     isSelected ? 'bg-black text-white' : 'bg-white'
                   }`}
                 >

@@ -55,10 +55,10 @@ export function ConfidenceSummary({
         {stats.map(({ key, icon: Icon, fill, count, label, hint }) => (
           <div
             key={key}
-            className='flex items-start gap-3 rounded-[5px] border-2 border-black p-3'
+            className='flex items-start gap-3 rounded-none border-2 border-black p-3'
           >
             <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[5px] border-2 border-black ${fill}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-none border-2 border-black ${fill}`}
             >
               <Icon className='h-5 w-5 text-black' aria-hidden='true' />
             </div>

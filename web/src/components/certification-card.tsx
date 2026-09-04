@@ -45,7 +45,7 @@ export function CertificationCard({
       <div className={cn('h-2 w-full border-b-2 border-black', level.bg)} />
       <CardHeader className='pb-0'>
         <div className='flex justify-center mb-4 relative'>
-          <div className={cn('h-14 w-14 rounded-[5px] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000]', level.bg, level.ink)}>
+          <div className={cn('h-14 w-14 rounded-none border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000]', level.bg, level.ink)}>
             {icon}
           </div>
           {!available && (

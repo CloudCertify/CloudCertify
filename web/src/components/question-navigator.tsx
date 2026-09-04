@@ -132,7 +132,7 @@ export function QuestionNavigator({
                         isFlagged
                       )}
                       className={cn(
-                        'relative h-9 w-9 rounded-[5px] border-2 border-black text-sm font-bold transition-all',
+                        'relative h-9 w-9 rounded-none border-2 border-black text-sm font-bold transition-all',
                         isCurrent
                           ? 'translate-x-[1px] translate-y-[1px] bg-black text-white shadow-none'
                           : 'shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none',
@@ -148,7 +148,7 @@ export function QuestionNavigator({
                       {isFlagged && (
                         <span
                           aria-hidden='true'
-                          className='absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-black bg-warning'
+                          className='absolute -right-1 -top-1 h-3 w-3 rounded-none border-2 border-black bg-warning'
                         />
                       )}
                     </button>

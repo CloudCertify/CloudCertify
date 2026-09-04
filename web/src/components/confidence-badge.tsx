@@ -37,7 +37,7 @@ export function ConfidenceBadge({ value, className }: ConfidenceBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-[5px] border-2 border-black px-2 py-0.5 text-xs font-bold text-black',
+        'inline-flex items-center gap-1.5 rounded-none border-2 border-black px-2 py-0.5 text-xs font-bold text-black',
         fill,
         className
       )}

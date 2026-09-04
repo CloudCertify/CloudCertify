@@ -39,7 +39,7 @@ export function DrillBanner({
     if (missed === 0) return null;
 
     return (
-      <div className='mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[5px] border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]'>
+      <div className='mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-none border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]'>
         <Sparkles className='h-4 w-4 shrink-0' aria-hidden='true' />
         <span className='text-sm font-bold text-black'>
           {t.drill.reviewedMissed(missed)}
@@ -50,7 +50,7 @@ export function DrillBanner({
 
   if (composition) {
     return (
-      <div className='mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[5px] border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]'>
+      <div className='mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-none border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]'>
         <Sparkles className='h-4 w-4 shrink-0' aria-hidden='true' />
         <span className='text-sm font-black uppercase tracking-wide text-black'>
           {t.drill.label}
@@ -63,7 +63,7 @@ export function DrillBanner({
   }
 
   return (
-    <div className='mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[5px] border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]'>
+    <div className='mb-4 flex flex-wrap items-center justify-between gap-3 rounded-none border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]'>
       <span className='text-sm font-bold text-black'>
         {t.drill.signInPitch}
       </span>

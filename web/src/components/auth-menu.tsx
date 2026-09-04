@@ -93,7 +93,7 @@ export function AuthMenu({ languageLocked = false }: { languageLocked?: boolean 
         >
           <UserAvatar
             user={user}
-            className='h-8 w-8 rounded-[3px] border-2 border-black'
+            className='h-8 w-8 rounded-none border-2 border-black'
           />
         </Button>
       </DropdownMenuTrigger>
@@ -101,7 +101,7 @@ export function AuthMenu({ languageLocked = false }: { languageLocked?: boolean 
         <DropdownMenuLabel className='flex items-center gap-3 py-3'>
           <UserAvatar
             user={user}
-            className='h-10 w-10 shrink-0 rounded-[5px] border-2 border-black'
+            className='h-10 w-10 shrink-0 rounded-none border-2 border-black'
           />
           <span className='min-w-0'>
             <span className='block truncate font-black'>

@@ -88,7 +88,7 @@ export function CertificationRoadmap({
     <div className='mx-auto max-w-5xl'>
       {/* Provider tabs */}
       <div className='flex items-center justify-center gap-2 mb-10'>
-        <div className='inline-flex items-center gap-2 rounded-[5px] border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000]'>
+        <div className='inline-flex items-center gap-2 rounded-none border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000]'>
           {PROVIDERS.map(p => {
             const isActive = provider === p.id;
             return (
@@ -96,7 +96,7 @@ export function CertificationRoadmap({
                 key={p.id}
                 onClick={() => setProvider(p.id)}
                 className={cn(
-                  'relative flex items-center gap-2 rounded-[5px] px-4 py-2 text-sm font-bold transition-all border-2',
+                  'relative flex items-center gap-2 rounded-none px-4 py-2 text-sm font-bold transition-all border-2',
                   isActive
                     ? 'bg-primary text-white border-black shadow-[2px_2px_0px_0px_#000]'
                     : 'text-black border-transparent hover:bg-background'
@@ -104,7 +104,7 @@ export function CertificationRoadmap({
               >
                 <span>{p.short}</span>
                 {!p.available && (
-                  <span className='rounded-[5px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border border-black bg-secondary text-black'>
+                  <span className='rounded-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border border-black bg-secondary text-black'>
                     {t.common.soon}
                   </span>
                 )}
@@ -158,7 +158,7 @@ function TierRow({
       <div className='relative flex flex-col items-center'>
         <div
           className={cn(
-            'relative z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-[5px] border-2 font-mono text-sm md:text-base font-black shadow-[4px_4px_0px_0px_#000]',
+            'relative z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-none border-2 font-mono text-sm md:text-base font-black shadow-[4px_4px_0px_0px_#000]',
             styles.marker
           )}
         >
@@ -225,7 +225,7 @@ function CertificationNode({
       <div
         aria-hidden='true'
         className={cn(
-          'absolute left-0 top-0 h-full w-2 rounded-l-[3px]',
+          'absolute left-0 top-0 h-full w-2 rounded-none',
           available ? styles.accent : 'bg-gray-300'
         )}
       />
@@ -233,7 +233,7 @@ function CertificationNode({
       <div className='flex items-start gap-3 pl-2'>
         <div
           className={cn(
-            'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[5px] border-2 border-black',
+            'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-none border-2 border-black',
             available ? styles.nodeBg : 'bg-gray-200'
           )}
         >
@@ -262,7 +262,7 @@ function CertificationNode({
             className='h-4 w-4 shrink-0 mt-3 transition-transform group-hover:translate-x-1 text-black'
           />
         ) : (
-          <span className='rounded-[5px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border border-black bg-secondary text-black shrink-0 self-start'>
+          <span className='rounded-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border border-black bg-secondary text-black shrink-0 self-start'>
             {soon}
           </span>
         )}
@@ -271,7 +271,7 @@ function CertificationNode({
   );
 
   const baseClasses = cn(
-    'group relative flex overflow-hidden rounded-[5px] border-2 border-black bg-white p-4 transition-all',
+    'group relative flex overflow-hidden rounded-none border-2 border-black bg-white p-4 transition-all',
     available
       ? 'shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] cursor-pointer'
       : 'border-dashed opacity-70'
@@ -290,7 +290,7 @@ function CertificationNode({
 
 function NodeSkeleton() {
   return (
-    <div className='h-24 animate-pulse rounded-[5px] border-2 border-dashed border-black bg-gray-100' />
+    <div className='h-24 animate-pulse rounded-none border-2 border-dashed border-black bg-gray-100' />
   );
 }
 
@@ -298,7 +298,7 @@ function EmptyTierCard({ providerAvailable }: { providerAvailable: boolean }) {
   const { t } = useI18n();
 
   return (
-    <div className='col-span-full flex items-center gap-3 rounded-[5px] border-2 border-dashed border-black bg-white p-6 text-sm font-medium text-black/70'>
+    <div className='col-span-full flex items-center gap-3 rounded-none border-2 border-dashed border-black bg-white p-6 text-sm font-medium text-black/70'>
       <Clock className='h-4 w-4 shrink-0 text-black' />
       <span>
         {providerAvailable ? t.roadmap.emptyTier : t.roadmap.providerSoon}

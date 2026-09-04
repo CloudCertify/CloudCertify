@@ -62,7 +62,7 @@ export function AuthCallbackPage() {
 
   return (
     <div className='flex min-h-dvh items-center justify-center bg-background px-4'>
-      <div className='w-full max-w-md rounded-[5px] border-2 border-black bg-white p-8 text-center shadow-[4px_4px_0px_0px_#000] space-y-4'>
+      <div className='w-full max-w-md rounded-none border-2 border-black bg-white p-8 text-center shadow-[4px_4px_0px_0px_#000] space-y-4'>
         <AlertTriangle className='mx-auto h-10 w-10 text-destructive' />
         <h1 className='text-xl font-black text-black'>{t.auth.failedTitle}</h1>
         <p className='text-sm font-medium text-black/70'>{t.auth.failedBody}</p>

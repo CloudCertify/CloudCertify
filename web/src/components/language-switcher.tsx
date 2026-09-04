@@ -27,7 +27,7 @@ export function LanguageSwitcher({ locked = false, className }: LanguageSwitcher
       aria-label={t.language.switcherAriaLabel}
       title={locked ? t.language.lockedDuringAttempt : t.language.label}
       className={cn(
-        'inline-flex items-center gap-1 rounded-[5px] border-2 border-black bg-white p-1 shadow-[2px_2px_0px_0px_#000]',
+        'inline-flex items-center gap-1 rounded-none border-2 border-black bg-white p-1 shadow-[2px_2px_0px_0px_#000]',
         locked && 'opacity-60',
         className
       )}
@@ -45,7 +45,7 @@ export function LanguageSwitcher({ locked = false, className }: LanguageSwitcher
             aria-label={t.language.names[code]}
             onClick={() => setLanguage(code)}
             className={cn(
-              'rounded-[3px] border-2 px-2 py-0.5 text-xs font-black transition-all',
+              'rounded-none border-2 px-2 py-0.5 text-xs font-black transition-all',
               isActive
                 ? 'border-black bg-primary text-white'
                 : 'border-transparent text-black hover:bg-background',
@@ -77,7 +77,7 @@ export function MenuLanguageSwitcher({ locked = false }: { locked?: boolean }) {
       aria-label={t.language.switcherAriaLabel}
       title={locked ? t.language.lockedDuringAttempt : t.language.label}
       className={cn(
-        'flex items-center gap-1 rounded-[5px] border-2 border-black bg-white p-1 shadow-[2px_2px_0px_0px_#000]',
+        'flex items-center gap-1 rounded-none border-2 border-black bg-white p-1 shadow-[2px_2px_0px_0px_#000]',
         locked && 'opacity-60'
       )}
     >
@@ -97,7 +97,7 @@ export function MenuLanguageSwitcher({ locked = false }: { locked?: boolean }) {
               aria-label={t.language.names[code]}
               onSelect={event => event.preventDefault()}
               className={cn(
-                'h-auto rounded-[3px] border-2 px-2 py-0.5 text-xs font-black',
+                'h-auto rounded-none border-2 px-2 py-0.5 text-xs font-black',
                 isActive
                   ? 'border-black bg-primary text-white focus:bg-primary'
                   : 'border-transparent text-black focus:bg-background focus:text-black',

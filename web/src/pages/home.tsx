@@ -68,14 +68,14 @@ export function HomePage() {
         >
           <div
             aria-hidden='true'
-            className='pointer-events-none absolute -right-40 -top-40 h-[28rem] w-[28rem] rounded-full bg-primary/20 blur-3xl'
+            className='pointer-events-none absolute -right-40 -top-40 h-[28rem] w-[28rem] rounded-none bg-primary/20 blur-3xl'
           />
           <div className='container relative px-4 py-16 md:px-6 md:py-24 lg:py-28'>
             <div className='grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]'>
               {/* copy */}
               <div className='max-w-2xl'>
                 <Reveal>
-                  <span className='inline-flex items-center gap-2 rounded-[5px] border-2 border-black bg-secondary px-3 py-1 text-xs font-black uppercase tracking-wide shadow-[3px_3px_0px_0px_#000]'>
+                  <span className='inline-flex items-center gap-2 rounded-none border-2 border-black bg-secondary px-3 py-1 text-xs font-black uppercase tracking-wide shadow-[3px_3px_0px_0px_#000]'>
                     <Sparkles className='h-3.5 w-3.5' />
                     {t.home.heroBadge}
                   </span>
@@ -90,7 +90,7 @@ export function HomePage() {
                       {!t.home.heroTitleChipFirst && (
                         <span>{t.home.heroTitleCert}</span>
                       )}
-                      <span className='inline-block -rotate-1 rounded-[6px] border-2 border-black bg-primary px-3 py-1 text-white shadow-[5px_5px_0px_0px_#000]'>
+                      <span className='inline-block -rotate-1 rounded-none border-2 border-black bg-primary px-3 py-1 text-white shadow-[5px_5px_0px_0px_#000]'>
                         <RotatingText
                           texts={['AWS', 'GCP', 'Azure']}
                           mainClassName='text-white'
@@ -234,7 +234,7 @@ export function HomePage() {
                   <ul className='space-y-3'>
                     {t.home.pricingPerks.map(perk => (
                       <li key={perk} className='flex items-center gap-3'>
-                        <div className='h-6 w-6 rounded-[5px] border-2 border-black bg-success flex items-center justify-center shrink-0'>
+                        <div className='h-6 w-6 rounded-none border-2 border-black bg-success flex items-center justify-center shrink-0'>
                           <CheckCircle className='h-4 w-4 text-white' />
                         </div>
                         <span className='font-medium text-black'>{perk}</span>
@@ -272,8 +272,8 @@ export function HomePage() {
                 <div className='space-y-4'>
                   {t.home.features.map((f, i) => (
                     <Reveal key={f.title} delay={i * 0.08}>
-                      <div className='group flex items-start gap-4 rounded-[5px] border-2 border-black bg-background p-4 shadow-[4px_4px_0px_0px_#000] transition-transform duration-200 hover:-translate-y-1'>
-                        <div className='h-9 w-9 shrink-0 rounded-[5px] border-2 border-black bg-success flex items-center justify-center transition-transform duration-200 group-hover:-rotate-6'>
+                      <div className='group flex items-start gap-4 rounded-none border-2 border-black bg-background p-4 shadow-[4px_4px_0px_0px_#000] transition-transform duration-200 hover:-translate-y-1'>
+                        <div className='h-9 w-9 shrink-0 rounded-none border-2 border-black bg-success flex items-center justify-center transition-transform duration-200 group-hover:-rotate-6'>
                           <CheckCircle className='h-5 w-5 text-white' />
                         </div>
                         <div>
@@ -287,8 +287,8 @@ export function HomePage() {
               </div>
 
               <Reveal y={40} rotate={2} className='flex justify-center'>
-                <div className='relative w-full max-w-md rounded-[5px] border-4 border-black bg-white p-2 shadow-[8px_8px_0px_0px_#000]'>
-                  <div className='flex flex-col items-center justify-center space-y-6 rounded-[5px] border-2 border-black bg-primary p-8'>
+                <div className='relative w-full max-w-md rounded-none border-4 border-black bg-white p-2 shadow-[8px_8px_0px_0px_#000]'>
+                  <div className='flex flex-col items-center justify-center space-y-6 rounded-none border-2 border-black bg-primary p-8'>
                     <motion.div
                       animate={{ rotate: [0, -6, 6, 0] }}
                       transition={{
@@ -296,7 +296,7 @@ export function HomePage() {
                         repeat: Infinity,
                         ease: 'easeInOut'
                       }}
-                      className='flex h-20 w-20 items-center justify-center rounded-[5px] border-2 border-black bg-secondary shadow-[4px_4px_0px_0px_#000]'
+                      className='flex h-20 w-20 items-center justify-center rounded-none border-2 border-black bg-secondary shadow-[4px_4px_0px_0px_#000]'
                     >
                       <Award className='h-10 w-10 text-black' />
                     </motion.div>
@@ -342,7 +342,7 @@ function HeroCluster() {
         whileInView={{ opacity: 1, y: 0, rotate: -6 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, ease: EASE }}
-        className='absolute inset-x-8 top-12 h-72 rounded-[8px] border-2 border-black bg-secondary shadow-[8px_8px_0px_0px_#000]'
+        className='absolute inset-x-8 top-12 h-72 rounded-none border-2 border-black bg-secondary shadow-[8px_8px_0px_0px_#000]'
       />
 
       {/* main mock quiz card */}
@@ -351,10 +351,10 @@ function HeroCluster() {
         whileInView={{ opacity: 1, y: 0, rotate: -2 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
-        className='absolute inset-x-0 top-2 rounded-[8px] border-2 border-black bg-white p-5 shadow-[12px_12px_0px_0px_#000]'
+        className='absolute inset-x-0 top-2 rounded-none border-2 border-black bg-white p-5 shadow-[12px_12px_0px_0px_#000]'
       >
         <div className='flex items-center justify-between'>
-          <span className='rounded-[5px] border-2 border-black bg-primary px-2 py-0.5 text-[11px] font-black uppercase text-white'>
+          <span className='rounded-none border-2 border-black bg-primary px-2 py-0.5 text-[11px] font-black uppercase text-white'>
             AWS · SAA
           </span>
           <span className='font-mono text-xs font-bold tabular-nums text-black/50'>
@@ -373,7 +373,7 @@ function HeroCluster() {
               viewport={{ once: true }}
               transition={{ delay: 0.4 + i * 0.1, duration: 0.4, ease: EASE }}
               className={cn(
-                'flex items-center gap-2 rounded-[5px] border-2 border-black px-3 py-2 text-xs font-bold',
+                'flex items-center gap-2 rounded-none border-2 border-black px-3 py-2 text-xs font-bold',
                 a.ok
                   ? 'bg-primary text-white shadow-none'
                   : 'bg-white text-black shadow-[3px_3px_0px_0px_#000]'
@@ -381,7 +381,7 @@ function HeroCluster() {
             >
               <span
                 className={cn(
-                  'flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-black',
+                  'flex h-4 w-4 items-center justify-center rounded-none border-2 border-black',
                   a.ok ? 'bg-black text-white' : 'bg-white'
                 )}
               >
@@ -391,7 +391,7 @@ function HeroCluster() {
             </motion.div>
           ))}
         </div>
-        <div className='mt-4 h-2.5 w-full overflow-hidden rounded-[4px] border-2 border-black bg-white'>
+        <div className='mt-4 h-2.5 w-full overflow-hidden rounded-none border-2 border-black bg-white'>
           <motion.div
             initial={{ width: 0 }}
             whileInView={{ width: '62%' }}
@@ -417,7 +417,7 @@ function HeroCluster() {
         whileInView={{ opacity: 1, scale: 1, rotate: 12 }}
         viewport={{ once: true }}
         transition={{ delay: 0.7, type: 'spring', stiffness: 260, damping: 12 }}
-        className='absolute -right-4 -top-3 z-20 flex h-20 w-20 items-center justify-center rounded-full border-2 border-black bg-secondary text-center text-[11px] font-black uppercase leading-tight shadow-[4px_4px_0px_0px_#000]'
+        className='absolute -right-4 -top-3 z-20 flex h-20 w-20 items-center justify-center rounded-none border-2 border-black bg-secondary text-center text-[11px] font-black uppercase leading-tight shadow-[4px_4px_0px_0px_#000]'
       >
         {t.home.heroFreeSticker[0]}
         <br />
@@ -455,7 +455,7 @@ function FloatSticker({
           delay
         }}
         className={cn(
-          'rounded-[6px] border-2 border-black px-3 py-1.5 text-sm font-black shadow-[4px_4px_0px_0px_#000]',
+          'rounded-none border-2 border-black px-3 py-1.5 text-sm font-black shadow-[4px_4px_0px_0px_#000]',
           className
         )}
       >
@@ -535,14 +535,14 @@ function QuizCard({
           {options.map((option, index) => (
             <div
               key={index}
-              className={`p-3 rounded-[5px] border-2 border-black font-medium ${
+              className={`p-3 rounded-none border-2 border-black font-medium ${
                 index === correctAnswer
                   ? 'bg-success shadow-none translate-x-[2px] translate-y-[2px]'
                   : 'bg-white shadow-[4px_4px_0px_0px_#000]'
               } flex items-start gap-2`}
             >
               <div
-                className={`w-6 h-6 rounded-[5px] flex items-center justify-center border-2 border-black mt-0.5 ${
+                className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 ${
                   index === correctAnswer ? 'bg-black text-white' : 'bg-white'
                 }`}
               >
