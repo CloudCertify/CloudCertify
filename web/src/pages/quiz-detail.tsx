@@ -28,11 +28,11 @@ import type { DrillDto } from '@/http/generated/api.schemas';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { getLevelStyle } from '@/lib/quiz-level';
 import { capitalize } from '@/lib/utils';
-import { useAuth } from '@/auth/context';
+import { useAuth } from '@/auth/use-auth';
 import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import type { QuizProvider } from '@/http/generated/api.schemas';
 
 // --- Helpers ---

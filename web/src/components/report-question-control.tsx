@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AlertTriangle, Check, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import { postReports } from '@/http/generated/api';
 import { ReportReason } from '@/http/generated/api.schemas';
 import type { SuggestionDto } from '@/http/generated/api.schemas';

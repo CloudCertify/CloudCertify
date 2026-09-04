@@ -18,7 +18,7 @@ import { ReportQuestionControl } from '@/components/report-question-control';
 import { Footer } from '@/components/footer';
 import { AppHeader } from '@/components/app-header';
 import { PageBackLink } from '@/components/page-back-link';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import { toast } from 'sonner';
 import {
   postQuizQuizIdDrillsDrillIdStart,

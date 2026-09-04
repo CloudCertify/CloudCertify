@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Cloud } from 'lucide-react';
 import { Link } from 'wouter';
-import { useAuth } from '@/auth/context';
+import { useAuth } from '@/auth/use-auth';
 import { AuthMenu } from '@/components/auth-menu';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { cn } from '@/lib/utils';

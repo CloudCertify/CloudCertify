@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from 'wouter';
 import { capitalize, cn } from '@/lib/utils';
 import { getLevelStyle, LEVEL_LABELS } from '@/lib/quiz-level';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import type { QuizLevel } from '@/http/generated/api.schemas';
 
 type CertificationCardProps = {

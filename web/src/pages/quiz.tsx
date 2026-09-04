@@ -20,7 +20,7 @@ import {
 import { Footer } from '@/components/footer';
 import { AppHeader } from '@/components/app-header';
 import { PageBackLink } from '@/components/page-back-link';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 
 // Define types based on the provided data structure
 type Answer = {

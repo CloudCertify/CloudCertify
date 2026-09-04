@@ -1,7 +1,7 @@
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/auth/context';
-import { useI18n } from '@/i18n/context';
+import { useAuth } from '@/auth/use-auth';
+import { useI18n } from '@/i18n/use-i18n';
 import type { DrillCompositionDto } from '@/http/generated/api.schemas';
 
 /**

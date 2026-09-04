@@ -14,7 +14,7 @@ import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/auth/context';
+import { useAuth } from '@/auth/use-auth';
 import {
   postQuizQuizIdDrillsDrillIdStart,
   postQuizQuizIdStart,
@@ -29,7 +29,7 @@ import {
   type QuizDto,
   type TrendPointDto
 } from '@/http/generated/api.schemas';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 
 type SelectableQuiz = QuizDto & { id: number };
 type StartingTarget = 'exam' | number | null;

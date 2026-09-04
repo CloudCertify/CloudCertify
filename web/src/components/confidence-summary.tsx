@@ -1,5 +1,5 @@
 import { AlertTriangle, HelpCircle } from 'lucide-react';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import type { QuizResultQuestionDto } from '@/http/generated/api.schemas';
 
 type ConfidenceSummaryProps = {

@@ -10,8 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/auth/context';
-import { useI18n } from '@/i18n/context';
+import { useAuth } from '@/auth/use-auth';
+import { useI18n } from '@/i18n/use-i18n';
 import type { MeDto } from '@/http/generated/api.schemas';
 import { MenuLanguageSwitcher } from '@/components/language-switcher';
 
