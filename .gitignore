@@ -14,3 +14,6 @@ riderModule.iml
 
 # Mac
 *.DS_Store
+
+# Jean
+jean.json
