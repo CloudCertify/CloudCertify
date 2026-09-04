@@ -46,7 +46,7 @@ export const pt: Messages = {
   },
 
   footer: {
-    buyMeACoffee: 'Me pague um café',
+    buyMeACoffee: 'Buy me a coffee',
     rights: (year: number) =>
       `© ${year} CloudCertify. Todos os direitos reservados.`
   },
@@ -192,7 +192,8 @@ export const pt: Messages = {
 
   roadmap: {
     emptyTier: 'Ainda não há provas neste nível — volte em breve.',
-    providerSoon: 'Este provedor chega em breve. Avisaremos quando estiver no ar.'
+    providerSoon:
+      'Este provedor chega em breve. Avisaremos quando estiver no ar.'
   },
 
   dashboard: {
@@ -240,7 +241,8 @@ export const pt: Messages = {
     currentStanding: 'Desempenho atual',
     byDomain: 'Por domínio',
     latestSnapshot: 'Retrato mais recente',
-    noDomains: 'Conclua algumas questões para medir seu desempenho por domínio.',
+    noDomains:
+      'Conclua algumas questões para medir seu desempenho por domínio.',
     domainMeta: (index: number, seen: number) =>
       `Domínio ${String(index).padStart(2, '0')} / ${seen} vistas`,
     delta: (value: number) => `${value >= 0 ? '+' : ''}${value} pts`,
@@ -365,11 +367,14 @@ export const pt: Messages = {
       title: 'Como deveria estar?',
       hint: 'Edite a questão e marque as respostas que deveriam estar certas.',
       questionLabel: 'Questão',
-      answerLabel: (index: number) => `Resposta ${String.fromCharCode(65 + index)}`,
+      answerLabel: (index: number) =>
+        `Resposta ${String.fromCharCode(65 + index)}`,
       correct: 'Certa',
       noChanges: 'Nada alterado ainda.',
       changes: (count: number) =>
-        count === 1 ? '1 alteração para enviar' : `${count} alterações para enviar`
+        count === 1
+          ? '1 alteração para enviar'
+          : `${count} alterações para enviar`
     },
     commentLabel: 'Mais alguma coisa? (opcional)',
     commentPlaceholder: 'Conte o que parece errado.',
@@ -406,8 +411,12 @@ export const pt: Messages = {
     misconceptions: 'Conceitos errados',
     misconceptionsHint: 'Você tinha certeza e errou — comece por aqui.',
     domainBreakdown: 'Detalhe por domínio',
-    domainStats: (correct: number, total: number, pct: number, weight: number) =>
-      `${correct}/${total} (${pct}%) · peso ${weight}%`,
+    domainStats: (
+      correct: number,
+      total: number,
+      pct: number,
+      weight: number
+    ) => `${correct}/${total} (${pct}%) · peso ${weight}%`,
     restartQuiz: 'Refazer simulado',
     submitError:
       'Não foi possível enviar esta tentativa. Ela pode já estar finalizada — use "Tentar de novo" para começar outra.',
