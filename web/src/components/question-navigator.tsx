@@ -135,7 +135,7 @@ export function QuestionNavigator({
                         'relative h-9 w-9 rounded-none border-2 border-black text-sm font-bold transition-all',
                         isCurrent
                           ? 'translate-x-[1px] translate-y-[1px] bg-black text-white shadow-none'
-                          : 'shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none',
+                          : 'shadow-[2px_2px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none',
                         !isCurrent &&
                           (isAnswered
                             ? 'bg-primary text-white'
