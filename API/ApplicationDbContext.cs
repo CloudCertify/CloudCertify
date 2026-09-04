@@ -129,6 +129,10 @@ public class ApplicationDbContext: DbContext
                 .IsRequired()
                 .HasMaxLength(16)
                 .HasConversion<string>();
+            // Nullable: Exams have no Draw Rule. Stored as the name, like Mode and Drill.DrawRule.
+            entity.Property(s => s.DrawRule)
+                .HasMaxLength(32)
+                .HasConversion<string>();
             entity.Property(s => s.ServedQuestionIds).HasColumnType("integer[]").IsRequired();
             entity.Property(s => s.Score).IsRequired();
             // Persisted as the IETF tag ("en-US"/"pt-BR"), not the enum name (ADR 0004).

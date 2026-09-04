@@ -442,7 +442,20 @@ public class DrillServiceTests
         await CreateService().StartDrill(1, 2, "u@e.com", null);
 
         _submissions.Verify(r => r.Create(It.Is<Submission>(s =>
-            s.Mode == Mode.Practice && s.DrillId == 2)), Times.Once);
+            s.Mode == Mode.Practice && s.DrillId == 2 && s.DrawRule == DrawRule.DrillMix)), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartDrill_StampsTheDrawRuleOfTheDrillItStartedFrom()
+    {
+        SetupMistakesDrill();
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync(
+            [FinishedAttempt(1, new DateTime(2026, 1, 1), served: [1], correct: [])]);
+
+        await CreateService().StartDrill(1, 2, null, 7);
+
+        _submissions.Verify(r => r.Create(It.Is<Submission>(s =>
+            s.DrawRule == DrawRule.Mistakes)), Times.Once);
     }
 
     /// <summary>The seeded Mistakes Drill: cross-Domain, and the bank it draws from.</summary>

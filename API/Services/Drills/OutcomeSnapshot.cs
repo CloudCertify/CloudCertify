@@ -50,11 +50,9 @@ public sealed class OutcomeSnapshot
     /// flows in from every Mode, adaptivity flows out only to Practice draws (ADR 0008).
     /// </summary>
     /// <remarks>
-    /// A finished Mistakes attempt currently folds in like any other, so a right Check on the
-    /// review drill writes Mastered. ADR 0011 decision 3 says it should write Missed and not
-    /// Mastered; that fold is still open in
-    /// <see href="https://github.com/CloudCertify/CloudCertify/issues/65">issue #65</see> and is
-    /// deliberately not decided here.
+    /// A Mistakes attempt is asymmetric: a right Check is skipped so recognition cannot write
+    /// Mastered, while a wrong Check or a served skip still writes Missed (ADR 0011 decision 3,
+    /// issue #84). The skip is per Question, never the whole Submission.
     /// </remarks>
     public static OutcomeSnapshot Build(IEnumerable<Submission> submissions, IReadOnlySet<int> scopeQuestionIds)
     {
@@ -67,23 +65,7 @@ public sealed class OutcomeSnapshot
         var outcomes = new Dictionary<int, QuestionOutcome>();
 
         foreach (var submission in finished)
-        {
-            var correctness = submission.RecordedAnswers.ToDictionary(r => r.QuestionId, r => r.IsCorrect == true);
-
-            foreach (var questionId in submission.ServedQuestionIds.Where(scopeQuestionIds.Contains))
-            {
-                // A served Question with no Recorded Answer counts as Missed, mirroring grading
-                // (ADR 0001). A null IsCorrect — an answer recorded before correctness was
-                // stamped — is not evidence of knowing it either.
-                var mastered = correctness.GetValueOrDefault(questionId);
-                outcomes.TryGetValue(questionId, out var previous);
-
-                outcomes[questionId] = new QuestionOutcome(
-                    mastered ? Outcome.Mastered : Outcome.Missed,
-                    mastered ? previous?.LastMissedAt ?? DateTime.MinValue : submission.CreatedAt,
-                    (previous?.MissCount ?? 0) + (mastered ? 0 : 1));
-            }
-        }
+            ApplyAttempt(outcomes, submission, scopeQuestionIds);
 
         // The cooldown reads the last finished attempt that touched this scope — an Exam
         // counts, but only the slice of it that belongs here.
@@ -92,5 +74,32 @@ public sealed class OutcomeSnapshot
             .LastOrDefault(served => served.Count > 0) ?? new HashSet<int>();
 
         return new OutcomeSnapshot(outcomes, cooldown);
+    }
+
+    private static void ApplyAttempt(
+        Dictionary<int, QuestionOutcome> outcomes, Submission submission, IReadOnlySet<int> scopeQuestionIds)
+    {
+        var answers = submission.RecordedAnswers.ToDictionary(r => r.QuestionId, r => r.IsCorrect);
+        foreach (var questionId in submission.ServedQuestionIds.Where(scopeQuestionIds.Contains))
+            ApplyQuestion(outcomes, submission, questionId, answers.GetValueOrDefault(questionId));
+    }
+
+    private static void ApplyQuestion(
+        Dictionary<int, QuestionOutcome> outcomes, Submission submission, int questionId, bool? isCorrect)
+    {
+        // A served Question with no Recorded Answer counts as Missed, mirroring grading
+        // (ADR 0001). A null IsCorrect — an answer recorded before correctness was
+        // stamped — is not evidence of knowing it either.
+        // Review can add misses. It cannot prove anything: a right Check leaves the
+        // prior Outcome, recency and miss count exactly as they were (issue #84).
+        if (submission.DrawRule == DrawRule.Mistakes && isCorrect == true)
+            return;
+
+        var mastered = isCorrect == true;
+        outcomes.TryGetValue(questionId, out var previous);
+        outcomes[questionId] = new QuestionOutcome(
+            mastered ? Outcome.Mastered : Outcome.Missed,
+            mastered ? previous?.LastMissedAt ?? DateTime.MinValue : submission.CreatedAt,
+            (previous?.MissCount ?? 0) + (mastered ? 0 : 1));
     }
 }

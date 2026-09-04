@@ -187,10 +187,11 @@ public class OutcomeSnapshotTests
     private static readonly HashSet<int> DomainQuestions = Enumerable.Range(1, 10).ToHashSet();
 
     private static Submission Attempt(int id, DateTime at, bool finished, int[] served,
-        int[] correct, int[]? wrong = null) =>
+        int[] correct, int[]? wrong = null, DrawRule? drawRule = null) =>
         new()
         {
             Id = id, QuizId = 1, UserId = 7, Finished = finished, CreatedAt = at,
+            DrawRule = drawRule,
             ServedQuestionIds = served.ToList(),
             RecordedAnswers = correct.Select(q => new RecordedAnswer { QuestionId = q, IsCorrect = true })
                 .Concat((wrong ?? []).Select(q => new RecordedAnswer { QuestionId = q, IsCorrect = false }))
@@ -303,5 +304,145 @@ public class OutcomeSnapshotTests
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(2));
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(99)); // cross-Domain, and in scope
         Assert.Equal([1, 2, 99], snapshot.Cooldown.Order());
+    }
+
+    [Fact]
+    public void Build_LeavesPriorMissed_WhenAMistakesAttemptGetsItRight()
+    {
+        var snapshot = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [], wrong: [1]),
+            Attempt(2, new DateTime(2026, 6, 1), finished: true, served: [1], correct: [1],
+                drawRule: DrawRule.Mistakes),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
+    }
+
+    [Fact]
+    public void Build_LeavesRecencyAndMissCount_WhenAMistakesAttemptGetsItRight()
+    {
+        var firstMiss = new DateTime(2026, 1, 1);
+        var snapshot = OutcomeSnapshot.Build(
+        [
+            Attempt(1, firstMiss, finished: true, served: [1], correct: [], wrong: [1]),
+            Attempt(2, new DateTime(2026, 6, 1), finished: true, served: [1], correct: [1],
+                drawRule: DrawRule.Mistakes),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
+        Assert.Equal(1, snapshot.Outcomes[1].MissCount);
+        Assert.Equal(firstMiss, snapshot.Outcomes[1].LastMissedAt);
+    }
+
+    [Fact]
+    public void Build_LeavesUnseen_WhenAMistakesAttemptGetsAnUnseenQuestionRight()
+    {
+        var snapshot = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [1],
+                drawRule: DrawRule.Mistakes),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Unseen, snapshot.OutcomeOf(1));
+        Assert.False(snapshot.Outcomes.ContainsKey(1));
+    }
+
+    [Fact]
+    public void Build_WritesMissedFromAWrongCheckInAMistakesAttempt()
+    {
+        var at = new DateTime(2026, 6, 1);
+        var snapshot = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [], wrong: [1]),
+            Attempt(2, at, finished: true, served: [1], correct: [], wrong: [1],
+                drawRule: DrawRule.Mistakes),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
+        Assert.Equal(2, snapshot.Outcomes[1].MissCount);
+        Assert.Equal(at, snapshot.Outcomes[1].LastMissedAt);
+    }
+
+    [Fact]
+    public void Build_WritesMissedFromAServedSkipInAMistakesAttempt()
+    {
+        var snapshot = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [],
+                drawRule: DrawRule.Mistakes),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
+    }
+
+    [Fact]
+    public void Build_WritesMissedFromNullCorrectnessInAMistakesAttempt()
+    {
+        var attempt = Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [1],
+            drawRule: DrawRule.Mistakes);
+        attempt.RecordedAnswers[0].IsCorrect = null;
+
+        var snapshot = OutcomeSnapshot.Build([attempt], DomainQuestions);
+
+        Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
+    }
+
+    [Fact]
+    public void Build_WritesMasteredFromARightCheckInADrillMixAttempt()
+    {
+        var snapshot = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [1],
+                drawRule: DrawRule.DrillMix),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
+    }
+
+    [Fact]
+    public void Build_WritesMasteredFromARightAnswerOnAnExam()
+    {
+        var snapshot = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [1]),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
+    }
+
+    [Fact]
+    public void Build_IgnoresUnfinishedMistakesAttempts()
+    {
+        var snapshot = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: false, served: [1], correct: [], wrong: [1],
+                drawRule: DrawRule.Mistakes),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Unseen, snapshot.OutcomeOf(1));
+    }
+
+    [Fact]
+    public void Build_LetsAnExamOverwriteAMistakesAttempt_InBothDirections()
+    {
+        var toMastered = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [], wrong: [1],
+                drawRule: DrawRule.Mistakes),
+            Attempt(2, new DateTime(2026, 2, 1), finished: true, served: [1], correct: [1]),
+        ], DomainQuestions);
+
+        var toMissed = OutcomeSnapshot.Build(
+        [
+            Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [1],
+                drawRule: DrawRule.DrillMix),
+            Attempt(2, new DateTime(2026, 2, 1), finished: true, served: [1], correct: [1],
+                drawRule: DrawRule.Mistakes),
+            Attempt(3, new DateTime(2026, 3, 1), finished: true, served: [1], correct: [], wrong: [1]),
+        ], DomainQuestions);
+
+        Assert.Equal(Outcome.Mastered, toMastered.OutcomeOf(1));
+        Assert.Equal(Outcome.Missed, toMissed.OutcomeOf(1));
     }
 }
