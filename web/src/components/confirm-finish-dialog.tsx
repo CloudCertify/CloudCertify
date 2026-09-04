@@ -36,7 +36,7 @@ export function ConfirmFinishDialog({
     <dialog
       ref={ref}
       onClose={onCancel}
-      className='m-auto w-full max-w-lg rounded-[5px] border-4 border-black bg-white p-0 shadow-[8px_8px_0px_0px_#000] backdrop:bg-black/50'
+      className='m-auto w-full max-w-lg rounded-none border-4 border-black bg-white p-0 shadow-[8px_8px_0px_0px_#000] backdrop:bg-black/50'
     >
       <div className='border-b-2 border-black px-6 py-4'>
         <h2 className='text-xl font-black text-black'>

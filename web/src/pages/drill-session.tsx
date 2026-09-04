@@ -238,7 +238,7 @@ export function DrillSessionPage() {
             <CardContent className='space-y-8 py-8'>
               <div className='flex flex-col items-center space-y-4'>
                 <div
-                  className='h-32 w-32 rounded-[5px] border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
+                  className='h-32 w-32 rounded-none border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
                   style={{ backgroundColor: scoreColor }}
                 >
                   <span className={`text-5xl font-black ${scoreInk}`}>

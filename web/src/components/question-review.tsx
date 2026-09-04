@@ -44,7 +44,7 @@ export function QuestionReview({
               <AccordionTrigger className='hover:no-underline'>
                 <div className='flex items-start gap-3 text-left'>
                   <div
-                    className={`h-6 w-6 rounded-[5px] border-2 border-black flex items-center justify-center shrink-0 ${
+                    className={`h-6 w-6 rounded-none border-2 border-black flex items-center justify-center shrink-0 ${
                       isCorrect ? 'bg-success' : 'bg-destructive'
                     }`}
                   >
@@ -70,7 +70,7 @@ export function QuestionReview({
                       belong together (ADR 0006). Absent when the question was unrated. */}
                   <ConfidenceBadge value={question.confidence} />
                   {question.explanation && (
-                    <div className='p-3 rounded-[5px] border-2 border-black bg-background'>
+                    <div className='p-3 rounded-none border-2 border-black bg-background'>
                       <p className='text-sm font-bold text-black mb-1'>
                         {t.review.explanation}
                       </p>
@@ -89,10 +89,10 @@ export function QuestionReview({
                     return (
                       <div
                         key={answer.id}
-                        className={`p-3 rounded-[5px] border-2 border-black flex items-start gap-2 ${bgColor}`}
+                        className={`p-3 rounded-none border-2 border-black flex items-start gap-2 ${bgColor}`}
                       >
                         <div
-                          className={`w-6 h-6 rounded-[5px] flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
+                          className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
                             isCorrectAnswer || isUserAnswer
                               ? 'bg-black text-white'
                               : 'bg-white'

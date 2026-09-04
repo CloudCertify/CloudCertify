@@ -177,13 +177,13 @@ export function PracticeQuestionCard({
                 role={isMultiResponse ? 'checkbox' : 'radio'}
                 aria-checked={isSelected}
                 aria-disabled={isDisabled || undefined}
-                className={`p-4 rounded-[5px] border-2 border-black ${optionClass} ${
+                className={`p-4 rounded-none border-2 border-black ${optionClass} ${
                   isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
                 } flex items-start gap-3 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
                 onClick={() => !isDisabled && id != null && onSelect(id)}
               >
                 <div
-                  className={`w-6 h-6 rounded-[5px] flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${boxClass}`}
+                  className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${boxClass}`}
                 >
                   {isRevealed ? (
                     isCorrectAnswer ? (
@@ -202,7 +202,7 @@ export function PracticeQuestionCard({
         </div>
 
         {isRevealed && (
-          <div className='mt-6 rounded-[5px] border-2 border-black bg-background overflow-hidden motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-1 motion-safe:duration-200'>
+          <div className='mt-6 rounded-none border-2 border-black bg-background overflow-hidden motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-1 motion-safe:duration-200'>
             <div
               className={`flex items-center gap-2 px-4 py-2 border-b-2 border-black ${
                 reveal?.isCorrect ? 'bg-success' : 'bg-destructive'

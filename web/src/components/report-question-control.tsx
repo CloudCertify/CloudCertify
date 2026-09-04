@@ -167,7 +167,7 @@ export function ReportQuestionControl({
   }
 
   return (
-    <div className='w-full rounded-[5px] border-2 border-black bg-white p-4 space-y-3'>
+    <div className='w-full rounded-none border-2 border-black bg-white p-4 space-y-3'>
       <div>
         <p className='font-black text-black'>{t.report.title}</p>
         <p className='text-sm text-black/60 font-medium'>
@@ -206,7 +206,7 @@ export function ReportQuestionControl({
       )}
 
       {suggestable && draft !== null && (
-        <div className='space-y-3 rounded-[5px] border-2 border-black/20 p-3'>
+        <div className='space-y-3 rounded-none border-2 border-black/20 p-3'>
           <div>
             <p className='font-black text-black'>{t.report.suggest.title}</p>
             <p className='text-sm text-black/60 font-medium'>
@@ -229,7 +229,7 @@ export function ReportQuestionControl({
                 setDraft({ ...draft, questionText: e.target.value })
               }
               rows={3}
-              className='w-full rounded-[5px] border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+              className='w-full rounded-none border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
             />
           </div>
 
@@ -251,7 +251,7 @@ export function ReportQuestionControl({
                     onChange={e =>
                       editAnswer(answer.id, { text: e.target.value })
                     }
-                    className='flex-1 rounded-[5px] border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+                    className='flex-1 rounded-none border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
                   />
                   <label className='flex items-center gap-1 text-xs font-bold text-black cursor-pointer whitespace-nowrap'>
                     <input
@@ -291,7 +291,7 @@ export function ReportQuestionControl({
           onChange={e => setComment(e.target.value.slice(0, COMMENT_MAX_LENGTH))}
           placeholder={t.report.commentPlaceholder}
           rows={3}
-          className='w-full rounded-[5px] border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+          className='w-full rounded-none border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
         />
         <p className='text-right text-xs font-bold text-black/50'>
           {t.report.commentCounter(comment.length, COMMENT_MAX_LENGTH)}

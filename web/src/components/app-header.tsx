@@ -32,7 +32,7 @@ export function AppHeader({
         )}
       >
         <Link href='/' className='flex items-center gap-2 text-xl font-black'>
-          <span className='flex h-10 w-10 items-center justify-center rounded-[5px] border-2 border-black bg-primary shadow-[2px_2px_0px_0px_#000]'>
+          <span className='flex h-10 w-10 items-center justify-center rounded-none border-2 border-black bg-primary shadow-[2px_2px_0px_0px_#000]'>
             <Cloud className='h-5 w-5 text-white' aria-hidden='true' />
           </span>
           <span>CloudCertify</span>

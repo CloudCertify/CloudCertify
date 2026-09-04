@@ -65,7 +65,7 @@ export function ConfidenceRating({ value, onRate }: ConfidenceRatingProps) {
     <div
       role='group'
       aria-label={t.confidence.label}
-      className='space-y-2 rounded-[5px] border-2 border-black bg-white p-4'
+      className='space-y-2 rounded-none border-2 border-black bg-white p-4'
     >
       <div className='flex flex-wrap items-center gap-3'>
         <span className='font-bold text-black'>{t.confidence.label}</span>
@@ -80,7 +80,7 @@ export function ConfidenceRating({ value, onRate }: ConfidenceRatingProps) {
                 aria-pressed={isSelected}
                 onClick={() => onRate(option)}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-[5px] border-2 border-black px-3 py-1.5 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2',
+                  'flex items-center gap-1.5 rounded-none border-2 border-black px-3 py-1.5 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2',
                   isSelected
                     ? cn('translate-x-[2px] translate-y-[2px] shadow-none', selected)
                     : 'bg-white text-black shadow-[4px_4px_0px_0px_#000] hover:bg-background'

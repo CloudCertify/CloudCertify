@@ -247,7 +247,7 @@ export function QuizPage() {
             </CardHeader>
             <CardContent className='space-y-8 py-8'>
               <div className='flex flex-col items-center justify-center space-y-4'>
-                <div className='h-32 w-32 rounded-[5px] border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
+                <div className='h-32 w-32 rounded-none border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
                   style={{ backgroundColor: passed ? '#15a06e' : '#e23b48' }}>
                   <span className='text-5xl font-black text-white'>{score.percentage}%</span>
                 </div>
@@ -291,7 +291,7 @@ export function QuizPage() {
                       >
                         <AccordionTrigger className='hover:no-underline'>
                           <div className='flex items-start gap-3 text-left'>
-                            <div className={`h-6 w-6 rounded-[5px] border-2 border-black flex items-center justify-center shrink-0 ${isCorrect ? 'bg-success' : 'bg-destructive'}`}>
+                            <div className={`h-6 w-6 rounded-none border-2 border-black flex items-center justify-center shrink-0 ${isCorrect ? 'bg-success' : 'bg-destructive'}`}>
                               {isCorrect ? (
                                 <CheckCircle className='h-4 w-4 text-black' />
                               ) : (
@@ -324,9 +324,9 @@ export function QuizPage() {
                               }
 
                               return (
-                                <div key={answer.id} className={`p-3 rounded-[5px] border-2 border-black flex items-start gap-2 ${bgColor}`}>
+                                <div key={answer.id} className={`p-3 rounded-none border-2 border-black flex items-start gap-2 ${bgColor}`}>
                                   <div
-                                    className={`w-6 h-6 rounded-[5px] flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
+                                    className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
                                       isCorrectAnswer
                                         ? 'bg-black text-white'
                                         : isUserAnswer
@@ -411,7 +411,7 @@ export function QuizPage() {
                 return (
                   <div
                     key={answer.id}
-                    className={`p-4 rounded-[5px] border-2 border-black ${
+                    className={`p-4 rounded-none border-2 border-black ${
                       isSelected
                         ? 'bg-primary shadow-none translate-x-[2px] translate-y-[2px]'
                         : 'bg-white hover:bg-background shadow-[4px_4px_0px_0px_#000]'
@@ -419,7 +419,7 @@ export function QuizPage() {
                     onClick={() => handleAnswerSelect(answer.id)}
                   >
                     <div
-                      className={`w-6 h-6 rounded-[5px] flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
+                      className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
                         isSelected
                           ? 'bg-black text-white'
                           : 'bg-white'

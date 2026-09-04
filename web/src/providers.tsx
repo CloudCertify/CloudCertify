@@ -16,7 +16,7 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
         toastOptions={{
           classNames: {
             toast:
-              'border-2 border-black shadow-[4px_4px_0px_0px_#000] font-bold rounded-[5px]',
+              'border-2 border-black shadow-[4px_4px_0px_0px_#000] font-bold rounded-none',
             error: 'bg-destructive text-white',
             warning: 'bg-[#ffb020] text-black',
           },

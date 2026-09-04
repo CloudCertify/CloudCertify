@@ -149,13 +149,13 @@ export function QuizDetailPage() {
           {t.common.backToDashboard}
         </PageBackLink>
         {isLoading ? (
-          <div className='h-64 animate-pulse rounded-[5px] border-2 border-dashed border-black bg-white' />
+          <div className='h-64 animate-pulse rounded-none border-2 border-dashed border-black bg-white' />
         ) : quiz ? (
           <>
             {/* Certification header */}
             <div className='flex flex-col items-center text-center space-y-4'>
               <div
-                className={`h-20 w-20 rounded-[5px] border-2 border-black ${levelColor} flex items-center justify-center shadow-[4px_4px_0px_0px_#000]`}
+                className={`h-20 w-20 rounded-none border-2 border-black ${levelColor} flex items-center justify-center shadow-[4px_4px_0px_0px_#000]`}
               >
                 {getLucideIcon(quiz.iconName, {
                   className: `h-10 w-10 ${levelInk}`
@@ -218,7 +218,7 @@ export function QuizDetailPage() {
                   }
                 }}
                 placeholder={t.quizDetail.emailPlaceholder}
-                className={`w-full rounded-[5px] border-2 px-4 py-3 text-black font-medium placeholder:text-black/40 focus:outline-none bg-white transition-shadow ${
+                className={`w-full rounded-none border-2 px-4 py-3 text-black font-medium placeholder:text-black/40 focus:outline-none bg-white transition-shadow ${
                   emailError
                     ? 'border-destructive shadow-[2px_2px_0px_0px_#e23b48] focus:shadow-[4px_4px_0px_0px_#e23b48]'
                     : 'border-black shadow-[2px_2px_0px_0px_#000] focus:shadow-[4px_4px_0px_0px_#000]'

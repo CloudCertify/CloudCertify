@@ -229,7 +229,7 @@ export function QuizSessionPage() {
             <CardContent className='space-y-8 py-8'>
               <div className='flex flex-col items-center justify-center space-y-4'>
                 <div
-                  className='h-32 w-32 rounded-[5px] border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
+                  className='h-32 w-32 rounded-none border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
                   style={{ backgroundColor: passed ? '#15a06e' : '#e23b48' }}
                 >
                   <span className='text-4xl font-black text-white'>{scaledScore}</span>
@@ -266,7 +266,7 @@ export function QuizSessionPage() {
                       return (
                         <div
                           key={domain.domain}
-                          className='rounded-[5px] border-2 border-black p-3'
+                          className='rounded-none border-2 border-black p-3'
                         >
                           <div className='flex items-center justify-between mb-2'>
                             <span className='font-bold text-black'>{domain.domain}</span>

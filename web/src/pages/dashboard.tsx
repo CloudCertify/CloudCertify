@@ -20,10 +20,10 @@ function SkeletonCard() {
   return (
     <Card className='flex flex-col overflow-hidden h-56 animate-pulse'>
       <div className='flex-1 p-6 flex flex-col gap-4'>
-        <div className='w-12 h-12 rounded-full bg-muted mx-auto' />
-        <div className='h-4 bg-muted rounded w-3/4 mx-auto' />
-        <div className='h-3 bg-muted rounded w-full' />
-        <div className='h-3 bg-muted rounded w-5/6' />
+        <div className='w-12 h-12 rounded-none bg-muted mx-auto' />
+        <div className='h-4 bg-muted rounded-none w-3/4 mx-auto' />
+        <div className='h-3 bg-muted rounded-none w-full' />
+        <div className='h-3 bg-muted rounded-none w-5/6' />
       </div>
     </Card>
   );
@@ -46,7 +46,7 @@ function LevelTier({ level, index, quizzes, isLast }: LevelTierProps) {
       <div className='relative flex flex-col items-center'>
         <div
           className={cn(
-            'relative z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-[5px] border-2 border-black font-mono text-sm md:text-base font-black shadow-[4px_4px_0px_0px_#000]',
+            'relative z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-none border-2 border-black font-mono text-sm md:text-base font-black shadow-[4px_4px_0px_0px_#000]',
             style.bg,
             style.ink
           )}
@@ -98,7 +98,7 @@ function ProviderTabs({
   const { t } = useI18n();
 
   return (
-    <div className='inline-flex items-center gap-2 rounded-[5px] border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000] w-fit'>
+    <div className='inline-flex items-center gap-2 rounded-none border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000] w-fit'>
       {PROVIDERS.map(p => {
         const isActive = provider === p.id;
         return (
@@ -106,7 +106,7 @@ function ProviderTabs({
             key={p.id}
             onClick={() => onSelect(p.id)}
             className={cn(
-              'relative flex items-center gap-2 rounded-[5px] px-4 py-2 text-sm font-bold transition-all border-2',
+              'relative flex items-center gap-2 rounded-none px-4 py-2 text-sm font-bold transition-all border-2',
               isActive
                 ? 'bg-primary text-white border-black shadow-[2px_2px_0px_0px_#000]'
                 : 'text-black border-transparent hover:bg-background'
@@ -114,7 +114,7 @@ function ProviderTabs({
           >
             <span>{p.short}</span>
             {!p.available && (
-              <span className='rounded-[5px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border border-black bg-secondary text-black'>
+              <span className='rounded-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border border-black bg-secondary text-black'>
                 {t.common.soon}
               </span>
             )}
