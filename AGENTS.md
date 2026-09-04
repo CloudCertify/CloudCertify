@@ -1,5 +1,9 @@
 # Personal Preferences
 
+## Subagents
+
+For model routing, orchestration, and disagreement resolution, follow `SUBAGENTS.md`.
+
 ## TypeScript
 
 - Never use `any` unless 100% necessary or specifically instructed.
