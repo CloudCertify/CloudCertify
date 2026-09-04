@@ -108,7 +108,7 @@ public class QuizServiceTests
         await CreateService().StartQuiz(1, "user@example.com", null);
 
         _submissions.Verify(r => r.Create(It.Is<Submission>(s =>
-            s.Mode == Mode.Exam && s.DrillId == null)), Times.Once);
+            s.Mode == Mode.Exam && s.DrillId == null && s.DrawRule == null)), Times.Once);
     }
 
     [Fact]

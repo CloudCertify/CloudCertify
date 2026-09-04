@@ -19,11 +19,12 @@ public class MistakesDrawTests
             .ToList();
 
     /// <summary>A finished Practice attempt on <paramref name="drillId"/>.</summary>
-    private static Submission Practice(int id, DateTime at, int[] served, int[] correct, int drillId = 99) =>
+    private static Submission Practice(int id, DateTime at, int[] served, int[] correct, int drillId = 99,
+        DrawRule? drawRule = null) =>
         new()
         {
             Id = id, QuizId = 1, UserId = 7, Finished = true, CreatedAt = at,
-            DrillId = drillId, Mode = Mode.Practice,
+            DrillId = drillId, Mode = Mode.Practice, DrawRule = drawRule,
             ServedQuestionIds = served.ToList(),
             RecordedAnswers = served
                 .Select(q => new RecordedAnswer { QuestionId = q, IsCorrect = correct.Contains(q) })
@@ -242,6 +243,18 @@ public class MistakesDrawTests
         var snapshot = SnapshotOf(bank,
             Practice(1, new DateTime(2026, 1, 1), served: [1, 900], correct: []),
             Exam(2, new DateTime(2026, 2, 1), (901, Confidence.Guess, true)));
+
+        Assert.Equal([1], DrawIds(bank, snapshot));
+    }
+
+    [Fact]
+    public void Draw_KeepsAGuess_AfterARightCheckOnTheMistakesDrill()
+    {
+        var bank = Bank(10);
+        var snapshot = SnapshotOf(bank,
+            Exam(1, new DateTime(2026, 1, 1), (1, Confidence.Guess, true)),
+            Practice(2, new DateTime(2026, 2, 1), served: [1], correct: [1],
+                drillId: DrillId, drawRule: DrawRule.Mistakes));
 
         Assert.Equal([1], DrawIds(bank, snapshot));
     }

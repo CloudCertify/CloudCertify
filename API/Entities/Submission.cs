@@ -23,6 +23,13 @@ public class Submission
     /// </summary>
     public Mode Mode { get; set; }
 
+    /// <summary>
+    /// The Drill's Draw Rule at attempt start, snapshotted so a later reseed cannot rewrite
+    /// what this attempt meant as Outcome evidence (ADR 0001, issue #84). Null for an Exam.
+    /// Read by the fold only; never a behaviour switch.
+    /// </summary>
+    public DrawRule? DrawRule { get; set; }
+
     public bool Finished { get; set; }
 
     /// <summary>

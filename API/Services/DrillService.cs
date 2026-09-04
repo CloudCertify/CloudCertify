@@ -97,6 +97,8 @@ public class DrillService
             // Start-path invariant: a drill start is Practice with exactly one Drill (ADR 0010).
             DrillId = drillId,
             Mode = Mode.Practice,
+            // Snapshot, not a join: a later reseed must not rewrite what this attempt meant (#84).
+            DrawRule = drill.DrawRule,
             Finished = false,
             ServedQuestionIds = drillQuestions.Select(q => q.Id).ToList(),
             Language = language,

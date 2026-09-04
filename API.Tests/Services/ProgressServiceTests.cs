@@ -263,6 +263,22 @@ public class ProgressServiceTests
     }
 
     [Fact]
+    public void PerfectMistakesAttempt_LeavesStandingAndDeltaUnchanged_AndStillCountsAsAFinishedDrill()
+    {
+        var prior = Drill(1, T0,
+            (1, true), (2, true), (3, true), (4, true), (5, false));
+        prior.DrawRule = DrawRule.DrillMix;
+        var review = Drill(2, T0.AddHours(1), (5, true));
+        review.DrawRule = DrawRule.Mistakes;
+
+        var progress = ProgressService.Build([prior, review], Bank);
+
+        Assert.Equal(80, Domain(progress, "Cloud Concepts").Standing);
+        Assert.Null(Domain(progress, "Cloud Concepts").Delta);
+        Assert.Equal(2, progress.FinishedDrills);
+    }
+
+    [Fact]
     public async Task Get_ReturnsNull_WhenQuizMissing()
     {
         var quizzes = new Mock<IQuizRepository>();
