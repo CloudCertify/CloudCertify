@@ -5,7 +5,7 @@ import { useGetQuiz } from '@/http/generated/api';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import { getLevelStyle, LEVEL_ORDER } from '@/lib/quiz-level';
 import { cn } from '@/lib/utils';
 import { PROVIDERS } from '@/lib/quiz-provider';

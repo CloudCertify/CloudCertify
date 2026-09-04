@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import type { QuestionDto } from '@/http/generated/api.schemas';
 
 type QuestionCardProps = {

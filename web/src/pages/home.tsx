@@ -25,7 +25,7 @@ import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useGetQuiz } from '@/http/generated/api';
 import { AppHeader } from '@/components/app-header';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import type { QuestionDifficulty } from '@/http/generated/api.schemas';
 
 const EASE = [0.22, 1, 0.36, 1] as const;

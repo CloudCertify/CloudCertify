@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import type { QuestionDifficulty } from '@/http/generated/api.schemas';
 
 const difficultyClasses: Record<QuestionDifficulty, string> = {

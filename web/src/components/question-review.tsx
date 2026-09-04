@@ -7,7 +7,7 @@ import {
   AccordionTrigger
 } from '@/components/ui/accordion';
 import { ConfidenceBadge } from '@/components/confidence-badge';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import type { QuizResultQuestionDto } from '@/http/generated/api.schemas';
 
 type QuestionReviewProps = {

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { PROVIDERS } from '@/lib/quiz-provider';
 import { LEVEL_ORDER } from '@/lib/quiz-level';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import type {
   QuizDto,
   QuizLevel,

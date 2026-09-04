@@ -4,7 +4,7 @@ import {
   DropdownMenuRadioItem
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import { LANGUAGES } from '@/i18n/language';
 
 type LanguageSwitcherProps = {

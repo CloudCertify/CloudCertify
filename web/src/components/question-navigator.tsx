@@ -3,7 +3,7 @@ import { AlertTriangle, ListOrdered, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 
 type QuestionNavigatorProps = {
   /** Zero-based index of the question currently on screen. */

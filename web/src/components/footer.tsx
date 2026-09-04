@@ -1,5 +1,5 @@
 import { Cloud, Coffee } from 'lucide-react';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 
 export function Footer() {
   const { t } = useI18n();

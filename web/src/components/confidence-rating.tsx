@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, HelpCircle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useI18n } from '@/i18n/context';
+import { useI18n } from '@/i18n/use-i18n';
 import { Confidence } from '@/http/generated/api.schemas';
 import { cn } from '@/lib/utils';
 import { needsReview } from '@/lib/confidence';
