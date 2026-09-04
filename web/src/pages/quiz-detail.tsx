@@ -24,7 +24,7 @@ import {
   postQuizQuizIdDrillsDrillIdStart,
   useGetQuizQuizId
 } from '@/http/generated/api';
-import type { DrillDto } from '@/http/generated/api.schemas';
+import type { DrillDto, QuizProvider } from '@/http/generated/api.schemas';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { getLevelStyle } from '@/lib/quiz-level';
 import { capitalize } from '@/lib/utils';
@@ -33,7 +33,7 @@ import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
-import type { QuizProvider } from '@/http/generated/api.schemas';
+import { drillStartErrorMessage } from '@/http/drill-start-error';
 
 // --- Helpers ---
 // The per-exam count comes from the quiz's own [min, max] range: a single number
@@ -126,8 +126,14 @@ export function QuizDetailPage() {
         })
       );
       navigate(`/quiz/${quizId}/drill/${drill.id}/session`);
-    } catch {
-      toast.error(t.quizDetail.startPracticeError);
+    } catch (error) {
+      toast.error(
+        drillStartErrorMessage(error, {
+          nothingToReview: t.drill.nothingToReview,
+          signInRequired: t.drill.signInRequired,
+          fallback: t.quizDetail.startPracticeError
+        })
+      );
     } finally {
       setStartingDrillId(null);
     }

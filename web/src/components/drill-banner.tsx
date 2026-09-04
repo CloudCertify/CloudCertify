@@ -2,27 +2,30 @@ import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/auth/use-auth';
 import { useI18n } from '@/i18n/use-i18n';
-import type { DrillCompositionDto } from '@/http/generated/api.schemas';
+import { DrawRule, type DrillCompositionDto } from '@/http/generated/api.schemas';
 
 /**
  * The one slot that says why this drill looks the way it does, shown before the first Question.
  *
- * A logged-in User gets the make-up of their draw — `9 review · 4 new · 2 refresh` — which
- * doubles as a progress indicator, since the review count shrinks as they improve. An anonymous
- * visitor, whose drill is still random, gets the pitch for signing in instead: claiming
- * retro-attaches their past attempts (ADR 0003), so the promise holds on their first logged-in
- * drill (issue #53).
+ * Branch on the Draw Rule, not on a missing composition. A Domain Drill with a composition
+ * shows the make-up of the draw. A Mistakes drill has no composition on purpose (one bucket),
+ * so it shows how many mistakes were served. An anonymous visitor on anything else still
+ * gets the sign-in pitch: claiming retro-attaches their past attempts (ADR 0003).
  *
  * Deliberately not per-Question: telling someone "you missed this before" ahead of an answer
  * turns recall into recognition and corrupts the Outcome being collected. After the drill is
- * graded that same fact is a reward instead of a prime, so `place='review'` says it again over
- * the review — from the composition the client already holds, with no change to grading.
+ * graded that same fact is a close, not a prime, so `place='review'` speaks again.
  */
 export function DrillBanner({
   composition,
+  drawRule,
+  questionCount = 0,
   place = 'start'
 }: {
   composition?: DrillCompositionDto | null;
+  drawRule?: DrawRule;
+  /** Questions the client was handed — the Mistakes count, with no extra field. */
+  questionCount?: number;
   /** Where it speaks from: before the first Question, or over the graded review. */
   place?: 'start' | 'review';
 }) {
@@ -33,6 +36,22 @@ export function DrillBanner({
   const missed = composition?.missed ?? 0;
   const unseen = composition?.unseen ?? 0;
   const mastered = composition?.mastered ?? 0;
+
+  if (drawRule === DrawRule.mistakes) {
+    const isReview = place === 'review';
+    return (
+      <div
+        className={`${isReview ? 'mb-6' : 'mb-4'} flex flex-wrap items-center gap-x-3 gap-y-1 rounded-none border-2 border-black bg-white px-4 py-3 shadow-[4px_4px_0px_0px_#000]`}
+      >
+        <Sparkles className='h-4 w-4 shrink-0' aria-hidden='true' />
+        <span className='text-sm font-bold text-black'>
+          {isReview
+            ? t.drill.mistakesReviewed(questionCount)
+            : t.drill.mistakesCount(questionCount)}
+        </span>
+      </div>
+    );
+  }
 
   if (composition && place === 'review') {
     // Nothing was owed back, so there is no win to claim — say nothing rather than pad.

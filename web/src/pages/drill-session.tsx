@@ -260,6 +260,8 @@ export function DrillSessionPage() {
                   review it lands as a win, and an anonymous visitor sees the pitch here too. */}
               <DrillBanner
                 composition={drillDetail.composition}
+                drawRule={drillDetail.drawRule}
+                questionCount={questionsCount}
                 place='review'
               />
 
@@ -317,7 +319,11 @@ export function DrillSessionPage() {
         {/* Only before the first answer: once the drill is under way the slot has said its
             piece, and repeating it would just be noise. */}
         {currentIndex === 0 && questionPhase === 'answering' && (
-          <DrillBanner composition={drillDetail.composition} />
+          <DrillBanner
+            composition={drillDetail.composition}
+            drawRule={drillDetail.drawRule}
+            questionCount={questionsCount}
+          />
         )}
         <PracticeQuestionCard
           index={currentIndex}

@@ -6,6 +6,13 @@ import { memoryLocation } from 'wouter/memory-location';
 import { QuizDetailPage } from './quiz-detail';
 import { AuthProvider } from '@/auth/context';
 import { clearToken, setToken } from '@/auth/token';
+import { en } from '@/i18n/messages/en';
+
+const toastError = vi.hoisted(() => vi.fn());
+
+vi.mock('sonner', () => ({
+  toast: { error: toastError }
+}));
 
 const {
   postQuizQuizIdStart,
@@ -68,8 +75,13 @@ function renderPage() {
 describe('QuizDetailPage start flow', () => {
   beforeEach(() => {
     clearToken();
-    postQuizQuizIdStart.mockClear();
-    postQuizQuizIdDrillsDrillIdStart.mockClear();
+    toastError.mockReset();
+    postQuizQuizIdStart.mockReset();
+    postQuizQuizIdDrillsDrillIdStart.mockReset();
+    postQuizQuizIdStart.mockResolvedValue({ data: { id: 1 } });
+    postQuizQuizIdDrillsDrillIdStart.mockResolvedValue({
+      data: { id: 2, title: 'Cloud Concepts', submissionId: 9 }
+    });
   });
 
   it('renders the email input for anonymous visitors and sends the email', async () => {
@@ -113,4 +125,46 @@ describe('QuizDetailPage start flow', () => {
     });
     expect(location.history.at(-1)).toBe('/quiz/1/drill/2/session');
   });
+
+  it('says there is nothing to review when the start answers 409', async () => {
+    postQuizQuizIdDrillsDrillIdStart.mockRejectedValue(axiosStatus(409));
+    await startDrillAsVisitor();
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(en.drill.nothingToReview);
+    });
+  });
+
+  it('asks the visitor to sign in when the start answers 401', async () => {
+    postQuizQuizIdDrillsDrillIdStart.mockRejectedValue(axiosStatus(401));
+    await startDrillAsVisitor();
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(en.drill.signInRequired);
+    });
+  });
+
+  it('keeps the generic start error for any other failure', async () => {
+    postQuizQuizIdDrillsDrillIdStart.mockRejectedValue(axiosStatus(500));
+    await startDrillAsVisitor();
+
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(en.quizDetail.startPracticeError);
+    });
+  });
 });
+
+function axiosStatus(status: number) {
+  return Object.assign(new Error('request failed'), {
+    isAxiosError: true,
+    response: { status }
+  });
+}
+
+async function startDrillAsVisitor() {
+  renderPage();
+  fireEvent.change(screen.getByLabelText(/your email/i), {
+    target: { value: 'visitor@example.com' }
+  });
+  fireEvent.click(screen.getByRole('button', { name: /practice/i }));
+}
