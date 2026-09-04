@@ -18,7 +18,7 @@ export function Footer() {
             href='https://buymeacoffee.com/snowye'
             target='_blank'
             rel='noopener noreferrer'
-            className='inline-flex items-center gap-2 rounded-none border-2 border-black bg-[#FFDD00] px-4 py-2 text-sm font-black text-black shadow-[2px_2px_0px_0px_#000] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#000] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#000]'
+            className='inline-flex items-center gap-2 rounded-none border-2 border-black bg-[#FFDD00] px-4 py-2 text-sm font-black text-black shadow-[2px_2px_0px_0px_#000] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000]'
           >
             <Coffee className='h-4 w-4' />
             {t.footer.buyMeACoffee}
