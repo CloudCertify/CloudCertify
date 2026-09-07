@@ -32,11 +32,11 @@ Demand-validation MVP. Persists Recorded Answers, Confidence, Outcomes, Users, P
 
 ## Roadmap
 
-**V1 — Real Learning Platform** (in progress)
+**V1 — Real Learning Platform**
 
 - [x] Per-you performance analytics: success rate plus Domain performance, logged-in only. Service performance moved to V2, where weighted quiz generation needs the same signal. Deferred: answer time, abandonment, most failed, score distribution
 - [x] Domain grouped tests focused on user weaknesses: Drills drawn by Drill Mix (9 Missed / 4 Unseen / 2 Mastered) from a logged-in User's per-Question Outcomes, with the drill's make-up shown before the first Question, and correctness stamped on Recorded Answers. See ADR 0007, ADR 0008
-- [ ] Mistakes drill: one review draw across the whole quiz, serving what you missed plus what you only guessed at, capped at 15 and never padded up. See ADR 0011. Remaining: the asymmetric Outcome fold (#84) and the start banner (#85)
+- [x] Mistakes drill: one review draw across the whole quiz, serving what you missed plus what you only guessed at, capped at 15 and never padded up. Folds into Outcome asymmetrically — a wrong Check writes Missed, a right one writes nothing — so review cannot test you out of your own weak spots. See ADR 0011
 - [x] Confidence scoring (Guess/Unsure/Confident, full quizzes only) to detect lucky guesses and misconceptions. See ADR 0006
 
 **V2 — Adaptive Learning Engine**
