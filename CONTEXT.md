@@ -135,6 +135,16 @@ Compliance"). Carries an official Weight in a full Quiz's grade. A Drill Mix
 Drill is scoped to one Domain; Mistakes is not.
 _Avoid_: Topic, Category, Section, Area
 
+**Service**:
+An AWS product a Question tests, named from a closed registry rather than the
+exam guide's wording, so one product is one Service across every Quiz. May
+declare a parent, and a Question tagged with a child counts toward the parent
+too: S3 Glacier is its own Service under Amazon S3. A Question names zero,
+one, or several. Cuts across Domain, which is the certification body's content
+area. Distinct from Service Category, the guide's grouping of Services
+(Compute, Database), which is not a Service.
+_Avoid_: Product, Technology, Tag, Topic
+
 **Scaled Score**:
 A full Quiz result expressed on AWS's 100-1000 scale (pass ≥ 700), computed
 from Domain-weighted correctness. Applies to an Exam only — never to Practice.
