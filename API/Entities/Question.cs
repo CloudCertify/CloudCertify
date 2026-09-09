@@ -25,6 +25,11 @@ public class Question
 
     public string? ServiceCategory { get; set; }
 
+    /// <summary>
+    /// Service registry ids (ADR 0012), e.g. <c>["s3-glacier"]</c> — not display names.
+    /// The most specific id only; anything counting per Service expands the ancestor
+    /// chain from External/questions/services.json at read time.
+    /// </summary>
     public string[]? Services { get; set; }
 
     public string? Explanation { get; set; }
