@@ -3,7 +3,8 @@
 - Status: Accepted
 - Date: 2026-09-05
 - Related: ADR 0008 (Drill Mix), README V2 (Per-Service performance,
-  Weighted quiz generation)
+  Weighted quiz generation),
+  [Canonical Service vocabulary](https://github.com/CloudCertify/CloudCertify/issues/88)
 
 ## Context
 
