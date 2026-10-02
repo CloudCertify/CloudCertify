@@ -6,12 +6,13 @@ on:
       - main
     paths:
       - 'API/**'
-      - '.github/workflows/**'
+      - '.github/workflows/docker-publish.yml'
   workflow_dispatch:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    # Native arm64 runner: avoids QEMU emulation for the linux/arm64 image.
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
       packages: write
@@ -41,9 +42,13 @@ jobs:
           file: API/Dockerfile
           push: true
           platforms: linux/arm64
-          tags: ghcr.io/${{ steps.repo.outputs.name }}:latest
+          tags: |
+            ghcr.io/${{ steps.repo.outputs.name }}:latest
+            ghcr.io/${{ steps.repo.outputs.name }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
       - name: Deploy to Coolify
         run: |
-          curl --request GET '${{ secrets.COOLIFY_WEBHOOK }}' --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
+          curl --fail-with-body --request POST '${{ secrets.COOLIFY_WEBHOOK }}' \
+            --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
