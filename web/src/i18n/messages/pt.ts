@@ -30,6 +30,13 @@ export const pt: Messages = {
     questions: (count: number) => count === 1 ? '1 questão' : `${count} questões`
   },
 
+  route: {
+    loading: 'Carregando página...',
+    failed: 'Não foi possível carregar esta página.',
+    recovery:
+      'Verifique sua conexão e tente novamente. Se uma tentativa estiver aberta em outra aba, mantenha essa aba aberta.'
+  },
+
   language: {
     label: 'Idioma',
     switcherAriaLabel: 'Mudar idioma',

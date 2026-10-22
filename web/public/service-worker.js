@@ -1,5 +1,5 @@
 // Bump this version whenever offline.html changes. Never cache the app or API data.
-const OFFLINE_CACHE = 'cloudcertify-offline-v1';
+const OFFLINE_CACHE = 'cloudcertify-offline-v2';
 const OFFLINE_URL = '/offline.html';
 // Only known app documents get a fallback; auth callbacks and API URLs bypass it.
 const APP_ROUTE = /^\/(?:quiz(?:\/\d+(?:\/session|\/drill\/\d+\/session)?)?|dashboard|progress)?\/?$/;

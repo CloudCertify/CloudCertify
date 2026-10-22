@@ -6,6 +6,12 @@ import { describe, expect, it, vi } from 'vitest';
 const readPublic = (path: string) => readFileSync(resolve('public', path.replace(/^\//, '')));
 
 describe('install assets', () => {
+  it('links the manifest and Apple icon in the app head', () => {
+    const page = new DOMParser().parseFromString(readFileSync(resolve('index.html'), 'utf8'), 'text/html');
+    expect(page.head.querySelector('link[rel="manifest"]')?.getAttribute('href')).toBe('/manifest.webmanifest');
+    expect(page.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href')).toBe('/icons/apple-touch-icon.png');
+  });
+
   it('declares an app identity, standalone root scope, and valid PNG install icons', () => {
     const manifest: {
       id: string; name: string; start_url: string; scope: string; display: string;
@@ -46,6 +52,8 @@ describe('self-contained offline page', () => {
     expect(page.querySelector('#retry')?.getAttribute('href')).toBe('');
     expect(page.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex');
     expect(page.querySelectorAll('script[src], link[href], img[src], iframe')).toHaveLength(0);
+    expect(page.querySelector('style')?.textContent).toContain('font-family: ui-sans-serif, system-ui, sans-serif');
+    expect(page.querySelector('style')?.textContent).not.toMatch(/JetBrains|Archivo|@import|url\(/);
   });
 
   it('uses the stored Portuguese choice and translates the document title and retry action', () => {
