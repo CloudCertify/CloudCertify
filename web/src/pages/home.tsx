@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -27,12 +28,14 @@ import { useGetQuiz } from '@/http/generated/api';
 import { AppHeader } from '@/components/app-header';
 import { useI18n } from '@/i18n/use-i18n';
 import type { QuestionDifficulty } from '@/http/generated/api.schemas';
+import { StaticRenderContext } from '@/lib/static-render-context';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function HomePage() {
   const { t } = useI18n();
-  const { data, isLoading } = useGetQuiz();
+  const isStatic = useContext(StaticRenderContext);
+  const { data, isLoading } = useGetQuiz({ query: { enabled: !isStatic } });
   const quizzes = data?.data ?? [];
 
   return (
@@ -176,7 +179,7 @@ export function HomePage() {
                 {t.home.roadmapSubtitle}
               </p>
             </Reveal>
-            <CertificationRoadmap quizzes={quizzes} isLoading={isLoading} />
+            <CertificationRoadmap quizzes={quizzes} isLoading={isStatic || isLoading} />
           </div>
         </section>
 

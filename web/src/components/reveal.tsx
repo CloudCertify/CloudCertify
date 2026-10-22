@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, useInView, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
+import { StaticRenderContext } from '@/lib/static-render-context';
 
 type RevealProps = {
   children: ReactNode;
@@ -58,6 +59,7 @@ export function CountUp({
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: '-40px' });
   const [value, setValue] = useState(0);
+  const isStatic = useContext(StaticRenderContext);
 
   useEffect(() => {
     if (!inView) return;
@@ -76,7 +78,7 @@ export function CountUp({
   return (
     <span ref={ref} className={cn('tabular-nums', className)}>
       {prefix}
-      {value}
+      {isStatic ? to : value}
       {suffix}
     </span>
   );
