@@ -1,0 +1,25 @@
+{
+  "passed": 20,
+  "checks": [
+    "en-US /: raw HTML, metadata, install links",
+    "en-US /dashboard: raw HTML, metadata, install links",
+    "en-US /quiz/1: raw HTML, metadata, install links",
+    "pt-BR /: raw HTML, metadata, install links",
+    "pt-BR /dashboard: raw HTML, metadata, install links",
+    "pt-BR /quiz/1: raw HTML, metadata, install links",
+    "/unknown-route: HTTP 404",
+    "/quiz/0: HTTP 404",
+    "/quiz/2147483647: HTTP 404",
+    "/prototype/quiz-motion: HTTP 404",
+    "/progress: utility noindex",
+    "/auth/callback: utility noindex",
+    "/quiz: utility noindex",
+    "/quiz/1/session: utility noindex",
+    "/quiz/1/drill/1/session: utility noindex",
+    "/service-worker.js: content type and cache/discovery policy",
+    "/offline.html: content type and cache/discovery policy",
+    "/manifest.webmanifest: content type and cache/discovery policy",
+    "/robots.txt: content type and cache/discovery policy",
+    "/sitemap.xml: content type and cache/discovery policy"
+  ]
+}

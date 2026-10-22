@@ -1,0 +1,52 @@
+{
+  "checks": [
+    "Language refresh preserves typed email and 320px layout",
+    "Production exam navigation, answer commit, explicit submit confirmation; API writes intercepted locally",
+    "Production worker controls navigations and caches only offline.html",
+    "Offline known route serves localized fallback without caching attempts"
+  ],
+  "pwa": {
+    "controlled": true,
+    "keys": [
+      "cloudcertify-offline-v2"
+    ],
+    "entries": [
+      {
+        "key": "cloudcertify-offline-v2",
+        "urls": [
+          "/offline.html"
+        ]
+      }
+    ]
+  },
+  "calls": [
+    {
+      "method": "OPTIONS",
+      "url": "https://api-cloudcertify.snowye.dev/quiz/1/start"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-cloudcertify.snowye.dev/quiz/1/start",
+      "body": "{\"email\":\"verification@example.test\"}"
+    },
+    {
+      "method": "OPTIONS",
+      "url": "https://api-cloudcertify.snowye.dev/quiz/1/answer"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-cloudcertify.snowye.dev/quiz/1/answer",
+      "body": "{\"submissionId\":99999,\"questionId\":90001,\"answerIds\":[1],\"confidence\":null}"
+    },
+    {
+      "method": "OPTIONS",
+      "url": "https://api-cloudcertify.snowye.dev/quiz/1/submit"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-cloudcertify.snowye.dev/quiz/1/submit",
+      "body": "{\"submissionId\":99999}"
+    }
+  ],
+  "consoleErrors": []
+}

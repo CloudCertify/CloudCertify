@@ -1,0 +1,77 @@
+{
+  "checks": [
+    {
+      "name": "Single selection replaces the previous answer",
+      "pass": true
+    },
+    {
+      "name": "Explanation is hidden until Check",
+      "pass": true
+    },
+    {
+      "name": "Checking keeps the selected answer in place",
+      "pass": true
+    },
+    {
+      "name": "Check becomes Continue without replacing or resizing the focused button",
+      "pass": true
+    },
+    {
+      "name": "Explanation expands through intermediate heights",
+      "pass": true
+    },
+    {
+      "name": "Multiple-response cap is preserved",
+      "pass": true
+    },
+    {
+      "name": "Incorrect feedback includes the explanation",
+      "pass": true
+    },
+    {
+      "name": "Practice completes with the expected score",
+      "pass": true
+    },
+    {
+      "name": "Exam retains the selected answer when returning",
+      "pass": true
+    },
+    {
+      "name": "Exam still requires explicit finish confirmation",
+      "pass": true
+    },
+    {
+      "name": "Exam completes with the expected score",
+      "pass": true
+    },
+    {
+      "name": "Keyboard navigation restores focus to the new question",
+      "pass": true
+    },
+    {
+      "name": "Digit shortcuts still select multiple answers",
+      "pass": true
+    },
+    {
+      "name": "Repeated keyboard interactions have no animation delay",
+      "pass": true
+    },
+    {
+      "name": "practice phone layout has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "exam phone layout has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion removes travel and expansion",
+      "pass": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "pass": true
+    }
+  ],
+  "consoleErrors": []
+}
