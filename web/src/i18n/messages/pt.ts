@@ -9,6 +9,7 @@ const formatNumber = new Intl.NumberFormat('pt-BR').format;
  */
 export const pt: Messages = {
   common: {
+    skipToContent: 'Pular para o conteúdo',
     loading: 'Carregando...',
     cloudProvider: 'Provedor de nuvem',
     dashboard: 'Painel',

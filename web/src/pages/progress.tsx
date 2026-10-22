@@ -80,7 +80,7 @@ function SignInGate() {
   const { t } = useI18n();
 
   return (
-    <main className='container flex-1 py-8'>
+    <main id="main-content" tabIndex={-1} className='container flex-1 py-8'>
       <div className='min-h-[62vh] border-2 border-black bg-dotgrid p-6 md:p-12'>
         <section className='mx-auto mt-12 max-w-3xl border-2 border-black bg-white p-8 text-center shadow-[6px_6px_0px_0px_#000] md:p-12'>
           <LockKeyhole className='mx-auto mb-3 h-7 w-7' aria-hidden='true' />
@@ -118,7 +118,7 @@ function PageMessage({
   action: ReactNode;
 }) {
   return (
-    <main className='container flex flex-1 items-center justify-center py-12'>
+    <main id="main-content" tabIndex={-1} className='container flex flex-1 items-center justify-center py-12'>
       <section className='w-full max-w-2xl border-2 border-black bg-white p-8 text-center shadow-[6px_6px_0px_0px_#000]'>
         <Target className='mx-auto h-8 w-8' aria-hidden='true' />
         <h1 className='mt-4 text-3xl font-black'>{title}</h1>
@@ -133,7 +133,7 @@ function ProgressLoading() {
   const { t } = useI18n();
 
   return (
-    <main className='container flex-1 py-8' aria-busy='true'>
+    <main id="main-content" tabIndex={-1} className='container flex-1 py-8' aria-busy='true'>
       <span role='status' className='sr-only'>{t.common.loading}</span>
       <div className='mb-8 h-28 animate-pulse border-2 border-dashed border-black bg-white' />
       <div className='grid animate-pulse border-2 border-black bg-black lg:grid-cols-2'>
@@ -663,7 +663,7 @@ export function ProgressPage() {
     );
   } else {
     content = (
-      <main className='container flex-1 py-8'>
+      <main id="main-content" tabIndex={-1} className='container flex-1 py-8'>
         <div className='space-y-6'>
           <ProgressIntro
             quizzes={quizzes}

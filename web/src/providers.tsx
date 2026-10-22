@@ -2,14 +2,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './auth/context';
 import { LanguageProvider } from './i18n/context';
+import { MotionConfig } from 'motion/react';
+import { useState } from 'react';
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
-  const qc = new QueryClient();
+  const [qc] = useState(() => new QueryClient());
 
   return (
     <QueryClientProvider client={qc}>
       <LanguageProvider>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider><MotionConfig reducedMotion='user'>{children}</MotionConfig></AuthProvider>
       </LanguageProvider>
       <Toaster
         position='bottom-center'

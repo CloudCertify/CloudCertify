@@ -231,7 +231,7 @@ export function QuizPage() {
       <div className='flex min-h-dvh flex-col bg-background'>
         <AppHeader />
 
-        <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        <main id="main-content" tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
           <PageBackLink href='/dashboard' className='mb-6'>
             {t.common.backToDashboard}
           </PageBackLink>
@@ -381,13 +381,13 @@ export function QuizPage() {
     <div className='flex min-h-dvh flex-col bg-background'>
       <AppHeader languageLocked />
 
-      <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+      <main id="main-content" tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
         <PageBackLink href='/dashboard' className='mb-6'>
           {t.common.backToDashboard}
         </PageBackLink>
         <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
           <CardHeader className='border-b-2 border-black pb-6'>
-            <div className='flex justify-between items-center mb-4'>
+            <div className='flex flex-wrap gap-2 justify-between items-center mb-4'>
               <Badge variant='outline'>
                 {t.question.counter(currentQuestionIndex + 1, totalQuestions)}
               </Badge>
@@ -436,7 +436,7 @@ export function QuizPage() {
               })}
             </div>
           </CardContent>
-          <CardFooter className='flex justify-between border-t-2 border-black pt-6'>
+          <CardFooter className='flex flex-wrap gap-3 justify-between border-t-2 border-black pt-6'>
             <Button
               variant='outline'
               onClick={handlePreviousQuestion}

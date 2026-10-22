@@ -1,0 +1,268 @@
+[
+  {
+    "version": "before",
+    "scenario": "header-mobile",
+    "width": 320,
+    "scrollWidth": 456,
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 66,
+      "top": 0,
+      "right": 320,
+      "bottom": 66,
+      "left": 0
+    },
+    "title": "Pass yourAWSAWScertthe first time.",
+    "overflow": [
+      {
+        "tag": "DIV",
+        "text": "ENPTDashboard",
+        "cls": "flex items-center justify-end gap-3",
+        "right": 455.6875
+      },
+      {
+        "tag": "DIV",
+        "text": "ENPT",
+        "cls": "inline-flex items-center gap-1 rounded-none border-2 border-black bg-white p-1 shadow-[2px_2px_0px_0px_#000]",
+        "right": 332.5
+      },
+      {
+        "tag": "BUTTON",
+        "text": "PT",
+        "cls": "rounded-none border-2 px-2 py-0.5 text-xs font-black transition-all border-transparent text-black hover:bg-background cursor-pointer",
+        "right": 326.5
+      },
+      {
+        "tag": "A",
+        "text": "Dashboard",
+        "cls": "cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-bold transition-[transform,box-shadow,background-color] duration-150 ease-[var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-black bg-primary text-white shadow-[4px_4px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none h-9 rounded-none gap-1.5 px-4",
+        "right": 455.6875
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "cls": "pointer-events-none absolute -right-40 -top-40 h-[28rem] w-[28rem] rounded-none bg-primary/20 blur-3xl",
+        "right": 480
+      },
+      {
+        "tag": "DIV",
+        "text": "AWSAzureSoonGCPSoon",
+        "cls": "inline-flex items-center gap-2 rounded-none border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000]",
+        "right": 341.109375
+      },
+      {
+        "tag": "BUTTON",
+        "text": "GCPSoon",
+        "cls": "relative flex items-center gap-2 rounded-none px-4 py-2 text-sm font-bold transition-all border-2 text-black border-transparent hover:bg-background",
+        "right": 331.109375
+      }
+    ]
+  },
+  {
+    "version": "before",
+    "scenario": "roadmap-mobile",
+    "width": 390,
+    "scrollWidth": 456,
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 66,
+      "top": 0,
+      "right": 390,
+      "bottom": 66,
+      "left": 0
+    },
+    "title": "Pass yourAWSAWScertthe first time.",
+    "overflow": [
+      {
+        "tag": "DIV",
+        "text": "ENPTDashboard",
+        "cls": "flex items-center justify-end gap-3",
+        "right": 455.6875
+      },
+      {
+        "tag": "A",
+        "text": "Dashboard",
+        "cls": "cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-bold transition-[transform,box-shadow,background-color] duration-150 ease-[var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-black bg-primary text-white shadow-[4px_4px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none h-9 rounded-none gap-1.5 px-4",
+        "right": 455.6875
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "cls": "pointer-events-none absolute -right-40 -top-40 h-[28rem] w-[28rem] rounded-none bg-primary/20 blur-3xl",
+        "right": 550
+      },
+      {
+        "tag": "DIV",
+        "text": "100%free",
+        "cls": "absolute -right-4 -top-3 z-20 flex h-20 w-20 items-center justify-center rounded-none border-2 border-black bg-secondary text-center text-[11px] font-black uppercase leading-tight shadow-[4px_4px_0px_0px_#000]",
+        "right": 397.4423828125
+      }
+    ]
+  },
+  {
+    "version": "before",
+    "scenario": "sample-portuguese",
+    "width": 320,
+    "scrollWidth": 397,
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 66,
+      "top": 0,
+      "right": 320,
+      "bottom": 66,
+      "left": 0
+    },
+    "overflow": [
+      {
+        "tag": "DIV",
+        "text": "ENPT",
+        "cls": "flex items-center justify-end gap-3",
+        "right": 332.5
+      },
+      {
+        "tag": "DIV",
+        "text": "ENPT",
+        "cls": "inline-flex items-center gap-1 rounded-none border-2 border-black bg-white p-1 shadow-[2px_2px_0px_0px_#000] opacity-60",
+        "right": 332.5
+      },
+      {
+        "tag": "BUTTON",
+        "text": "PT",
+        "cls": "rounded-none border-2 px-2 py-0.5 text-xs font-black transition-all border-black bg-primary text-white cursor-not-allowed",
+        "right": 326.5
+      },
+      {
+        "tag": "DIV",
+        "text": "Questão 1 de 3AWS Cloud Practitione",
+        "cls": "flex justify-between items-center mb-4",
+        "right": 397.34375
+      },
+      {
+        "tag": "SPAN",
+        "text": "AWS Cloud Practitioner (CLF-C02)",
+        "cls": "inline-flex items-center justify-center rounded-none border-2 border-black px-3 py-1 text-xs font-bold w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none transition-all overflow-hidden shadow-[2px_2px_0px_0px_#000] bg-primary text-white",
+        "right": 397.34375
+      },
+      {
+        "tag": "DIV",
+        "text": "Which of the following is NOT a ben",
+        "cls": "text-xl md:text-2xl font-black text-black",
+        "right": 397.34375
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "cls": "w-full mt-6",
+        "right": 397.34375
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "cls": "relative h-3 w-full overflow-hidden rounded-none bg-white border-2 border-black",
+        "right": 397.34375
+      }
+    ]
+  },
+  {
+    "version": "before",
+    "scenario": "auth-portuguese",
+    "width": 320,
+    "scrollWidth": 348,
+    "title": "O login não funcionou",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Ir para o início",
+        "cls": "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-bold transition-[transform,box-shadow,background-color] duration-150 ease-[var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-black bg-white text-black shadow-[4px_4px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none h-10 px-5 py-2 rounded-none",
+        "right": 348.4375
+      }
+    ]
+  },
+  {
+    "version": "after",
+    "scenario": "header-mobile",
+    "width": 320,
+    "scrollWidth": 320,
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 106,
+      "top": 0,
+      "right": 320,
+      "bottom": 106,
+      "left": 0
+    },
+    "title": "Pass yourAWSAWScertthe first time.",
+    "overflow": [
+      {
+        "tag": "DIV",
+        "text": "",
+        "cls": "pointer-events-none absolute -right-40 -top-40 h-[28rem] w-[28rem] rounded-none bg-primary/20 blur-3xl",
+        "right": 480
+      }
+    ]
+  },
+  {
+    "version": "after",
+    "scenario": "roadmap-mobile",
+    "width": 390,
+    "scrollWidth": 390,
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 106,
+      "top": 0,
+      "right": 390,
+      "bottom": 106,
+      "left": 0
+    },
+    "title": "Pass yourAWSAWScertthe first time.",
+    "overflow": [
+      {
+        "tag": "DIV",
+        "text": "",
+        "cls": "pointer-events-none absolute -right-40 -top-40 h-[28rem] w-[28rem] rounded-none bg-primary/20 blur-3xl",
+        "right": 550
+      },
+      {
+        "tag": "DIV",
+        "text": "100%free",
+        "cls": "absolute -right-4 -top-3 z-20 flex h-20 w-20 items-center justify-center rounded-none border-2 border-black bg-secondary text-center text-[11px] font-black uppercase leading-tight shadow-[4px_4px_0px_0px_#000]",
+        "right": 397.4423828125
+      }
+    ]
+  },
+  {
+    "version": "after",
+    "scenario": "sample-portuguese",
+    "width": 320,
+    "scrollWidth": 320,
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 106,
+      "top": 0,
+      "right": 320,
+      "bottom": 106,
+      "left": 0
+    },
+    "overflow": []
+  },
+  {
+    "version": "after",
+    "scenario": "auth-portuguese",
+    "width": 320,
+    "scrollWidth": 320,
+    "title": "O login não funcionou",
+    "overflow": []
+  }
+]
