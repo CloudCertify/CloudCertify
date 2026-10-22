@@ -24,7 +24,7 @@ type TierStyle = {
 const TIER_STYLES: Record<QuizLevel, TierStyle> = {
   foundational: {
     label: 'text-black',
-    marker: 'border-black bg-success text-white',
+    marker: 'border-black bg-success text-black',
     accent: 'bg-success',
     nodeBg: 'bg-success',
     nodeIcon: 'text-white'
@@ -45,7 +45,7 @@ const TIER_STYLES: Record<QuizLevel, TierStyle> = {
   },
   professional: {
     label: 'text-black',
-    marker: 'border-black bg-destructive text-white',
+    marker: 'border-black bg-destructive text-black',
     accent: 'bg-destructive',
     nodeBg: 'bg-destructive',
     nodeIcon: 'text-white'
@@ -88,12 +88,14 @@ export function CertificationRoadmap({
     <div className='mx-auto max-w-5xl'>
       {/* Provider tabs */}
       <div className='flex items-center justify-center gap-2 mb-10'>
-        <div className='inline-flex items-center gap-2 rounded-none border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000]'>
+        <div role='group' aria-label={t.common.cloudProvider} className='inline-flex flex-wrap max-w-full items-center gap-2 rounded-none border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000]'>
           {PROVIDERS.map(p => {
             const isActive = provider === p.id;
             return (
               <button
                 key={p.id}
+                type='button'
+                aria-pressed={isActive}
                 onClick={() => setProvider(p.id)}
                 className={cn(
                   'relative flex items-center gap-2 rounded-none px-4 py-2 text-sm font-bold transition-all border-2',
@@ -174,14 +176,14 @@ function TierRow({
 
       {/* Right content */}
       <div className='pb-2 min-w-0'>
-        <h4
+        <h3
           className={cn(
             'mb-4 text-xl md:text-2xl font-black tracking-tight',
             styles.label
           )}
         >
           {t.levels[tier.level]}
-        </h4>
+        </h3>
 
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
           {isLoading ? (
@@ -248,13 +250,16 @@ function CertificationNode({
 
         <div className='min-w-0 flex-1'>
           {code && (
-            <div className='font-mono text-[11px] font-bold uppercase tracking-wider text-black/60'>
+            <div className={cn(
+              'font-mono text-[11px] font-bold uppercase tracking-wider',
+              available ? 'text-black/60' : 'text-black'
+            )}>
               {code}
             </div>
           )}
-          <h5 className='text-sm font-bold leading-snug text-balance text-black'>
+          <h4 className='text-sm font-bold leading-snug text-balance text-black'>
             {name}
-          </h5>
+          </h4>
         </div>
 
         {available ? (

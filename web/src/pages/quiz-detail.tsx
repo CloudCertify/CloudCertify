@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -67,7 +67,8 @@ export function QuizDetailPage() {
     }
     return '';
   });
-  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   const [isStartingExam, setIsStartingExam] = useState(false);
   const [startingDrillId, setStartingDrillId] = useState<number | null>(null);
@@ -78,11 +79,12 @@ export function QuizDetailPage() {
     const result = emailSchema.safeParse(email.trim());
     if (!result.success) {
       const msg = result.error.issues[0]?.message ?? t.quizDetail.emailInvalid;
-      setEmailError(msg);
+      setEmailError(true);
       toast.error(msg);
+      emailRef.current?.focus();
       return false;
     }
-    setEmailError(null);
+    setEmailError(false);
     return true;
   };
 
@@ -150,12 +152,12 @@ export function QuizDetailPage() {
     <div className='flex min-h-dvh flex-col bg-background'>
       <AppHeader anonymousActions={<AuthMenu />} />
 
-      <main className='flex-1 container max-w-3xl mx-auto py-12 px-4 space-y-10'>
+      <main aria-busy={isLoading} className='flex-1 container max-w-3xl mx-auto py-12 px-4 space-y-10'>
         <PageBackLink href='/dashboard'>
           {t.common.backToDashboard}
         </PageBackLink>
         {isLoading ? (
-          <div className='h-64 animate-pulse rounded-none border-2 border-dashed border-black bg-white' />
+          <div role='status' aria-label={t.common.loading} className='h-64 animate-pulse rounded-none border-2 border-dashed border-black bg-white' />
         ) : quiz ? (
           <>
             {/* Certification header */}
@@ -203,23 +205,26 @@ export function QuizDetailPage() {
                 {t.quizDetail.emailLabel}
               </label>
               <input
+                ref={emailRef}
                 id='email'
                 type='email'
+                name='email'
+                autoComplete='email'
+                required
+                aria-invalid={emailError ? true : undefined}
+                aria-describedby={emailError ? 'email-error' : undefined}
                 value={email}
                 onChange={e => {
                   setEmail(e.target.value);
-                  if (emailError) setEmailError(null);
+                  if (emailError) setEmailError(false);
                 }}
                 onBlur={() => {
                   if (email.trim()) {
                     const result = emailSchema.safeParse(email.trim());
                     if (!result.success) {
-                      setEmailError(
-                        result.error.issues[0]?.message ??
-                          t.quizDetail.emailInvalid
-                      );
+                      setEmailError(true);
                     } else {
-                      setEmailError(null);
+                      setEmailError(false);
                     }
                   }
                 }}
@@ -231,7 +236,7 @@ export function QuizDetailPage() {
                 }`}
               />
               {emailError && (
-                <p className='text-sm font-bold text-destructive'>{emailError}</p>
+                <p id='email-error' role='alert' className='text-sm font-bold text-destructive'>{t.quizDetail.emailInvalid}</p>
               )}
             </div>
             )}
@@ -383,7 +388,7 @@ function DrillCard({
         ) : null}
       </CardHeader>
       <CardFooter className='pt-0'>
-        <div className='flex items-center justify-between w-full'>
+        <div className='flex flex-wrap items-center justify-between gap-2 w-full'>
           <span className='text-xs font-bold text-black/50'>
             {t.common.questions(15)}
           </span>
