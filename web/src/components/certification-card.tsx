@@ -1,3 +1,5 @@
+'use client';
+
 import { BookOpen } from 'lucide-react';
 import { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +12,7 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'wouter';
+import Link from 'next/link';
 import { capitalize, cn } from '@/lib/utils';
 import { getLevelStyle, LEVEL_LABELS } from '@/lib/quiz-level';
 import { useI18n } from '@/i18n/use-i18n';

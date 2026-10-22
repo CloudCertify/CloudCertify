@@ -1,7 +1,8 @@
 /** Keep development uncached and defer the worker's download until page load. */
-export function registerServiceWorker(): void {
+export function registerServiceWorker(): (() => void) | undefined {
   if (
-    !import.meta.env.PROD ||
+    process.env.NODE_ENV !== 'production' ||
+    typeof window === 'undefined' ||
     !window.isSecureContext ||
     !('serviceWorker' in navigator)
   ) {
@@ -20,5 +21,6 @@ export function registerServiceWorker(): void {
     register();
   } else {
     window.addEventListener('load', register, { once: true });
+    return () => window.removeEventListener('load', register);
   }
 }

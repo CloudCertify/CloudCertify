@@ -6,7 +6,7 @@ describe('production service worker registration', () => {
 
   beforeEach(() => {
     register.mockClear();
-    vi.stubEnv('PROD', true);
+    vi.stubEnv('NODE_ENV', 'production');
     vi.stubGlobal('isSecureContext', true);
     vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete');
     vi.stubGlobal('navigator', { serviceWorker: { register } });
@@ -37,7 +37,7 @@ describe('production service worker registration', () => {
   });
 
   it('leaves development uncached', () => {
-    vi.stubEnv('PROD', false);
+    vi.stubEnv('NODE_ENV', 'development');
     registerServiceWorker();
     expect(register).not.toHaveBeenCalled();
   });
@@ -48,6 +48,20 @@ describe('production service worker registration', () => {
     vi.stubGlobal('isSecureContext', true);
     vi.stubGlobal('navigator', {});
     expect(() => registerServiceWorker()).not.toThrow();
+    expect(register).not.toHaveBeenCalled();
+  });
+
+  it('does nothing during server rendering', () => {
+    vi.stubGlobal('window', undefined);
+    expect(() => registerServiceWorker()).not.toThrow();
+    expect(register).not.toHaveBeenCalled();
+  });
+
+  it('cleans up a pending load registration when the provider unmounts', () => {
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('loading');
+    const cleanup = registerServiceWorker();
+    cleanup?.();
+    window.dispatchEvent(new Event('load'));
     expect(register).not.toHaveBeenCalled();
   });
 

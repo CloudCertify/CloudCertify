@@ -1,6 +1,8 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { Link } from 'wouter';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export function PageBackLink({

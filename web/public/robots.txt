@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-# Keep utility routes crawlable so their noindex directives can be read.
-Sitemap: https://cloudcertify.snowye.dev/sitemap.xml

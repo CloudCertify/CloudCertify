@@ -2,14 +2,16 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it, vi } from 'vitest';
+import { rootMetadata } from '@/seo/metadata';
 
 const readPublic = (path: string) => readFileSync(resolve('public', path.replace(/^\//, '')));
 
 describe('install assets', () => {
   it('links the manifest and Apple icon in the app head', () => {
-    const page = new DOMParser().parseFromString(readFileSync(resolve('index.html'), 'utf8'), 'text/html');
-    expect(page.head.querySelector('link[rel="manifest"]')?.getAttribute('href')).toBe('/manifest.webmanifest');
-    expect(page.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href')).toBe('/icons/apple-touch-icon.png');
+    expect(rootMetadata.manifest).toBe('/manifest.webmanifest');
+    expect(rootMetadata.icons).toMatchObject({
+      apple: { url: '/icons/apple-touch-icon.png', sizes: '180x180' }
+    });
   });
 
   it('declares an app identity, standalone root scope, and valid PNG install icons', () => {

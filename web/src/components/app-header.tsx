@@ -1,6 +1,8 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { Cloud } from 'lucide-react';
-import { Link } from 'wouter';
+import Link from 'next/link';
 import { useAuth } from '@/auth/use-auth';
 import { AuthMenu } from '@/components/auth-menu';
 import { LanguageSwitcher } from '@/components/language-switcher';
