@@ -150,7 +150,7 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
     <div className='flex min-h-dvh flex-col bg-background'>
       <AppHeader anonymousActions={<AuthMenu />} />
 
-      <main className='flex-1 container max-w-3xl mx-auto py-12 px-4 space-y-10'>
+      <main id='main-content' tabIndex={-1} className='flex-1 container max-w-3xl mx-auto py-12 px-4 space-y-10'>
         <PageBackLink href='/dashboard'>
           {t.common.backToDashboard}
         </PageBackLink>

@@ -218,7 +218,7 @@ export function QuizSessionPage() {
     return (
       <div className='flex min-h-dvh flex-col bg-background'>
         <AppHeader />
-        <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        <main id="main-content" tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
           <PageBackLink href='/dashboard' className='mb-6'>
             {t.common.backToDashboard}
           </PageBackLink>
@@ -316,7 +316,7 @@ export function QuizSessionPage() {
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
       <AppHeader languageLocked />
-      <main className='container mx-auto flex-1 max-w-7xl px-4 py-12'>
+      <main id="main-content" tabIndex={-1} className='container mx-auto flex-1 max-w-7xl px-4 py-12'>
         <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
           {t.common.back}
         </PageBackLink>

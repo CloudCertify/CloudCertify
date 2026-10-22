@@ -54,7 +54,7 @@ export function AuthCallbackPage() {
 
   if (!failed) {
     return (
-      <main className='flex min-h-dvh items-center justify-center bg-background'>
+      <main id="main-content" tabIndex={-1} className='flex min-h-dvh items-center justify-center bg-background'>
         <div role='status' className='flex items-center gap-3 font-black text-black'>
           <Cloud aria-hidden='true' className='h-6 w-6 animate-pulse' />
           {t.auth.signingIn}
@@ -64,7 +64,7 @@ export function AuthCallbackPage() {
   }
 
   return (
-    <main className='flex min-h-dvh items-center justify-center bg-background px-4'>
+    <main id="main-content" tabIndex={-1} className='flex min-h-dvh items-center justify-center bg-background px-4'>
       <div className='w-full max-w-md rounded-none border-2 border-black bg-white p-8 text-center shadow-[4px_4px_0px_0px_#000] space-y-4'>
         <AlertTriangle aria-hidden='true' className='mx-auto h-10 w-10 text-destructive' />
         <h1 className='text-xl font-black text-black'>{t.auth.failedTitle}</h1>

@@ -16,6 +16,7 @@ type SampleQuestion = {
  */
 export const en = {
   common: {
+    skipToContent: 'Skip to content',
     loading: 'Loading...',
     cloudProvider: 'Cloud provider',
     dashboard: 'Dashboard',

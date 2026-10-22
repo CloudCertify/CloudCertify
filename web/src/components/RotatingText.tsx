@@ -2,6 +2,7 @@ import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo
 import {
   motion,
   AnimatePresence,
+  useReducedMotion,
   Transition,
   type VariantLabels,
   type Target,
@@ -68,6 +69,7 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
     ref
   ) => {
     const [currentTextIndex, setCurrentTextIndex] = useState<number>(0);
+    const reducedMotion = useReducedMotion();
 
     const splitIntoCharacters = (text: string): string[] => {
       if (typeof Intl !== 'undefined' && Intl.Segmenter) {
@@ -173,10 +175,10 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
     );
 
     useEffect(() => {
-      if (!auto) return;
+      if (!auto || reducedMotion) return;
       const intervalId = setInterval(next, rotationInterval);
       return () => clearInterval(intervalId);
-    }, [next, rotationInterval, auto]);
+    }, [next, rotationInterval, auto, reducedMotion]);
 
     return (
       <motion.span
