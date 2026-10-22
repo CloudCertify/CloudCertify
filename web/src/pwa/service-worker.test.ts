@@ -21,7 +21,7 @@ function worker() {
   };
   const caches = {
     open: vi.fn().mockResolvedValue(cache),
-    keys: vi.fn().mockResolvedValue(['cloudcertify-offline-v0', 'cloudcertify-offline-v1', 'other-app-cache']),
+    keys: vi.fn().mockResolvedValue(['cloudcertify-offline-v1', 'cloudcertify-offline-v2', 'other-app-cache']),
     delete: vi.fn().mockResolvedValue(true)
   };
   const fetch = vi.fn<(request: Request | NavigationEvent['request']) => Promise<Response>>().mockResolvedValue(new Response('<meta name="cloudcertify-offline" content="1" />', {
@@ -93,7 +93,7 @@ describe('shipped service worker', () => {
   it('cleans only obsolete offline caches and enables parallel navigation loading', async () => {
     const sw = worker();
     await sw.lifecycle('activate');
-    expect(sw.caches.delete).toHaveBeenCalledExactlyOnceWith('cloudcertify-offline-v0');
+    expect(sw.caches.delete).toHaveBeenCalledExactlyOnceWith('cloudcertify-offline-v1');
     expect(sw.enable).toHaveBeenCalledOnce();
     expect(sw.skipWaiting).not.toHaveBeenCalled();
     expect(sw.claim).not.toHaveBeenCalled();
