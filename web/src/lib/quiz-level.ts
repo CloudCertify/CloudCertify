@@ -10,10 +10,10 @@ type LevelStyle = {
 // Difficulty ladder shares the roadmap tier colors; professional gets its
 // own color so all four levels are distinguishable at a glance.
 const LEVEL_STYLES: Record<QuizLevel, LevelStyle> = {
-  foundational: { bg: 'bg-success', ink: 'text-white' },
+  foundational: { bg: 'bg-success', ink: 'text-black' },
   associate: { bg: 'bg-primary', ink: 'text-white' },
   specialist: { bg: 'bg-secondary', ink: 'text-black' },
-  professional: { bg: 'bg-destructive', ink: 'text-white' }
+  professional: { bg: 'bg-destructive', ink: 'text-black' }
 };
 
 const FALLBACK_STYLE: LevelStyle = { bg: 'bg-primary', ink: 'text-white' };
