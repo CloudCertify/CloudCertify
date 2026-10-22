@@ -2,6 +2,7 @@ import { lazy, useEffect } from 'react';
 import { HomePage } from './pages/home';
 import { Route, Router } from 'wouter';
 import { Providers } from './providers';
+import { PageMetadata } from './seo/page-metadata';
 import { RouteBoundary } from './route-boundary';
 
 const QuizPage = lazy(() =>
@@ -47,6 +48,7 @@ export function App() {
   return (
     <Providers>
       <Router>
+        <PageMetadata />
         <RouteBoundary>
           {QuizMotionPrototypePage && <Route path='/prototype/quiz-motion' component={QuizMotionPrototypePage} />}
           <Route path='/' component={HomePage} />
