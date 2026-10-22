@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="cloudcertify-offline" content="1" />
+    <meta name="color-scheme" content="light" />
+    <title>Connection unavailable | CloudCertify</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 1.5rem; background: #f5f3ec; color: #000; font-family: 'JetBrains Mono', monospace; line-height: 1.6; }
+      main { max-width: 38rem; margin: 10vh auto; }
+      h1 { font-family: 'Archivo Black', sans-serif; line-height: 1.2; overflow-wrap: anywhere; }
+      a { display: inline-block; min-height: 44px; padding: .5rem 1.25rem; border: 2px solid #000; background: #2347d9; color: #fff; box-shadow: 4px 4px 0 #000; font-size: .875rem; font-weight: 700; text-decoration: none; }
+      a:focus-visible { outline: 2px solid #2347d9; outline-offset: 4px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>CloudCertify</p>
+      <h1 id="heading">Connection unavailable</h1>
+      <p id="message">CloudCertify could not connect. Exams, answers, and account data need an internet connection.</p>
+      <p id="attempt">If you have an attempt open in another tab, keep that tab open and reconnect there. This page cannot confirm whether an answer was saved.</p>
+      <a id="retry" href="">Try this page again</a>
+    </main>
+    <script>
+      // Self-contained so the fallback needs no network resources or app bundle.
+      let stored;
+      try { stored = localStorage.getItem('cloudcertify:language'); } catch { /* storage may be blocked */ }
+      const supported = (tag) => /^(en|pt)(-|$)/i.test(tag || '');
+      const language = supported(stored) ? stored : [...navigator.languages, navigator.language].find(supported);
+      if (/^pt(-|$)/i.test(language || '')) {
+        document.documentElement.lang = 'pt-BR';
+        document.title = 'Conexão indisponível | CloudCertify';
+        document.getElementById('heading').textContent = 'Conexão indisponível';
+        document.getElementById('message').textContent = 'Não foi possível conectar ao CloudCertify. Simulados, respostas e dados da conta precisam de uma conexão com a internet.';
+        document.getElementById('attempt').textContent = 'Se você tem uma tentativa aberta em outra aba, mantenha essa aba aberta e reconecte por lá. Esta página não pode confirmar se uma resposta foi salva.';
+        document.getElementById('retry').textContent = 'Tentar esta página novamente';
+      }
+    </script>
+  </body>
+</html>

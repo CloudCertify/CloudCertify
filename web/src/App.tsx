@@ -1,16 +1,32 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, useEffect } from 'react';
 import { HomePage } from './pages/home';
 import { Route, Router } from 'wouter';
-import { QuizPage } from './pages/quiz';
-import { DashboardPage } from './pages/dashboard';
-import { QuizDetailPage } from './pages/quiz-detail';
-import { QuizSessionPage } from './pages/quiz-session';
-import { DrillSessionPage } from './pages/drill-session';
-import { AuthCallbackPage } from './pages/auth-callback';
 import { Providers } from './providers';
-import { ProgressPage } from './pages/progress';
+import { RouteBoundary } from './route-boundary';
 
-const QuizMotionPrototypePage = lazy(() => import('./pages/quiz-motion-prototype').then(module => ({ default: module.QuizMotionPrototypePage })));
+const QuizPage = lazy(() =>
+  import('./pages/quiz').then(module => ({ default: module.QuizPage }))
+);
+const DashboardPage = lazy(() =>
+  import('./pages/dashboard').then(module => ({ default: module.DashboardPage }))
+);
+const QuizDetailPage = lazy(() =>
+  import('./pages/quiz-detail').then(module => ({ default: module.QuizDetailPage }))
+);
+const QuizSessionPage = lazy(() =>
+  import('./pages/quiz-session').then(module => ({ default: module.QuizSessionPage }))
+);
+const DrillSessionPage = lazy(() =>
+  import('./pages/drill-session').then(module => ({ default: module.DrillSessionPage }))
+);
+const AuthCallbackPage = lazy(() =>
+  import('./pages/auth-callback').then(module => ({ default: module.AuthCallbackPage }))
+);
+const ProgressPage = lazy(() =>
+  import('./pages/progress').then(module => ({ default: module.ProgressPage }))
+);
+
+const QuizMotionPrototypePage = import.meta.env.DEV ? lazy(() => import('./pages/quiz-motion-prototype').then(module => ({ default: module.QuizMotionPrototypePage }))) : null;
 
 export function App() {
   useEffect(() => {
@@ -31,15 +47,17 @@ export function App() {
   return (
     <Providers>
       <Router>
-        {import.meta.env.DEV && <Route path='/prototype/quiz-motion'><Suspense fallback={null}><QuizMotionPrototypePage /></Suspense></Route>}
-        <Route path='/' component={HomePage} />
-        <Route path='/quiz' component={QuizPage} />
-        <Route path='/quiz/:id' component={QuizDetailPage} />
-        <Route path='/quiz/:id/session' component={QuizSessionPage} />
-        <Route path='/quiz/:id/drill/:drillId/session' component={DrillSessionPage} />
-        <Route path='/dashboard' component={DashboardPage} />
-        <Route path='/progress' component={ProgressPage} />
-        <Route path='/auth/callback' component={AuthCallbackPage} />
+        <RouteBoundary>
+          {QuizMotionPrototypePage && <Route path='/prototype/quiz-motion' component={QuizMotionPrototypePage} />}
+          <Route path='/' component={HomePage} />
+          <Route path='/quiz' component={QuizPage} />
+          <Route path='/quiz/:id' component={QuizDetailPage} />
+          <Route path='/quiz/:id/session' component={QuizSessionPage} />
+          <Route path='/quiz/:id/drill/:drillId/session' component={DrillSessionPage} />
+          <Route path='/dashboard' component={DashboardPage} />
+          <Route path='/progress' component={ProgressPage} />
+          <Route path='/auth/callback' component={AuthCallbackPage} />
+        </RouteBoundary>
       </Router>
     </Providers>
   );
