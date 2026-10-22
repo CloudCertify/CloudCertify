@@ -86,12 +86,14 @@ function ProviderTabs({
   const { t } = useI18n();
 
   return (
-    <div className='inline-flex items-center gap-2 rounded-none border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000] w-fit'>
+    <div role='group' aria-label={t.common.cloudProvider} className='inline-flex flex-wrap max-w-full items-center gap-2 rounded-none border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000] w-fit'>
       {PROVIDERS.map(p => {
         const isActive = provider === p.id;
         return (
           <button
             key={p.id}
+            type='button'
+            aria-pressed={isActive}
             onClick={() => onSelect(p.id)}
             className={cn(
               'relative flex items-center gap-2 rounded-none px-4 py-2 text-sm font-bold transition-all border-2',

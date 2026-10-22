@@ -58,6 +58,26 @@ describe('ReportQuestionControl', () => {
     postReports.mockResolvedValue({ data: {} });
   });
 
+  it('focuses the report heading and restores the trigger on Escape', () => {
+    render(<Harness suggestable={SUGGESTABLE} />);
+    const trigger = screen.getByRole('button', { name: en.report.trigger });
+    trigger.focus();
+    openForm();
+    expect(screen.getByText(en.report.title)).toHaveFocus();
+    const form = screen.getByRole('form', { name: en.report.title });
+    fireEvent.keyDown(form, { key: 'Escape' });
+    expect(screen.getByRole('button', { name: en.report.trigger })).toHaveFocus();
+  });
+
+  it('names each suggested answer checkbox and describes the comment limit', () => {
+    render(<Harness suggestable={SUGGESTABLE} />);
+    openForm();
+    startEditing();
+    expect(screen.getByRole('checkbox', { name: en.report.suggest.correctLabel(0) })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: en.report.suggest.correctLabel(1) })).not.toBeChecked();
+    expect(screen.getByLabelText(en.report.commentLabel)).toHaveAccessibleDescription('0/200');
+  });
+
   it('requires at least one reason and allows several at once', () => {
     render(<Harness />);
     openForm();
@@ -110,6 +130,7 @@ describe('ReportQuestionControl', () => {
       comment: 'the explanation is circular',
       suggestion: null
     });
+    expect(screen.getByRole('status')).toHaveFocus();
     expect(toastSuccess).toHaveBeenCalledWith(en.report.success);
     expect(
       screen.queryByRole('button', { name: en.report.trigger })
@@ -170,8 +191,8 @@ describe('ReportQuestionControl', () => {
     });
     // B becomes the key, A stops being it; B's wording is left alone.
     fireEvent.change(answerText(0), { target: { value: 'A' } });
-    fireEvent.click(screen.getAllByLabelText(en.report.suggest.correct)[0]);
-    fireEvent.click(screen.getAllByLabelText(en.report.suggest.correct)[1]);
+    fireEvent.click(screen.getByRole('checkbox', { name: en.report.suggest.correctLabel(0) }));
+    fireEvent.click(screen.getByRole('checkbox', { name: en.report.suggest.correctLabel(1) }));
 
     expect(screen.getByText(en.report.suggest.changes(3))).toBeInTheDocument();
     fireEvent.click(submitButton());
@@ -202,7 +223,7 @@ describe('ReportQuestionControl', () => {
     expect(reason('wrong_answer_key')).not.toBeChecked();
     expect(submitButton()).toBeEnabled();
 
-    fireEvent.click(screen.getAllByLabelText(en.report.suggest.correct)[0]);
+    fireEvent.click(screen.getByRole('checkbox', { name: en.report.suggest.correctLabel(0) }));
     expect(reason('wrong_answer_key')).toBeChecked();
   });
 

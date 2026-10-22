@@ -29,8 +29,8 @@ export function AppHeader({
     <header className='sticky top-0 z-50 w-full border-b-2 border-black bg-white'>
       <div
         className={cn(
-          'container grid h-16 grid-cols-[auto_1fr_auto] items-center gap-3',
-          children && 'sm:grid-cols-[1fr_auto_1fr]'
+          'container flex min-h-16 flex-wrap items-center justify-between gap-3 py-2 lg:grid lg:h-16 lg:grid-cols-[auto_1fr_auto] lg:py-0',
+          children && 'lg:grid-cols-[1fr_auto_1fr]'
         )}
       >
         <Link href='/' className='flex items-center gap-2 text-xl font-black'>
@@ -42,7 +42,7 @@ export function AppHeader({
 
         <div className='hidden items-center justify-center sm:flex'>{children}</div>
 
-        <div className='flex items-center justify-end gap-3'>
+        <div className='flex flex-wrap items-center justify-end gap-3'>
           {isAuthenticated ? (
             <AuthMenu languageLocked={languageLocked} />
           ) : (

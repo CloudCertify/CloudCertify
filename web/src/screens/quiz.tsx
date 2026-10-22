@@ -28,7 +28,6 @@ import { useI18n } from '@/i18n/use-i18n';
 type Answer = {
   id: number;
   questionId: number;
-  text: string;
   isCorrect: boolean;
   createdAt: string;
 };
@@ -36,7 +35,6 @@ type Answer = {
 type Question = {
   id: number;
   quizId: number;
-  text: string;
   type: string;
   createdAt: string;
   answers: Answer[];
@@ -60,35 +58,31 @@ const quizData: Quiz = {
     {
       id: 136,
       quizId: 1,
-      text: 'Which of the following is NOT a benefit of using AWS Lambda?',
+
       type: 'multiple_choice',
       createdAt: '2025-03-30T00:31:34.728842Z',
       answers: [
         {
           id: 578,
           questionId: 136,
-          text: 'AWS Lambda runs code without provisioning or managing servers.',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 579,
           questionId: 136,
-          text: 'AWS Lambda provides resizable compute capacity in the cloud.',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 580,
           questionId: 136,
-          text: 'There is no charge when your AWS Lambda code is not running.',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 581,
           questionId: 136,
-          text: 'AWS Lambda can be called directly from any mobile app.',
           isCorrect: true,
           createdAt: '2025-03-30T00:31:34.728842Z'
         }
@@ -97,35 +91,31 @@ const quizData: Quiz = {
     {
       id: 137,
       quizId: 1,
-      text: 'Which AWS service is designed for storing and retrieving objects and is known for its durability?',
+
       type: 'multiple_choice',
       createdAt: '2025-03-30T00:31:34.728842Z',
       answers: [
         {
           id: 582,
           questionId: 137,
-          text: 'Amazon EC2',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 583,
           questionId: 137,
-          text: 'Amazon S3',
           isCorrect: true,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 584,
           questionId: 137,
-          text: 'Amazon RDS',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 585,
           questionId: 137,
-          text: 'Amazon VPC',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         }
@@ -134,35 +124,31 @@ const quizData: Quiz = {
     {
       id: 138,
       quizId: 1,
-      text: 'Which AWS service provides a virtual network dedicated to your AWS account?',
+
       type: 'multiple_choice',
       createdAt: '2025-03-30T00:31:34.728842Z',
       answers: [
         {
           id: 586,
           questionId: 138,
-          text: 'Amazon VPC',
           isCorrect: true,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 587,
           questionId: 138,
-          text: 'AWS Direct Connect',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 588,
           questionId: 138,
-          text: 'Amazon Route 53',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         },
         {
           id: 589,
           questionId: 138,
-          text: 'AWS Transit Gateway',
           isCorrect: false,
           createdAt: '2025-03-30T00:31:34.728842Z'
         }
@@ -176,12 +162,23 @@ const PASS_THRESHOLD = 70;
 
 export function QuizPage() {
   const { t } = useI18n();
+  const quiz = {
+    ...quizData,
+    questions: quizData.questions.map((question, index) => ({
+      ...question,
+      text: t.demoQuiz[index].question,
+      answers: question.answers.map((answer, answerIndex) => ({
+        ...answer,
+        text: t.demoQuiz[index].options[answerIndex]
+      }))
+    }))
+  };
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
   const [quizCompleted, setQuizCompleted] = useState(false);
 
-  const currentQuestion = quizData.questions[currentQuestionIndex];
-  const totalQuestions = quizData.questions.length;
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const totalQuestions = quiz.questions.length;
   const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
 
   const handleAnswerSelect = (answerId: number) => {
@@ -214,7 +211,7 @@ export function QuizPage() {
 
   const calculateScore = () => {
     let correctAnswers = 0;
-    quizData.questions.forEach(question => {
+    quiz.questions.forEach(question => {
       const userAnswerId = userAnswers[question.id];
       const correctAnswer = question.answers.find(answer => answer.isCorrect);
       if (userAnswerId && correctAnswer && userAnswerId === correctAnswer.id) {
@@ -245,7 +242,7 @@ export function QuizPage() {
               <CardTitle className='text-2xl md:text-3xl font-black text-black'>
                 {t.results.quizTitle}
               </CardTitle>
-              <p className='text-black/70 font-medium mt-2'>{quizData.title}</p>
+              <p className='text-black/70 font-medium mt-2'>{quiz.title}</p>
             </CardHeader>
             <CardContent className='space-y-8 py-8'>
               <div className='flex flex-col items-center justify-center space-y-4'>
@@ -278,7 +275,7 @@ export function QuizPage() {
                   {t.review.summaryHeading}
                 </h3>
                 <Accordion type='single' collapsible className='w-full'>
-                  {quizData.questions.map((question, index) => {
+                  {quiz.questions.map((question, index) => {
                     const userAnswerId = userAnswers[question.id];
                     const correctAnswer = question.answers.find(a => a.isCorrect);
                     const isCorrect =
@@ -396,24 +393,26 @@ export function QuizPage() {
               <Badge variant='outline'>
                 {t.question.counter(currentQuestionIndex + 1, totalQuestions)}
               </Badge>
-              <Badge>{quizData.title}</Badge>
+              <Badge>{quiz.title}</Badge>
             </div>
             <CardTitle className='text-xl md:text-2xl font-black text-black'>
               {currentQuestion.text}
             </CardTitle>
             <div className='w-full mt-6'>
-              <Progress value={progress} />
+              <Progress value={progress} aria-label={t.question.counter(currentQuestionIndex + 1, totalQuestions)} />
             </div>
           </CardHeader>
           <CardContent className='py-6'>
-            <div className='space-y-3'>
+            <div className='space-y-3' role='group' aria-label={currentQuestion.text}>
               {currentQuestion.answers.map(answer => {
                 const isSelected = userAnswers[currentQuestion.id] === answer.id;
 
                 return (
-                  <div
+                  <button
+                    type='button'
+                    aria-pressed={isSelected}
                     key={answer.id}
-                    className={`p-4 rounded-none border-2 border-black ${
+                    className={`w-full text-left p-4 rounded-none border-2 border-black ${
                       isSelected
                         ? 'bg-primary shadow-none translate-x-[2px] translate-y-[2px]'
                         : 'bg-white hover:bg-background shadow-[4px_4px_0px_0px_#000]'
@@ -434,7 +433,7 @@ export function QuizPage() {
                     >
                       {answer.text}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
             </div>

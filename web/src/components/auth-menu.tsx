@@ -65,14 +65,14 @@ export function AuthMenu({ languageLocked = false }: { languageLocked?: boolean 
   if (!isAuthenticated) {
     return (
       <div className='flex items-center gap-2'>
-        <Button variant='outline' size='sm' onClick={() => login('google')}>
+        <Button aria-label={t.auth.continueWith('Google')} variant='outline' size='sm' onClick={() => login('google')}>
           <GoogleIcon />
           <span className='ml-2 hidden sm:inline'>
             {t.auth.continueWith('Google')}
           </span>
           <span className='ml-2 sm:hidden'>Google</span>
         </Button>
-        <Button variant='outline' size='sm' onClick={() => login('github')}>
+        <Button aria-label={t.auth.continueWith('GitHub')} variant='outline' size='sm' onClick={() => login('github')}>
           <GitHubIcon />
           <span className='ml-2 hidden sm:inline'>
             {t.auth.continueWith('GitHub')}
