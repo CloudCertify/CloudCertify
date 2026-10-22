@@ -5,6 +5,7 @@ import { App } from './App';
 
 const loaded = vi.hoisted(() => vi.fn());
 vi.mock('./providers', () => ({ Providers: ({ children }: { children: ReactNode }) => children }));
+vi.mock('./seo/page-metadata', () => ({ PageMetadata: () => null }));
 vi.mock('./pages/home', () => ({ HomePage: () => <h1>Home route</h1> }));
 vi.mock('./pages/quiz', () => { loaded('quiz'); return { QuizPage: () => <h1>Quiz route</h1> }; });
 vi.mock('./pages/dashboard', () => { loaded('dashboard'); return { DashboardPage: () => <h1>Dashboard route</h1> }; });

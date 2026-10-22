@@ -67,17 +67,22 @@ describe('public home prerender', () => {
     document.body.innerHTML = `<div id="root">${body}</div>`;
     // The snapshot remains deterministic even if preferences differ from build.
     setCurrentLanguage('pt-BR');
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 0));
     const recover = vi.fn();
     await act(async () => {
       root = hydrateRoot(document.getElementById('root')!,
         <HomeHydration year={year}><App /></HomeHydration>, { onRecoverableError: recover });
     });
     await waitFor(() => { expect(document.documentElement.lang).toBe('pt-BR'); });
-    expect(screen.getByRole('button', { name: 'Português' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'PT: Português' })).toHaveAttribute('aria-pressed', 'true');
     expect(document.title).toContain('certificações em nuvem');
-    fireEvent.click(screen.getByRole('button', { name: 'English' }));
+    fireEvent.click(screen.getByRole('button', { name: 'EN: English' }));
     await waitFor(() => { expect(document.documentElement.lang).toBe('en-US'); });
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain(en.home.heroTitleLead);
+    for (let element: HTMLElement | null = screen.getByRole('heading', { level: 1 }); element; element = element.parentElement) {
+      expect(element.style.opacity).not.toBe('0');
+    }
+    expect(document.body.textContent).toContain('500+');
     expect(recover).not.toHaveBeenCalled();
     await waitFor(() => { expect(request).toHaveBeenCalled(); });
     expect(request.mock.calls.every(([config]) => config.url === '/quiz')).toBe(true);

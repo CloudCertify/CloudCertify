@@ -26,12 +26,12 @@ It emits `spa.html` from the untouched generated shell, then fills `index.html`.
 Preserve both Vercel rewrites: home to index, other SPA routes to spa. The plugin
 also preserves that distinction in Vite preview. Other static hosts must do so.
 
-When merging the PWA slice, preserve its plugins and these noindex headers.
-Configure service-worker navigation fallback to `/spa.html`, not the populated
-homepage, and verify both HTML assets in its generated precache. The PWA PR
-must add the manifest link to `/manifest.webmanifest` and
-the 180x180 Apple icon link to `/icons/apple-touch-icon.png` with those assets.
-This slice deliberately has no dependency on their existence.
+Preserve the manifest/Apple icon links, PWA cache headers, and utility noindex
+headers. The worker caches only `/offline.html`; neither HTML shell nor API data
+belongs in its cache. Online navigation uses the server rewrites above. Updates
+wait until controlled tabs close. The hydration handoff suppresses initial
+entrances and keeps displayed counts, avoiding a visible disappearance after
+first paint. Live queries, language preferences, and ongoing motion still run.
 
 ## Checks and parent evidence
 

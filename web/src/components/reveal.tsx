@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, useInView, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
-import { StaticRenderContext } from '@/lib/static-render-context';
+import { HydratedContentContext, StaticRenderContext } from '@/lib/static-render-context';
 
 type RevealProps = {
   children: ReactNode;
@@ -60,9 +60,12 @@ export function CountUp({
   const inView = useInView(ref, { once: true, margin: '-40px' });
   const [value, setValue] = useState(0);
   const isStatic = useContext(StaticRenderContext);
+  const hydrated = useContext(HydratedContentContext);
+  const reducedMotion = useReducedMotion();
+  const showFinalValue = isStatic || hydrated || reducedMotion;
 
   useEffect(() => {
-    if (!inView) return;
+    if (!inView || showFinalValue) return;
     let raf = 0;
     const start = performance.now();
     const tick = (now: number) => {
@@ -73,12 +76,12 @@ export function CountUp({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [inView, to, duration]);
+  }, [inView, to, duration, showFinalValue]);
 
   return (
     <span ref={ref} className={cn('tabular-nums', className)}>
       {prefix}
-      {isStatic ? to : value}
+      {showFinalValue ? to : value}
       {suffix}
     </span>
   );
