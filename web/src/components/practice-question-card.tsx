@@ -283,14 +283,15 @@ export function PracticeQuestionCard({
       </CardContent>
       <CardFooter className='flex flex-wrap gap-3 justify-end border-t-2 border-black pt-6'>
         {!isRevealed ? (
-          <Button className='min-w-40' onClick={onCheck} disabled={!canCheck || isChecking} aria-busy={isChecking}>
+          // Busy buttons stay focusable: disabling the focused button would drop keyboard focus to <body>.
+          <Button className='min-w-40 aria-disabled:opacity-50' onClick={() => !isChecking && onCheck()} disabled={!canCheck} aria-disabled={isChecking || undefined} aria-busy={isChecking}>
             {isChecking && <LoaderCircle className='quiz-busy-indicator h-4 w-4' aria-hidden='true' />}
             <span key='check' className='quiz-cta inline-flex items-center'>
               {isChecking ? t.question.checking : t.question.check}
             </span>
           </Button>
         ) : (
-          <Button className='min-w-40' onClick={onContinue} disabled={isFinishing} aria-busy={isFinishing}>
+          <Button className='min-w-40 aria-disabled:opacity-50' onClick={() => !isFinishing && onContinue()} aria-disabled={isFinishing || undefined} aria-busy={isFinishing}>
             {isFinishing && <LoaderCircle className='quiz-busy-indicator h-4 w-4' aria-hidden='true' />}
             <span key='continue' className='quiz-cta inline-flex items-center'>
               {isFinishing

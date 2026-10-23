@@ -54,8 +54,27 @@ describe('PracticeQuestionCard report control', () => {
     fireEvent.keyDown(window, { key: '2' });
     fireEvent.keyDown(beta, { key: ' ' });
     expect(onSelect).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: /checking/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /checking/i })).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('button', { name: /checking/i })).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('keeps keyboard focus on Check while it is busy and through the reveal', () => {
+    const onCheck = vi.fn();
+    const props = {
+      index: 0, total: 2, question, selectedIds: [10], onSelect: () => {}, onCheck,
+      onContinue: () => {}, isFinishing: false, isLast: false
+    };
+    const { rerender } = render(<PracticeQuestionCard {...props} phase='answering' reveal={null} isChecking={false} />);
+    const button = screen.getByRole('button', { name: 'Check' });
+    button.focus();
+    rerender(<PracticeQuestionCard {...props} phase='answering' reveal={null} isChecking />);
+    // A disabled button would lose focus; a busy one must stay focusable but inert.
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveFocus();
+    fireEvent.click(button);
+    expect(onCheck).not.toHaveBeenCalled();
+    rerender(<PracticeQuestionCard {...props} phase='revealed' reveal={{ isCorrect: true, correctAnswerIds: [10], selectedAnswerIds: [10] }} isChecking={false} />);
+    expect(screen.getByRole('button', { name: /continue/i })).toHaveFocus();
   });
 
   it('is not reachable before the question has been Checked', () => {
