@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { HomePage } from './pages/home';
 import { Route, Router } from 'wouter';
 import { QuizPage } from './pages/quiz';
@@ -9,6 +9,8 @@ import { DrillSessionPage } from './pages/drill-session';
 import { AuthCallbackPage } from './pages/auth-callback';
 import { Providers } from './providers';
 import { ProgressPage } from './pages/progress';
+
+const QuizMotionPrototypePage = lazy(() => import('./pages/quiz-motion-prototype').then(module => ({ default: module.QuizMotionPrototypePage })));
 
 export function App() {
   useEffect(() => {
@@ -29,6 +31,7 @@ export function App() {
   return (
     <Providers>
       <Router>
+        {import.meta.env.DEV && <Route path='/prototype/quiz-motion'><Suspense fallback={null}><QuizMotionPrototypePage /></Suspense></Route>}
         <Route path='/' component={HomePage} />
         <Route path='/quiz' component={QuizPage} />
         <Route path='/quiz/:id' component={QuizDetailPage} />

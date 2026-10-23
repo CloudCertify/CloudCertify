@@ -68,23 +68,64 @@ function Harness({
   );
 }
 
+function quizKey(key: string) {
+  if (document.activeElement === document.body) screen.getByRole('heading').focus();
+  fireEvent.keyDown(window, { key });
+}
+
 const option = (name: string) => screen.getByRole('radio', { name });
 const checkbox = (name: string) => screen.getByRole('checkbox', { name });
 
 describe('QuestionCard keyboard support', () => {
+  it('leaves page and screen-reader shortcuts alone outside the quiz', () => {
+    const onNext = vi.fn();
+    render(<><button>Outside</button><Harness question={singleQuestion} onNext={onNext} /></>);
+    screen.getByRole('button', { name: 'Outside' }).focus();
+    fireEvent.keyDown(window, { key: '1' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(option('Alpha')).toHaveAttribute('aria-checked', 'false');
+    expect(onNext).not.toHaveBeenCalled();
+  });
+
+  it('names progress and associates the selection instruction with the answer group', () => {
+    render(<Harness question={multiQuestion} />);
+    expect(screen.getByRole('progressbar', { name: 'Question 1 of 2' })).toHaveAttribute('aria-valuenow', '50');
+    expect(screen.getByRole('group', { name: 'Pick one' })).toHaveAccessibleDescription('Select 2 answers');
+  });
+
+  it('moves lost answer focus to the new question after keyboard navigation', () => {
+    function NavigationHarness() {
+      const [index, setIndex] = useState(0);
+      const question = index === 0 ? singleQuestion : {
+        ...singleQuestion,
+        id: 2,
+        text: 'Next question',
+        answers: [{ id: 40, text: 'Delta' }, { id: 50, text: 'Epsilon' }]
+      };
+      return <QuestionCard index={index} total={2} question={question} selectedIds={[]} onSelect={() => {}} onPrev={() => setIndex(0)} onNext={() => setIndex(1)} onFinish={() => {}} finishLabel='Finish' isSubmitting={false} />;
+    }
+    render(<NavigationHarness />);
+    quizKey('ArrowDown');
+    expect(option('Alpha')).toHaveFocus();
+    fireEvent.keyDown(option('Alpha'), { key: 'ArrowRight' });
+    expect(screen.getByRole('heading', { name: 'Next question' })).toHaveFocus();
+    quizKey('ArrowDown');
+    expect(option('Delta')).toHaveFocus();
+  });
+
   it('number keys select in single-select, replacing the previous pick', () => {
     render(<Harness question={singleQuestion} />);
-    fireEvent.keyDown(window, { key: '1' });
+    quizKey('1');
     expect(option('Alpha')).toHaveAttribute('aria-checked', 'true');
 
-    fireEvent.keyDown(window, { key: '3' });
+    quizKey('3');
     expect(option('Alpha')).toHaveAttribute('aria-checked', 'false');
     expect(option('Gamma')).toHaveAttribute('aria-checked', 'true');
   });
 
   it('ignores number keys beyond the option count', () => {
     render(<Harness question={singleQuestion} />);
-    fireEvent.keyDown(window, { key: '9' });
+    quizKey('9');
     ['Alpha', 'Beta', 'Gamma'].forEach(name =>
       expect(option(name)).toHaveAttribute('aria-checked', 'false')
     );
@@ -92,18 +133,18 @@ describe('QuestionCard keyboard support', () => {
 
   it('multi-select: numbers toggle, extra picks at cap are ignored', () => {
     render(<Harness question={multiQuestion} />);
-    fireEvent.keyDown(window, { key: '1' });
-    fireEvent.keyDown(window, { key: '2' });
+    quizKey('1');
+    quizKey('2');
     expect(checkbox('Alpha')).toHaveAttribute('aria-checked', 'true');
     expect(checkbox('Beta')).toHaveAttribute('aria-checked', 'true');
 
     // At cap: pressing 3 does nothing.
-    fireEvent.keyDown(window, { key: '3' });
+    quizKey('3');
     expect(checkbox('Gamma')).toHaveAttribute('aria-checked', 'false');
 
     // Deselect 1, then 3 goes in.
-    fireEvent.keyDown(window, { key: '1' });
-    fireEvent.keyDown(window, { key: '3' });
+    quizKey('1');
+    quizKey('3');
     expect(checkbox('Alpha')).toHaveAttribute('aria-checked', 'false');
     expect(checkbox('Beta')).toHaveAttribute('aria-checked', 'true');
     expect(checkbox('Gamma')).toHaveAttribute('aria-checked', 'true');
@@ -111,12 +152,12 @@ describe('QuestionCard keyboard support', () => {
 
   it('single-select: arrows move focus only, wrapping; Space selects', () => {
     render(<Harness question={singleQuestion} />);
-    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    quizKey('ArrowDown');
     expect(option('Alpha')).toHaveFocus();
     expect(option('Alpha')).toHaveAttribute('aria-checked', 'false');
 
-    fireEvent.keyDown(window, { key: 'ArrowUp' });
-    fireEvent.keyDown(window, { key: 'ArrowUp' });
+    quizKey('ArrowUp');
+    quizKey('ArrowUp');
     expect(option('Beta')).toHaveFocus();
     expect(option('Beta')).toHaveAttribute('aria-checked', 'false');
 
@@ -126,8 +167,8 @@ describe('QuestionCard keyboard support', () => {
 
   it('multi-select: arrows only move focus; Space toggles the focused option', () => {
     render(<Harness question={multiQuestion} />);
-    fireEvent.keyDown(window, { key: 'ArrowDown' });
-    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    quizKey('ArrowDown');
+    quizKey('ArrowDown');
     expect(checkbox('Beta')).toHaveFocus();
     expect(checkbox('Beta')).toHaveAttribute('aria-checked', 'false');
 
@@ -139,12 +180,12 @@ describe('QuestionCard keyboard support', () => {
     const onNext = vi.fn();
     const onFinish = vi.fn();
     const { unmount } = render(<Harness question={singleQuestion} onNext={onNext} />);
-    fireEvent.keyDown(window, { key: 'Enter' });
+    quizKey('Enter');
     expect(onNext).toHaveBeenCalledOnce();
     unmount();
 
     render(<Harness question={singleQuestion} onFinish={onFinish} isLast />);
-    fireEvent.keyDown(window, { key: 'Enter' });
+    quizKey('Enter');
     expect(onFinish).toHaveBeenCalledOnce();
   });
 
@@ -153,10 +194,10 @@ describe('QuestionCard keyboard support', () => {
     const onNext = vi.fn();
     render(<Harness question={singleQuestion} onPrev={onPrev} onNext={onNext} />);
 
-    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    quizKey('ArrowRight');
     expect(onNext).toHaveBeenCalledOnce();
 
-    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    quizKey('ArrowLeft');
     expect(onPrev).not.toHaveBeenCalled();
   });
 
@@ -165,10 +206,10 @@ describe('QuestionCard keyboard support', () => {
     const onNext = vi.fn();
     render(<Harness question={singleQuestion} onPrev={onPrev} onNext={onNext} isLast />);
 
-    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    quizKey('ArrowLeft');
     expect(onPrev).toHaveBeenCalledOnce();
 
-    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    quizKey('ArrowRight');
     expect(onNext).not.toHaveBeenCalled();
   });
 
