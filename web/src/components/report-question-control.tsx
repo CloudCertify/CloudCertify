@@ -342,7 +342,10 @@ export function ReportQuestionControl({
         <Button
           type='submit'
           size='sm'
-          disabled={effectiveReasons.length === 0 || isSubmitting}
+          // Stay focusable while sending so a failed send keeps keyboard focus here.
+          className='aria-disabled:opacity-50'
+          disabled={effectiveReasons.length === 0}
+          aria-disabled={isSubmitting || undefined}
         >
           {isSubmitting ? t.report.submitting : t.report.submit}
         </Button>
