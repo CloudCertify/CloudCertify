@@ -89,7 +89,7 @@ export function QuizDetailPage() {
   };
 
   const handleStartExam = async () => {
-    if (!validateEmail()) return;
+    if (isStartingExam || startingDrillId !== null || !validateEmail()) return;
     setIsStartingExam(true);
     try {
       const response = await postQuizQuizIdStart(
@@ -112,7 +112,7 @@ export function QuizDetailPage() {
   };
 
   const handleStartDrill = async (drill: DrillDto) => {
-    if (!validateEmail()) return;
+    if (isStartingExam || startingDrillId !== null || !validateEmail()) return;
     setStartingDrillId(drill.id);
     try {
       const response = await postQuizQuizIdDrillsDrillIdStart(
@@ -300,9 +300,10 @@ export function QuizDetailPage() {
                 </CardContent>
                 <CardFooter className='border-t-2 border-black pt-4'>
                   <Button
-                    className='w-full'
+                    className='w-full aria-disabled:opacity-50'
                     onClick={handleStartExam}
-                    disabled={isStartingExam}
+                    aria-disabled={isStartingExam || undefined}
+                    aria-busy={isStartingExam}
                   >
                     {isStartingExam ? t.common.starting : t.quizDetail.startExam}
                     {!isStartingExam && <ArrowRight className='ml-2 h-4 w-4' />}
@@ -394,8 +395,11 @@ function DrillCard({
           </span>
           <Button
             size='sm'
+            className='aria-disabled:opacity-50'
             onClick={onStart}
-            disabled={isUnavailable || isStarting}
+            disabled={isUnavailable}
+            aria-disabled={isStarting || undefined}
+            aria-busy={isStarting}
           >
             {isStarting ? t.common.starting : t.quizDetail.practice}
             {!isStarting && <ArrowRight className='ml-1 h-3 w-3' />}
