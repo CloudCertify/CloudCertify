@@ -1,5 +1,7 @@
 import type { QuestionDifficulty } from '@/http/generated/api.schemas';
 
+const formatNumber = new Intl.NumberFormat('en-US').format;
+
 type SampleQuestion = {
   question: string;
   options: string[];
@@ -14,6 +16,9 @@ type SampleQuestion = {
  */
 export const en = {
   common: {
+    skipToContent: 'Skip to content',
+    loading: 'Loading...',
+    cloudProvider: 'Cloud provider',
     dashboard: 'Dashboard',
     progress: 'Progress',
     backToDashboard: 'Back to Dashboard',
@@ -29,7 +34,7 @@ export const en = {
     fail: 'FAIL',
     correct: 'Correct',
     incorrect: 'Incorrect',
-    questions: (count: number) => `${count} Questions`
+    questions: (count: number) => count === 1 ? '1 Question' : `${count} Questions`
   },
 
   language: {
@@ -237,7 +242,7 @@ export const en = {
     nextMove: 'Your next move',
     leadTitle: (domain: string) => `Focus on ${domain}.`,
     leadBody: (standing: number, seen: number) =>
-      `${standing}% Standing across ${seen} seen Questions. It is your weakest eligible Domain.`,
+      `${formatNumber(standing)}% Standing across ${formatNumber(seen)} seen Questions. It is your weakest eligible Domain.`,
     buildBaselineTitle: 'Build a useful baseline.',
     buildBaselineBody:
       'Finish more Questions so CloudCertify can identify the Domain where a Drill Mix will help most.',
@@ -251,10 +256,10 @@ export const en = {
     latestSnapshot: 'Latest snapshot',
     noDomains: 'Finish some Questions to establish Domain standing.',
     domainMeta: (index: number, seen: number) =>
-      `Domain ${String(index).padStart(2, '0')} / ${seen} seen`,
-    delta: (value: number) => `${value >= 0 ? '+' : ''}${value} pts`,
+      `Domain ${String(index).padStart(2, '0')} / ${formatNumber(seen)} seen`,
+    delta: (value: number) => `${value >= 0 ? '+' : ''}${formatNumber(value)} pts`,
     standingLabel: (domain: string, standing: number) =>
-      `${domain}: ${standing}% Standing`,
+      `${domain}: ${formatNumber(standing)}% Standing`,
     movement: 'Movement',
     examScore: 'Exam percent correct',
     noExamEyebrow: 'No Exam baseline',
@@ -265,7 +270,7 @@ export const en = {
     baselineBody:
       'Finish one more Exam to see movement from this baseline. Your Domain standing is already useful now.',
     trendLabel: (first: number, last: number, count: number) =>
-      `Exam percent correct moved from ${first}% to ${last}% across ${count} finished Exams`,
+      `Exam percent correct moved from ${formatNumber(first)}% to ${formatNumber(last)}% across ${count} finished Exams`,
     finishedOnly: 'Finished Submissions only / newest 10 Exams'
   },
 
@@ -294,6 +299,26 @@ export const en = {
     practice: 'Practice',
     notFound: 'Quiz not found.'
   },
+
+  demoQuiz: [
+    {
+      question: 'Which of the following is NOT a benefit of using AWS Lambda?',
+      options: [
+        'AWS Lambda runs code without provisioning or managing servers.',
+        'AWS Lambda provides resizable compute capacity in the cloud.',
+        'There is no charge when your AWS Lambda code is not running.',
+        'AWS Lambda can be called directly from any mobile app.'
+      ]
+    },
+    {
+      question: 'Which AWS service is designed for storing and retrieving objects and is known for its durability?',
+      options: ['Amazon EC2', 'Amazon S3', 'Amazon RDS', 'Amazon VPC']
+    },
+    {
+      question: 'Which AWS service provides a virtual network dedicated to your AWS account?',
+      options: ['Amazon VPC', 'AWS Direct Connect', 'Amazon Route 53', 'AWS Transit Gateway']
+    }
+  ] as Pick<SampleQuestion, 'question' | 'options'>[],
 
   question: {
     counter: (index: number, total: number) => `Question ${index} of ${total}`,
@@ -385,6 +410,7 @@ export const en = {
       questionLabel: 'Question',
       answerLabel: (index: number) => `Answer ${String.fromCharCode(65 + index)}`,
       correct: 'Correct',
+      correctLabel: (index: number) => `Answer ${String.fromCharCode(65 + index)} is correct`,
       noChanges: 'No changes yet.',
       changes: (count: number) =>
         count === 1 ? '1 change to send' : `${count} changes to send`

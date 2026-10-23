@@ -80,7 +80,7 @@ function SignInGate() {
   const { t } = useI18n();
 
   return (
-    <main className='container flex-1 py-8'>
+    <main id="main-content" tabIndex={-1} className='container flex-1 py-8'>
       <div className='min-h-[62vh] border-2 border-black bg-dotgrid p-6 md:p-12'>
         <section className='mx-auto mt-12 max-w-3xl border-2 border-black bg-white p-8 text-center shadow-[6px_6px_0px_0px_#000] md:p-12'>
           <LockKeyhole className='mx-auto mb-3 h-7 w-7' aria-hidden='true' />
@@ -118,7 +118,7 @@ function PageMessage({
   action: ReactNode;
 }) {
   return (
-    <main className='container flex flex-1 items-center justify-center py-12'>
+    <main id="main-content" tabIndex={-1} className='container flex flex-1 items-center justify-center py-12'>
       <section className='w-full max-w-2xl border-2 border-black bg-white p-8 text-center shadow-[6px_6px_0px_0px_#000]'>
         <Target className='mx-auto h-8 w-8' aria-hidden='true' />
         <h1 className='mt-4 text-3xl font-black'>{title}</h1>
@@ -130,8 +130,11 @@ function PageMessage({
 }
 
 function ProgressLoading() {
+  const { t } = useI18n();
+
   return (
-    <main className='container flex-1 py-8' aria-busy='true'>
+    <main id="main-content" tabIndex={-1} className='container flex-1 py-8' aria-busy='true'>
+      <span role='status' className='sr-only'>{t.common.loading}</span>
       <div className='mb-8 h-28 animate-pulse border-2 border-dashed border-black bg-white' />
       <div className='grid animate-pulse border-2 border-black bg-black lg:grid-cols-2'>
         <div className='h-80 bg-secondary/60' />
@@ -256,7 +259,7 @@ function LeadPanel({
         <Button
           type='button'
           size='lg'
-          className='mt-7 w-fit bg-black text-white'
+          className='mt-7 h-auto min-h-12 max-w-full w-fit whitespace-normal bg-black text-white'
           disabled={starting !== null}
           onClick={() => onStartDrill(leadDrill)}
         >
@@ -271,7 +274,7 @@ function LeadPanel({
         <Button
           type='button'
           size='lg'
-          className='mt-7 w-fit bg-black text-white'
+          className='mt-7 h-auto min-h-12 max-w-full w-fit whitespace-normal bg-black text-white'
           disabled={starting !== null}
           onClick={onStartExam}
         >
@@ -284,7 +287,8 @@ function LeadPanel({
 }
 
 function StandingPanel({ domains }: { domains: DomainStandingDto[] }) {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
+  const formatNumber = new Intl.NumberFormat(language).format;
 
   return (
     <section className='bg-white p-6 md:p-8' aria-labelledby='standing-title'>
@@ -317,7 +321,7 @@ function StandingPanel({ domains }: { domains: DomainStandingDto[] }) {
                   <h3 className='truncate text-sm font-black'>{domain.name}</h3>
                 </div>
                 <div className='shrink-0 text-right'>
-                  <div className='text-xl font-black'>{domain.standing}%</div>
+                  <div className='text-xl font-black'>{formatNumber(domain.standing)}%</div>
                   {domain.delta != null ? (
                     <div
                       className={`font-mono text-[9px] font-black uppercase ${
@@ -364,6 +368,7 @@ function TrendChart({ trend }: { trend: TrendPointDto[] }) {
   const points = trend.map((point, index) =>
     chartPoint(point, index, trend.length)
   );
+  const formatNumber = new Intl.NumberFormat(language).format;
   const line = points.map(point => `${point.x},${point.y}`).join(' ');
   const dateFormatter = new Intl.DateTimeFormat(language, {
     month: 'short',
@@ -429,7 +434,7 @@ function TrendChart({ trend }: { trend: TrendPointDto[] }) {
                 textAnchor='middle'
                 className='fill-black text-[8px] font-black'
               >
-                {point.percent}%
+                {formatNumber(point.percent)}%
               </text>
             </g>
           ))}
@@ -463,7 +468,7 @@ function MovementPanel({
   starting: StartingTarget;
   onStartExam: () => void;
 }) {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const baseline = progress.trend.at(-1)?.percent ?? 0;
 
   return (
@@ -509,7 +514,7 @@ function MovementPanel({
               {t.progress.baselineSet}
             </span>
             <div className='mt-2 text-6xl font-black tracking-[-0.06em]'>
-              {baseline}%
+              {new Intl.NumberFormat(language).format(baseline)}%
             </div>
             <p className='mt-5 max-w-xl text-sm font-bold text-black/65'>
               {t.progress.baselineBody}
@@ -658,7 +663,7 @@ export function ProgressPage() {
     );
   } else {
     content = (
-      <main className='container flex-1 py-8'>
+      <main id="main-content" tabIndex={-1} className='container flex-1 py-8'>
         <div className='space-y-6'>
           <ProgressIntro
             quizzes={quizzes}

@@ -115,7 +115,7 @@ describe('AppHeader', () => {
     renderHeader({ authenticated: true });
     const trigger = openMenu();
 
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Português' }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'PT: Português' }));
 
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('pt-BR');
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
@@ -134,19 +134,19 @@ describe('AppHeader', () => {
     fireEvent.keyDown(progress, { key: 'ArrowDown', code: 'ArrowDown' });
 
     await waitFor(() =>
-      expect(screen.getByRole('menuitemradio', { name: 'English' })).toHaveFocus()
+      expect(screen.getByRole('menuitemradio', { name: 'EN: English' })).toHaveFocus()
     );
   });
 
   it('locks language controls both standalone and inside the profile menu', () => {
     const { unmount } = renderHeader({ languageLocked: true });
-    expect(screen.getByRole('button', { name: 'Português' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'PT: Português' })).toBeDisabled();
     unmount();
 
     renderHeader({ authenticated: true, languageLocked: true });
     openMenu();
     expect(
-      screen.getByRole('menuitemradio', { name: 'Português' })
+      screen.getByRole('menuitemradio', { name: 'PT: Português' })
     ).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('group', { name: 'Change language' })).toHaveAttribute(
       'title',
