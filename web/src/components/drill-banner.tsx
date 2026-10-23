@@ -86,7 +86,7 @@ export function DrillBanner({
       <span className='text-sm font-bold text-black'>
         {t.drill.signInPitch}
       </span>
-      <div className='flex items-center gap-2'>
+      <div className='flex flex-wrap items-center gap-2'>
         <Button variant='outline' size='sm' onClick={() => login('google')}>
           {t.auth.continueWith('Google')}
         </Button>
