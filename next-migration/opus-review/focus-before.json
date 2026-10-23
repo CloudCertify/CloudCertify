@@ -1,0 +1,45 @@
+{
+  "results": [
+    {
+      "name": "start-pending",
+      "focused": "BODY",
+      "text": "{\"@context\":\"https://schema.org\",\"@type\":\"WebPage\",\"name\":\"AWS Certified Cloud Practitioner (CLF-C02",
+      "busy": null
+    },
+    {
+      "name": "start-failed",
+      "focused": "BODY",
+      "text": "{\"@context\":\"https://schema.org\",\"@type\":\"WebPage\",\"name\":\"AWS Certified Cloud Practitioner (CLF-C02",
+      "busy": null
+    },
+    {
+      "name": "check-pending",
+      "focused": "BODY",
+      "text": "Skip to contentCloudCertifyENPTBackSign in and your missed questions come back to you.Continue with ",
+      "busy": null
+    },
+    {
+      "name": "check-revealed",
+      "focused": "BODY",
+      "text": "Skip to contentCloudCertifyENPTBackQuestion 1 of 1Local keyboard verificationWhich service stores ob",
+      "busy": null
+    },
+    {
+      "name": "report-pending",
+      "focused": "BODY",
+      "text": "Skip to contentCloudCertifyENPTBackQuestion 1 of 1Local keyboard verificationWhich service stores ob",
+      "busy": null
+    },
+    {
+      "name": "report-failed",
+      "focused": "BODY",
+      "text": "Skip to contentCloudCertifyENPTBackQuestion 1 of 1Local keyboard verificationWhich service stores ob",
+      "busy": null
+    }
+  ],
+  "counts": {
+    "/quiz/1/start": 1,
+    "/quiz/1/drills/1/check": 1,
+    "/reports": 1
+  }
+}

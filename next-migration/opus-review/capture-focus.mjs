@@ -1,0 +1,19 @@
+import {Browser,sleep} from "/Users/snowye/.t3/worktrees/CloudCertify/t3-d2b35559/.agents/skills/design-taste-frontend/scripts/lib/cdp.mjs";
+import {writeFileSync,mkdirSync} from "node:fs";
+import assert from "node:assert/strict";
+const phase=process.argv[2], origin="http://localhost:4173", out="/tmp/cloudcertify-next-evidence/opus-review";mkdirSync(out,{recursive:true});
+const browser=await Browser.launch();const results=[];
+try { const p=await browser.newPage({width:390,height:900,mobile:true});let pending=[];const counts={};
+await p.send("Fetch.enable",{patterns:[{urlPattern:"https://api-cloudcertify.snowye.dev/*"}]});
+async function fulfill(event,status,data){await p.send("Fetch.fulfillRequest",{requestId:event.requestId,responseCode:status,responseHeaders:[{name:"Content-Type",value:"application/json"},{name:"Access-Control-Allow-Origin",value:origin},{name:"Access-Control-Allow-Methods",value:"GET, POST, OPTIONS"},{name:"Access-Control-Allow-Headers",value:"content-type,accept-language,authorization"}],body:Buffer.from(JSON.stringify(data)).toString("base64")});}
+browser.on(p.sessionId,"Fetch.requestPaused",async e=>{if(e.request.method==="GET")return p.send("Fetch.continueRequest",{requestId:e.requestId});if(e.request.method==="OPTIONS")return fulfill(e,200,{});const key=new URL(e.request.url).pathname;counts[key]=(counts[key]||0)+1;pending.push(e);});
+async function press(){await p.send("Input.dispatchKeyEvent",{type:"keyDown",text:"\r",key:"Enter",code:"Enter",windowsVirtualKeyCode:13});await p.send("Input.dispatchKeyEvent",{type:"keyUp",key:"Enter",code:"Enter",windowsVirtualKeyCode:13});await sleep(150);}
+async function activate(label){await p.eval(label=>{const el=[...document.querySelectorAll("button")].find(e=>e.textContent.trim()===label);if(!el)throw Error("missing "+label);el.scrollIntoView({block:"center"});el.focus();},label);await press();}
+async function state(name){const s=await p.eval(()=>({focused:document.activeElement.tagName,text:document.activeElement.textContent.slice(0,100),busy:document.activeElement.getAttribute("aria-disabled"),disabled:document.activeElement.disabled}));results.push({name,...s});await p.screenshot({path:`${out}/focus-${phase}-${name}.png`,format:"png"});if(phase==="after")assert.equal(s.focused,"BUTTON",name);return s;}
+await p.goto(origin+"/quiz/1");await p.eval(()=>{const e=document.querySelector("input[type=email]");Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call(e,"test@example.test");e.dispatchEvent(new Event("input",{bubbles:true}));});await activate("Start Exam");await state("start-pending");await press();assert.equal(pending.length,1);await fulfill(pending.shift(),503,{});await sleep(300);await state("start-failed");
+const q={id:90001,text:"Which service stores objects?",type:"multiple_choice",selectCount:1,answers:[{id:1,text:"Amazon S3"},{id:2,text:"Amazon EC2"}]};
+await p.eval(q=>sessionStorage.setItem("drill-session-1-1",JSON.stringify({email:"test@example.test",drillDetail:{id:1,title:"Local keyboard verification",submissionId:99999,questions:[q]}})),q);
+await p.goto(origin+"/quiz/1/drill/1/session");await p.eval(()=>document.querySelector("[role=radio]").click());await activate("Check");await state("check-pending");await press();assert.equal(pending.length,1);await fulfill(pending.shift(),200,{isCorrect:true,correctAnswerIds:[1],selectedAnswerIds:[1],explanation:"S3 is object storage."});await sleep(400);await state("check-revealed");
+await activate("Report a problem");await p.eval(()=>document.querySelector("form input[type=checkbox]").click());await activate("Send report");await state("report-pending");await press();assert.equal(pending.length,1);await fulfill(pending.shift(),503,{});await sleep(300);await state("report-failed");
+writeFileSync(`${out}/focus-${phase}.json`,JSON.stringify({results,counts},null,2));console.log(results);
+}finally{await browser.close();}

@@ -1,0 +1,51 @@
+{
+  "results": [
+    {
+      "name": "start-pending",
+      "focused": "BUTTON",
+      "text": "Starting...",
+      "busy": "true",
+      "disabled": false
+    },
+    {
+      "name": "start-failed",
+      "focused": "BUTTON",
+      "text": "Start Exam",
+      "busy": null,
+      "disabled": false
+    },
+    {
+      "name": "check-pending",
+      "focused": "BUTTON",
+      "text": "Checking...",
+      "busy": "true",
+      "disabled": false
+    },
+    {
+      "name": "check-revealed",
+      "focused": "BUTTON",
+      "text": "Finish drill",
+      "busy": null,
+      "disabled": false
+    },
+    {
+      "name": "report-pending",
+      "focused": "BUTTON",
+      "text": "Sending...",
+      "busy": "true",
+      "disabled": false
+    },
+    {
+      "name": "report-failed",
+      "focused": "BUTTON",
+      "text": "Send report",
+      "busy": null,
+      "disabled": false
+    }
+  ],
+  "counts": {
+    "/quiz/1/start": 1,
+    "/quiz/1/drills/1/check": 1,
+    "/reports": 1
+  }
+}
