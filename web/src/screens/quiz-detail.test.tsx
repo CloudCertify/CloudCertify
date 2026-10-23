@@ -96,6 +96,29 @@ describe('QuizDetailPage start flow', () => {
     expect(screen.getByLabelText(/your email/i)).toHaveValue('saved@example.com');
   });
 
+  it.each(['exam', 'drill'] as const)('keeps %s focus through a failed start and blocks repeat starts', async mode => {
+    let fail: (error: Error) => void = () => {};
+    const request = mode === 'exam' ? postQuizQuizIdStart : postQuizQuizIdDrillsDrillIdStart;
+    request.mockReturnValue(new Promise((_, reject) => { fail = reject; }));
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/your email/i), { target: { value: 'visitor@example.com' } });
+    const exam = screen.getByRole('button', { name: en.quizDetail.startExam });
+    const drill = screen.getByRole('button', { name: en.quizDetail.practice });
+    const start = mode === 'exam' ? exam : drill;
+    start.focus();
+    fireEvent.click(start);
+    expect(start).not.toBeDisabled();
+    expect(start).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(start);
+    fireEvent.click(mode === 'exam' ? drill : exam);
+    expect(postQuizQuizIdStart).toHaveBeenCalledTimes(mode === 'exam' ? 1 : 0);
+    expect(postQuizQuizIdDrillsDrillIdStart).toHaveBeenCalledTimes(mode === 'drill' ? 1 : 0);
+    fail(new Error('offline'));
+    await waitFor(() => expect(toastError).toHaveBeenCalledOnce());
+    expect(start).toHaveFocus();
+    expect(start).not.toHaveAttribute('aria-disabled');
+  });
+
   it('focuses invalid email and connects its error to the field', () => {
     renderPage();
     const input = screen.getByRole('textbox', { name: en.quizDetail.emailLabel });
