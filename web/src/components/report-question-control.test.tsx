@@ -69,6 +69,24 @@ describe('ReportQuestionControl', () => {
     expect(screen.getByRole('button', { name: en.report.trigger })).toHaveFocus();
   });
 
+  it('keeps focus on Submit while sending and after a failed send', async () => {
+    let fail: (error: Error) => void = () => {};
+    postReports.mockReturnValue(new Promise((_, reject) => { fail = reject; }));
+    render(<Harness />);
+    openForm();
+    fireEvent.click(reason('wrong_answer_key'));
+    submitButton().focus();
+    fireEvent.click(submitButton());
+    const busy = screen.getByRole('button', { name: en.report.submitting });
+    expect(busy).not.toBeDisabled();
+    expect(busy).toHaveFocus();
+    fireEvent.click(busy);
+    expect(postReports).toHaveBeenCalledTimes(1);
+    fail(new Error('offline'));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(en.report.error));
+    expect(submitButton()).toHaveFocus();
+  });
+
   it('names each suggested answer checkbox and describes the comment limit', () => {
     render(<Harness suggestable={SUGGESTABLE} />);
     openForm();
