@@ -1,8 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Router } from 'wouter';
-import { memoryLocation } from 'wouter/memory-location';
 import { AuthProvider } from '@/auth/context';
 import { clearToken, setToken } from '@/auth/token';
 import { LanguageProvider } from '@/i18n/context';
@@ -42,25 +40,22 @@ function renderHeader({
     setToken(makeJwt({ exp: Math.floor(Date.now() / 1000) + 3600 }));
   }
 
-  const location = memoryLocation({ path: '/', record: true });
   const result = render(
     <QueryClientProvider client={new QueryClient()}>
       <LanguageProvider>
         <AuthProvider>
-          <Router hook={location.hook}>
-            <AppHeader
-              languageLocked={languageLocked}
-              anonymousActions={<a href='/dashboard'>Dashboard</a>}
-            >
-              <a href='#certifications'>Certifications</a>
-            </AppHeader>
-          </Router>
+          <AppHeader
+            languageLocked={languageLocked}
+            anonymousActions={<a href='/dashboard'>Dashboard</a>}
+          >
+            <a href='#certifications'>Certifications</a>
+          </AppHeader>
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );
 
-  return { location, ...result };
+  return result;
 }
 
 function openMenu() {

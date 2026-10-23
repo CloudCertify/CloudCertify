@@ -1,37 +1,6 @@
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/service-worker.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    },
-    {
-      "source": "/offline.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    },
-    {
-      "source": "/manifest.webmanifest",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    }
-  ]
+  "framework": "nextjs",
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".next",
+  "devCommand": "pnpm dev"
 }

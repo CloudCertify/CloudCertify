@@ -18,6 +18,7 @@ export type JwtPayload = {
 };
 
 export function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
   try {
     return localStorage.getItem(TOKEN_STORAGE_KEY);
   } catch {

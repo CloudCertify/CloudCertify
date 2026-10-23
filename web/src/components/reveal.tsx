@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { motion, useInView, useReducedMotion } from 'motion/react';
+'use client';
+
+import type { ReactNode } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 type RevealProps = {
@@ -12,7 +14,7 @@ type RevealProps = {
 };
 
 /**
- * Scroll-triggered entry: fade + rise (+ optional tilt), once, with a
+ * Scroll-triggered rise (+ optional tilt), once, with a
  * weighty ease. Respects reduced-motion via Framer's defaults.
  */
 export function Reveal({
@@ -22,14 +24,13 @@ export function Reveal({
   y = 28,
   rotate = 0
 }: RevealProps) {
-  // Motion's whileInView does NOT auto-respect reduced motion — gate the
-  // movement ourselves, keeping the opacity fade so comprehension survives.
+  // Keep server-rendered content visible and respect reduced motion.
   const reduce = useReducedMotion();
 
   return (
     <motion.div
       className={className}
-      initial={reduce ? { opacity: 0 } : { opacity: 0, y, rotate }}
+      initial={reduce ? false : { y, rotate }}
       whileInView={{ opacity: 1, y: 0, rotate: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
@@ -43,40 +44,20 @@ type CountUpProps = {
   to: number;
   suffix?: string;
   prefix?: string;
-  duration?: number;
   className?: string;
 };
 
-/** Animates a number from 0 → `to` the first time it scrolls into view. */
+/** Keep the final count visible in server-rendered and hydrated content. */
 export function CountUp({
   to,
   suffix = '',
   prefix = '',
-  duration = 1.4,
   className
 }: CountUpProps) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-40px' });
-  const [value, setValue] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / (duration * 1000), 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setValue(Math.round(to * eased));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [inView, to, duration]);
-
   return (
-    <span ref={ref} className={cn('tabular-nums', className)}>
+    <span className={cn('tabular-nums', className)}>
       {prefix}
-      {value}
+      {to}
       {suffix}
     </span>
   );

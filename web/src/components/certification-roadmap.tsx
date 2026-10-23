@@ -1,6 +1,8 @@
+'use client';
+
 import { useMemo, useState } from 'react';
 import { ArrowRight, Clock, Lock } from 'lucide-react';
-import { Link } from 'wouter';
+import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
 import { getLucideIcon } from '@/lib/quiz-icon';
