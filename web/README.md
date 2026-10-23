@@ -21,6 +21,7 @@ Home, the catalog and quiz details render API content and localized metadata
 on the server. Anonymous public reads use Next's five-minute data cache, keyed
 by URL and language. Auth, progress and attempt requests remain browser-side;
 their responses never enter that shared cache. Missing quizzes return 404.
+Public reads time out after 10 seconds; Home then renders an empty roadmap.
 
 The language cookie is request-local. It takes priority over Accept-Language;
 legacy localStorage preferences migrate after hydration. EN/PT share URLs, so

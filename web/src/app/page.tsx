@@ -9,6 +9,7 @@ export async function generateMetadata() {
 
 export default async function Page() {
   const language = await getRequestLanguage();
-  const quizzes = await getPublicQuizzes(language);
+  // The landing page stays up during an API outage; only the roadmap empties.
+  const quizzes = await getPublicQuizzes(language).catch(() => []);
   return <><JsonLd path='/' language={language} /><HomePage quizzes={quizzes} /></>;
 }

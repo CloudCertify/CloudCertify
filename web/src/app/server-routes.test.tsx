@@ -57,6 +57,12 @@ describe('public server routes', () => {
     expect(getPublicQuizzes).toHaveBeenCalledWith('pt-BR');
   });
 
+  it('keeps the landing page up with an empty roadmap during a catalog outage', async () => {
+    vi.mocked(getPublicQuizzes).mockRejectedValue(new Error('HTTP 503'));
+    expect(renderToStaticMarkup(await Home())).toContain('<main></main>');
+    await expect(Dashboard()).rejects.toThrow('HTTP 503');
+  });
+
   it('uses the request locale and detail for both metadata and the rendered screen', async () => {
     const props = { params: Promise.resolve({ id: '37' }) };
     const html = renderToStaticMarkup(await Detail(props));

@@ -18,6 +18,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe('anonymous public API', () => {
@@ -28,7 +29,7 @@ describe('anonymous public API', () => {
     expect(await getPublicQuiz('7', 'pt-BR')).toEqual({ id: 7, title: 'Português' });
     const options = (language: string) => ({
       headers: { Accept: 'application/json', 'Accept-Language': language },
-      credentials: 'omit', next: { revalidate: 300 }
+      credentials: 'omit', next: { revalidate: 300 }, signal: expect.any(AbortSignal)
     });
     expect(fetchMock.mock.calls).toEqual([
       ['https://api-cloudcertify.snowye.dev/quiz', options('en-US')],
@@ -50,6 +51,18 @@ describe('anonymous public API', () => {
   it.each(['0', '-1', '1.5', '1e2', '01', 'abc', '2147483648', '9007199254740992'])('rejects invalid ID %s without fetching', async id => {
     await expect(getPublicQuiz(id, 'en-US')).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404');
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('aborts a hung upstream request instead of holding the render open', async () => {
+    const controller = new AbortController();
+    vi.spyOn(AbortSignal, 'timeout').mockReturnValue(controller.signal);
+    fetchMock.mockImplementation((_, init) => new Promise((_, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(init.signal?.reason));
+    }));
+    const request = getPublicQuizzes('en-US');
+    controller.abort(new Error('timed out'));
+    await expect(request).rejects.toThrow('timed out');
+    expect(AbortSignal.timeout).toHaveBeenCalledWith(10_000);
   });
 
   it('maps a missing detail to Next notFound', async () => {

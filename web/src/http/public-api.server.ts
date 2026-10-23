@@ -14,7 +14,9 @@ async function publicFetch(path: string, language: Language): Promise<Response> 
   return fetch(`${base.replace(/\/$/, '')}${path}`, {
     headers: { Accept: 'application/json', 'Accept-Language': language },
     credentials: 'omit',
-    next: { revalidate: 300 }
+    next: { revalidate: 300 },
+    // Fail the render instead of holding it open while the API hangs.
+    signal: AbortSignal.timeout(10_000)
   });
 }
 
