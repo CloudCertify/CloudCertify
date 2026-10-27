@@ -69,7 +69,7 @@ export function QuizMotionPrototypePage() {
   return (
     <div className='min-h-dvh bg-background' data-quiz-reduced={reducedMotion}>
       <AppHeader languageLocked />
-      <main className='mx-auto max-w-4xl px-4 py-8 md:py-12'>
+      <main id="main-content" tabIndex={-1} className='mx-auto max-w-4xl px-4 py-8 md:py-12'>
         <div className='mb-6 flex flex-wrap items-center justify-between gap-4'>
           <div><h1 className='text-xl font-black'>Quiz interaction preview</h1><p className='mt-1 text-sm text-black/60'>The existing quiz components, using sample questions.</p></div>
           <div className='flex flex-wrap gap-2' aria-label='Preview controls'>
