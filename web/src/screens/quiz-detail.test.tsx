@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Route, Router } from 'wouter';
-import { memoryLocation } from 'wouter/memory-location';
+import { renderToString } from 'react-dom/server';
+import { resetNavigation } from '@/test/navigation';
 import { QuizDetailPage } from './quiz-detail';
 import { AuthProvider } from '@/auth/context';
 import { clearToken, setToken } from '@/auth/token';
+import { LanguageProvider } from '@/i18n/context';
 import { en } from '@/i18n/messages/en';
 
 const toastError = vi.hoisted(() => vi.fn());
@@ -25,32 +26,26 @@ const {
 }));
 
 vi.mock('@/http/generated/api', () => ({
-  useGetQuizQuizId: () => ({
-    data: {
-      data: {
-        id: 1,
-        title: 'AWS Cloud Practitioner',
-        isAvailable: true,
-        drills: [
-          {
-            id: 2,
-            title: 'Cloud Concepts',
-            domain: 'Cloud Concepts',
-            drawRule: 'drill_mix',
-            slug: 'cloud-concepts',
-            isAvailable: true
-          }
-        ]
-      }
-    },
-    isLoading: false
-  }),
   postQuizQuizIdStart: (...args: unknown[]) => postQuizQuizIdStart(...args),
   postQuizQuizIdDrillsDrillIdStart: (...args: unknown[]) =>
     postQuizQuizIdDrillsDrillIdStart(...args),
   useGetMe: () => ({ data: undefined }),
   getGetMeQueryKey: () => ['me']
 }));
+
+const quiz = {
+  id: 1,
+  title: 'AWS Cloud Practitioner',
+  isAvailable: true,
+  drills: [{
+    id: 2,
+    title: 'Cloud Concepts',
+    domain: 'Cloud Concepts',
+    drawRule: 'drill_mix',
+    slug: 'cloud-concepts',
+    isAvailable: true
+  }]
+} satisfies import('@/http/generated/api.schemas').QuizDto;
 
 function makeJwt(payload: object): string {
   const b64 = (obj: object) =>
@@ -59,13 +54,11 @@ function makeJwt(payload: object): string {
 }
 
 function renderPage() {
-  const location = memoryLocation({ path: '/quiz/1', record: true });
+  const location = resetNavigation('/quiz/1');
   render(
     <QueryClientProvider client={new QueryClient()}>
       <AuthProvider>
-        <Router hook={location.hook}>
-          <Route path='/quiz/:id' component={QuizDetailPage} />
-        </Router>
+        <QuizDetailPage quiz={quiz} />
       </AuthProvider>
     </QueryClientProvider>
   );
@@ -82,6 +75,20 @@ describe('QuizDetailPage start flow', () => {
     postQuizQuizIdDrillsDrillIdStart.mockResolvedValue({
       data: { id: 2, title: 'Cloud Concepts', submissionId: 9 }
     });
+  });
+
+  it('restores a saved email after mounting', () => {
+    sessionStorage.setItem('quiz-session-1', JSON.stringify({ email: 'saved@example.com' }));
+    const html = renderToString(
+      <QueryClientProvider client={new QueryClient()}>
+        <LanguageProvider>
+          <AuthProvider><QuizDetailPage quiz={quiz} /></AuthProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    );
+    expect(html).not.toContain('saved@example.com');
+    renderPage();
+    expect(screen.getByLabelText(/your email/i)).toHaveValue('saved@example.com');
   });
 
   it('renders the email input for anonymous visitors and sends the email', async () => {
@@ -123,7 +130,59 @@ describe('QuizDetailPage start flow', () => {
         email: 'visitor@example.com'
       });
     });
-    expect(location.history.at(-1)).toBe('/quiz/1/drill/2/session');
+    expect(location.history).toEqual(['/quiz/1', '/quiz/1/drill/2/session']);
+    expect(location.push).toHaveBeenCalledWith('/quiz/1/drill/2/session');
+    expect(location.replace).not.toHaveBeenCalled();
+    expect(JSON.parse(sessionStorage.getItem('drill-session-1-2')!)).toEqual({
+      drillDetail: { id: 2, title: 'Cloud Concepts', submissionId: 9 },
+      email: 'visitor@example.com'
+    });
+  });
+
+  it.each(['exam', 'drill'] as const)('blocks repeat and sibling starts while %s navigation is pending', async mode => {
+    const location = renderPage();
+    location.push.mockImplementationOnce(() => new Promise<void>(() => {}));
+    fireEvent.change(screen.getByLabelText(/your email/i), {
+      target: { value: 'visitor@example.com' }
+    });
+    const exam = screen.getByRole('button', { name: en.quizDetail.startExam });
+    const drill = screen.getByRole('button', { name: en.quizDetail.practice });
+    const start = mode === 'exam' ? exam : drill;
+    fireEvent.click(start);
+
+    await waitFor(() => expect(location.push).toHaveBeenCalledOnce());
+    expect(location.history).toEqual(['/quiz/1']);
+    fireEvent.click(start);
+    fireEvent.click(mode === 'exam' ? drill : exam);
+
+    // Busy, not disabled: disabling would drop keyboard focus to <body>.
+    expect(start).not.toBeDisabled();
+    expect(start).toHaveAttribute('aria-disabled', 'true');
+    expect(postQuizQuizIdStart).toHaveBeenCalledTimes(mode === 'exam' ? 1 : 0);
+    expect(postQuizQuizIdDrillsDrillIdStart).toHaveBeenCalledTimes(mode === 'drill' ? 1 : 0);
+    expect(location.push).toHaveBeenCalledOnce();
+  });
+
+  it.each(['exam', 'drill'] as const)('allows retry after a failed %s start', async mode => {
+    const request = mode === 'exam' ? postQuizQuizIdStart : postQuizQuizIdDrillsDrillIdStart;
+    request.mockRejectedValueOnce(new Error('request failed'));
+    const location = renderPage();
+    fireEvent.change(screen.getByLabelText(/your email/i), {
+      target: { value: 'visitor@example.com' }
+    });
+    const start = screen.getByRole('button', {
+      name: mode === 'exam' ? en.quizDetail.startExam : en.quizDetail.practice
+    });
+    start.focus();
+    fireEvent.click(start);
+    expect(start).toHaveFocus();
+    await waitFor(() => expect(toastError).toHaveBeenCalledOnce());
+    expect(start).toBeEnabled();
+    expect(start).not.toHaveAttribute('aria-disabled');
+    expect(start).toHaveFocus();
+    fireEvent.click(start);
+    await waitFor(() => expect(location.push).toHaveBeenCalledOnce());
+    expect(request).toHaveBeenCalledTimes(2);
   });
 
   it('says there is nothing to review when the start answers 409', async () => {

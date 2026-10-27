@@ -32,6 +32,13 @@ export const en = {
     questions: (count: number) => `${count} Questions`
   },
 
+  route: {
+    loading: 'Loading page...',
+    failed: 'This page could not load.',
+    recovery:
+      'Check your connection, then try again. If an attempt is open in another tab, keep that tab open.'
+  },
+
   language: {
     label: 'Language',
     switcherAriaLabel: 'Change language',

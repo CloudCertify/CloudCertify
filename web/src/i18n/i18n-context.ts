@@ -1,12 +1,11 @@
+'use client';
+
 import { createContext } from 'react';
 import { DEFAULT_LANGUAGE, type Language } from './language';
-import { en, type Messages } from './messages/en';
-import { pt } from './messages/pt';
+import type { Messages } from './messages/en';
+import { MESSAGES } from './messages';
 
-export const MESSAGES: Record<Language, Messages> = {
-  'en-US': en,
-  'pt-BR': pt
-};
+export { MESSAGES } from './messages';
 
 export type I18nContextValue = {
   language: Language;

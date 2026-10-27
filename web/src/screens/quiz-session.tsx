@@ -1,5 +1,8 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useParams } from 'wouter';
+import Link from 'next/link';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -47,7 +50,7 @@ type Phase = 'quiz' | 'results';
 export function QuizSessionPage() {
   const params = useParams<{ id: string }>();
   const quizId = Number(params.id);
-  const [, navigate] = useLocation();
+  const router = useRouter();
   const { t } = useI18n();
 
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
@@ -75,15 +78,15 @@ export function QuizSessionPage() {
   useEffect(() => {
     const raw = sessionStorage.getItem(`quiz-session-${quizId}`);
     if (!raw) {
-      navigate(`/quiz/${quizId}`);
+      router.push(`/quiz/${quizId}`);
       return;
     }
     try {
       setSessionData(JSON.parse(raw));
     } catch {
-      navigate(`/quiz/${quizId}`);
+      router.push(`/quiz/${quizId}`);
     }
-  }, [quizId, navigate]);
+  }, [quizId, router]);
 
   if (!sessionData) return null;
 

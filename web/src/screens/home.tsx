@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,19 +23,16 @@ import { Footer } from '@/components/footer';
 import { CertificationRoadmap } from '@/components/certification-roadmap';
 import { Reveal, CountUp } from '@/components/reveal';
 import { Marquee } from '@/components/marquee';
-import { Link } from 'wouter';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { useGetQuiz } from '@/http/generated/api';
 import { AppHeader } from '@/components/app-header';
 import { useI18n } from '@/i18n/use-i18n';
-import type { QuestionDifficulty } from '@/http/generated/api.schemas';
+import type { QuestionDifficulty, QuizDto } from '@/http/generated/api.schemas';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-export function HomePage() {
+export function HomePage({ quizzes }: { quizzes: QuizDto[] }) {
   const { t } = useI18n();
-  const { data, isLoading } = useGetQuiz();
-  const quizzes = data?.data ?? [];
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
@@ -176,7 +175,7 @@ export function HomePage() {
                 {t.home.roadmapSubtitle}
               </p>
             </Reveal>
-            <CertificationRoadmap quizzes={quizzes} isLoading={isLoading} />
+            <CertificationRoadmap quizzes={quizzes} />
           </div>
         </section>
 
@@ -222,7 +221,7 @@ export function HomePage() {
                     <span className='text-7xl font-black leading-none text-black'>
                       $0
                     </span>
-                    <span className='mb-2 text-sm font-bold text-black/50'>
+                    <span className='mb-2 text-sm font-bold text-black/60'>
                       {t.home.pricingPeriod}
                     </span>
                   </div>
@@ -338,7 +337,7 @@ function HeroCluster() {
       {/* back accent card */}
       <motion.div
         aria-hidden='true'
-        initial={{ opacity: 0, y: 40, rotate: -10 }}
+        initial={{ opacity: 1, y: 40, rotate: -10 }}
         whileInView={{ opacity: 1, y: 0, rotate: -6 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, ease: EASE }}
@@ -347,7 +346,7 @@ function HeroCluster() {
 
       {/* main mock quiz card */}
       <motion.div
-        initial={{ opacity: 0, y: 56, rotate: 6 }}
+        initial={{ opacity: 1, y: 56, rotate: 6 }}
         whileInView={{ opacity: 1, y: 0, rotate: -2 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
@@ -357,7 +356,7 @@ function HeroCluster() {
           <span className='rounded-none border-2 border-black bg-primary px-2 py-0.5 text-[11px] font-black uppercase text-white'>
             AWS · SAA
           </span>
-          <span className='font-mono text-xs font-bold tabular-nums text-black/50'>
+          <span className='font-mono text-xs font-bold tabular-nums text-black/60'>
             Q 07 / 65
           </span>
         </div>
@@ -368,7 +367,7 @@ function HeroCluster() {
           {answers.map((a, i) => (
             <motion.div
               key={a.text}
-              initial={{ opacity: 0, x: 12 }}
+              initial={{ opacity: 1, x: 12 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4 + i * 0.1, duration: 0.4, ease: EASE }}
@@ -393,7 +392,7 @@ function HeroCluster() {
         </div>
         <div className='mt-4 h-2.5 w-full overflow-hidden rounded-none border-2 border-black bg-white'>
           <motion.div
-            initial={{ width: 0 }}
+            initial={{ width: '62%' }}
             whileInView={{ width: '62%' }}
             viewport={{ once: true }}
             transition={{ delay: 0.7, duration: 0.8, ease: EASE }}
@@ -409,11 +408,11 @@ function HeroCluster() {
       <FloatSticker position='-right-2 top-28' className='bg-white text-black rotate-6' delay={0.6}>
         Azure
       </FloatSticker>
-      <FloatSticker position='-left-1 bottom-6' className='bg-success text-white rotate-3' delay={0.3}>
+      <FloatSticker position='-left-1 bottom-6' className='bg-success text-black rotate-3' delay={0.3}>
         GCP
       </FloatSticker>
       <motion.div
-        initial={{ opacity: 0, scale: 0.4, rotate: -20 }}
+        initial={{ opacity: 1, scale: 0.4, rotate: -20 }}
         whileInView={{ opacity: 1, scale: 1, rotate: 12 }}
         viewport={{ once: true }}
         transition={{ delay: 0.7, type: 'spring', stiffness: 260, damping: 12 }}
@@ -441,7 +440,7 @@ function FloatSticker({
   return (
     <motion.div
       className={cn('absolute z-20', position)}
-      initial={{ opacity: 0, scale: 0.5 }}
+      initial={{ opacity: 1, scale: 0.5 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ delay: 0.4 + delay, type: 'spring', stiffness: 280, damping: 14 }}
@@ -481,7 +480,7 @@ function Stat({
       <div className='text-4xl font-black text-white md:text-5xl'>
         <CountUp to={value} prefix={prefix} suffix={suffix} />
       </div>
-      <div className='mt-1 text-xs font-bold uppercase tracking-wide text-white/70'>
+      <div className='mt-1 text-xs font-bold uppercase tracking-wide text-white/80'>
         {label}
       </div>
     </Reveal>
@@ -548,7 +547,7 @@ function QuizCard({
               >
                 {index === correctAnswer && <CheckCircle className='h-4 w-4' />}
               </div>
-              <span className={index === correctAnswer ? 'text-white' : 'text-black'}>
+              <span className='text-black'>
                 {option}
               </span>
             </div>

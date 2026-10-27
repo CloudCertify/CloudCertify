@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   API_BASE_URL,
   buildLoginUrl,
@@ -49,6 +49,19 @@ describe('isTokenExpired', () => {
 });
 
 describe('getValidToken', () => {
+  it('never reads a browser token on the server', () => {
+    setToken(makeJwt({ exp: futureExp }));
+    const read = vi.spyOn(Storage.prototype, 'getItem');
+    vi.stubGlobal('window', undefined);
+    try {
+      expect(getValidToken()).toBeNull();
+      expect(read).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+      read.mockRestore();
+    }
+  });
+
   it('returns a stored valid token', () => {
     const token = makeJwt({ exp: futureExp });
     setToken(token);

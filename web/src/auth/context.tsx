@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGetMe } from '@/http/generated/api';
@@ -13,7 +15,7 @@ import {
 } from './token';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setTokenState] = useState<string | null>(() => getValidToken());
+  const [token, setTokenState] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const resetToAnonymous = useCallback(() => {
@@ -32,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     registerAuthInterceptor(resetToAnonymous);
+    setTokenState(getValidToken());
   }, [resetToAnonymous]);
 
   const { data } = useGetMe({

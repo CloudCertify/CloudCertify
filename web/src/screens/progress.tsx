@@ -1,3 +1,5 @@
+'use client';
+
 import axios from 'axios';
 import { useState, type ReactNode } from 'react';
 import {
@@ -8,7 +10,8 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Link, useLocation } from 'wouter';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
@@ -536,7 +539,7 @@ function MovementPanel({
 }
 
 export function ProgressPage() {
-  const [, navigate] = useLocation();
+  const router = useRouter();
   const { isAuthenticated } = useAuth();
   const { t } = useI18n();
   const [selectedQuizId, setSelectedQuizId] = useState<number | null>(null);
@@ -579,7 +582,7 @@ export function ProgressPage() {
         `quiz-session-${selectedQuiz.id}`,
         JSON.stringify({ quizDetail: response.data, email: null })
       );
-      navigate(`/quiz/${selectedQuiz.id}/session`);
+      router.push(`/quiz/${selectedQuiz.id}/session`);
     } catch {
       toast.error(t.progress.startExamError);
       setStarting(null);
@@ -599,7 +602,7 @@ export function ProgressPage() {
         `drill-session-${selectedQuiz.id}-${drill.id}`,
         JSON.stringify({ drillDetail: response.data, email: null })
       );
-      navigate(`/quiz/${selectedQuiz.id}/drill/${drill.id}/session`);
+      router.push(`/quiz/${selectedQuiz.id}/drill/${drill.id}/session`);
     } catch (error) {
       toast.error(
         drillStartErrorMessage(error, {

@@ -17,3 +17,6 @@ export function registerLanguageInterceptor(): void {
     return config;
   });
 }
+
+// Query subscriptions can fetch before the provider's mount effect runs.
+registerLanguageInterceptor();

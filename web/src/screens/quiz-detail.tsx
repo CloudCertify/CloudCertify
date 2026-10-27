@@ -1,4 +1,6 @@
-import { useState } from 'react';
+'use client';
+
+import { useEffect, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -6,7 +8,7 @@ import {
   Target,
   Zap
 } from 'lucide-react';
-import { Link, useLocation, useParams } from 'wouter';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -21,10 +23,9 @@ import { Badge } from '@/components/ui/badge';
 import { Footer } from '@/components/footer';
 import {
   postQuizQuizIdStart,
-  postQuizQuizIdDrillsDrillIdStart,
-  useGetQuizQuizId
+  postQuizQuizIdDrillsDrillIdStart
 } from '@/http/generated/api';
-import type { DrillDto, QuizProvider } from '@/http/generated/api.schemas';
+import type { DrillDto, QuizDto, QuizProvider } from '@/http/generated/api.schemas';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { getLevelStyle } from '@/lib/quiz-level';
 import { capitalize } from '@/lib/utils';
@@ -47,30 +48,29 @@ function formatExamQuestionRange(
 }
 
 // --- Page ---
-export function QuizDetailPage() {
-  const params = useParams<{ id: string }>();
-  const quizId = Number(params.id);
-  const [, navigate] = useLocation();
+export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
+  const quizId = quiz.id!;
+  const router = useRouter();
 
-  const { data, isLoading } = useGetQuizQuizId(quizId);
-  const quiz = data?.data;
   const { isAuthenticated } = useAuth();
   const { t } = useI18n();
   const emailSchema = z.email(t.quizDetail.emailInvalid);
 
-  const [email, setEmail] = useState(() => {
+  const [email, setEmail] = useState('');
+  useEffect(() => {
     try {
       const raw = sessionStorage.getItem(`quiz-session-${quizId}`);
-      if (raw) return JSON.parse(raw).email ?? '';
+      setEmail(raw ? JSON.parse(raw).email ?? '' : '');
     } catch {
       /* no saved session */
     }
-    return '';
-  });
+  }, [quizId]);
   const [emailError, setEmailError] = useState<string | null>(null);
 
+  // Successful starts stay busy until navigation unmounts this page.
   const [isStartingExam, setIsStartingExam] = useState(false);
   const [startingDrillId, setStartingDrillId] = useState<number | null>(null);
+  const isStarting = isStartingExam || startingDrillId !== null;
 
   const validateEmail = (): boolean => {
     // Logged-in Users are identified by their Bearer token; no email needed.
@@ -87,7 +87,7 @@ export function QuizDetailPage() {
   };
 
   const handleStartExam = async () => {
-    if (!validateEmail()) return;
+    if (isStarting || !validateEmail()) return;
     setIsStartingExam(true);
     try {
       const response = await postQuizQuizIdStart(
@@ -101,16 +101,15 @@ export function QuizDetailPage() {
           email: isAuthenticated ? null : email.trim()
         })
       );
-      navigate(`/quiz/${quizId}/session`);
+      router.push(`/quiz/${quizId}/session`);
     } catch {
       toast.error(t.quizDetail.startExamError);
-    } finally {
       setIsStartingExam(false);
     }
   };
 
   const handleStartDrill = async (drill: DrillDto) => {
-    if (!validateEmail()) return;
+    if (isStarting || !validateEmail()) return;
     setStartingDrillId(drill.id);
     try {
       const response = await postQuizQuizIdDrillsDrillIdStart(
@@ -125,7 +124,7 @@ export function QuizDetailPage() {
           email: isAuthenticated ? null : email.trim()
         })
       );
-      navigate(`/quiz/${quizId}/drill/${drill.id}/session`);
+      router.push(`/quiz/${quizId}/drill/${drill.id}/session`);
     } catch (error) {
       toast.error(
         drillStartErrorMessage(error, {
@@ -134,16 +133,15 @@ export function QuizDetailPage() {
           fallback: t.quizDetail.startPracticeError
         })
       );
-    } finally {
       setStartingDrillId(null);
     }
   };
 
-  const { bg: levelColor, ink: levelInk } = getLevelStyle(quiz?.quizLevel);
-  const drills = quiz?.drills ?? [];
+  const { bg: levelColor, ink: levelInk } = getLevelStyle(quiz.quizLevel);
+  const drills = quiz.drills ?? [];
   const examQuestionCount = formatExamQuestionRange(
-    quiz?.minQuestions,
-    quiz?.maxQuestions
+    quiz.minQuestions,
+    quiz.maxQuestions
   );
 
   return (
@@ -154,10 +152,7 @@ export function QuizDetailPage() {
         <PageBackLink href='/dashboard'>
           {t.common.backToDashboard}
         </PageBackLink>
-        {isLoading ? (
-          <div className='h-64 animate-pulse rounded-none border-2 border-dashed border-black bg-white' />
-        ) : quiz ? (
-          <>
+        <>
             {/* Certification header */}
             <div className='flex flex-col items-center text-center space-y-4'>
               <div
@@ -295,9 +290,11 @@ export function QuizDetailPage() {
                 </CardContent>
                 <CardFooter className='border-t-2 border-black pt-4'>
                   <Button
-                    className='w-full'
+                    // Busy, not disabled: a disabled button drops keyboard focus if the start fails.
+                    className='w-full aria-disabled:opacity-50'
                     onClick={handleStartExam}
-                    disabled={isStartingExam}
+                    aria-disabled={isStartingExam || undefined}
+                    aria-busy={isStartingExam}
                   >
                     {isStartingExam ? t.common.starting : t.quizDetail.startExam}
                     {!isStartingExam && <ArrowRight className='ml-2 h-4 w-4' />}
@@ -329,15 +326,7 @@ export function QuizDetailPage() {
                 </div>
               </section>
             )}
-          </>
-        ) : (
-          <div className='text-center space-y-4'>
-            <p className='font-bold text-black'>{t.quizDetail.notFound}</p>
-            <Button variant='outline' asChild>
-              <Link href='/dashboard'>{t.common.backToDashboard}</Link>
-            </Button>
-          </div>
-        )}
+        </>
       </main>
       <Footer />
     </div>
@@ -389,8 +378,11 @@ function DrillCard({
           </span>
           <Button
             size='sm'
+            className='aria-disabled:opacity-50'
             onClick={onStart}
-            disabled={isUnavailable || isStarting}
+            disabled={isUnavailable}
+            aria-disabled={isStarting || undefined}
+            aria-busy={isStarting}
           >
             {isStarting ? t.common.starting : t.quizDetail.practice}
             {!isStarting && <ArrowRight className='ml-1 h-3 w-3' />}

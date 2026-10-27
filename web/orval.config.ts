@@ -10,7 +10,7 @@ export default defineConfig({
       httpClient: 'axios',
       clean: true,
       // No baseUrl here on purpose: the base URL belongs to the custom axios
-      // instance, so `VITE_API_URL` can point the app at a local API without
+      // instance, so `NEXT_PUBLIC_API_URL` can point the app at a local API without
       // regenerating the client.
       override: {
         mutator: {
