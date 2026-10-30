@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type UseQuizKeyboardOptions = {
-  containerRef: RefObject<HTMLElement | null>;
   /** Number of answer options for the current question. */
   count: number;
   /**
@@ -34,11 +33,9 @@ type UseQuizKeyboardOptions = {
  * - Enter fires the primary action, except when a button/link/dialog has
  *   focus (native activation wins) or focus is in an editable field.
  *
- * Shortcuts are active only while focus is inside the quiz. Single-character
- * shortcuts must not take over screen-reader navigation elsewhere on the page.
+ * Listeners are window-global so keys work regardless of what is focused.
  */
 export function useQuizKeyboard({
-  containerRef,
   count,
   selectionEnabled,
   onActivate,
@@ -73,10 +70,9 @@ export function useQuizKeyboard({
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const s = stateRef.current;
-      if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-      if (!containerRef.current?.contains(document.activeElement)) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target instanceof HTMLElement ? event.target : null;
-      if (target?.closest('input, textarea, select, [contenteditable="true"], form, dialog, [role="dialog"], [role="menu"]')) {
+      if (target?.closest('input, textarea, select, [contenteditable="true"], dialog')) {
         return;
       }
 
@@ -121,7 +117,7 @@ export function useQuizKeyboard({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [focusOption, containerRef]);
+  }, [focusOption]);
 
   /** Roving-tabindex props for the option at `index`; spread onto its element. */
   const getOptionProps = useCallback(

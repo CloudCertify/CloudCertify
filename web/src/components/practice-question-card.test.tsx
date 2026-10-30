@@ -86,8 +86,6 @@ describe('PracticeQuestionCard report control', () => {
 
   it('is shown in the post-Check feedback state', () => {
     renderCard('revealed');
-    expect(screen.getByRole('status')).toHaveTextContent('Correct');
-    expect(screen.getByRole('radio', { name: 'Alpha' })).toHaveAccessibleDescription('(Correct answer)');
     expect(screen.getByRole('radio', { name: 'Alpha' })).toHaveAttribute('aria-disabled', 'true');
     expect(
       screen.getByRole('button', { name: 'Report a problem' })

@@ -32,7 +32,6 @@ export function QuizMotionPrototypePage() {
   const [, navigate] = useLocation();
   const parameters = new URLSearchParams(search);
   const exam = parameters.get('mode') === 'exam';
-  const reducedMotion = parameters.get('motion') === 'off';
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number[]>>({});
   const [ratings, setRatings] = useState<Record<number, Confidence>>({});
@@ -64,10 +63,10 @@ export function QuizMotionPrototypePage() {
     else { setIndex(value => value + 1); setPhase('answering'); }
   }
   const meta = <Badge>AWS Solutions Architect</Badge>;
-  const common = { index, total: SAMPLES.length, question: sample.question, meta, selectedIds, onSelect: select, reducedMotion };
+  const common = { index, total: SAMPLES.length, question: sample.question, meta, selectedIds, onSelect: select };
 
   return (
-    <div className='min-h-dvh bg-background' data-quiz-reduced={reducedMotion}>
+    <div className='min-h-dvh bg-background'>
       <AppHeader languageLocked />
       <main id="main-content" tabIndex={-1} className='mx-auto max-w-4xl px-4 py-8 md:py-12'>
         <div className='mb-6 flex flex-wrap items-center justify-between gap-4'>
@@ -75,13 +74,9 @@ export function QuizMotionPrototypePage() {
           <div className='flex flex-wrap gap-2' aria-label='Preview controls'>
             <Button size='sm' variant={exam ? 'outline' : 'default'} aria-pressed={!exam} onClick={() => changeMode(false)}>Practice</Button>
             <Button size='sm' variant={exam ? 'default' : 'outline'} aria-pressed={exam} onClick={() => changeMode(true)}>Exam</Button>
-            <Button size='sm' variant='outline' aria-pressed={!reducedMotion} onClick={() => {
-              parameters.set('motion', reducedMotion ? 'on' : 'off');
-              navigate(`/prototype/quiz-motion?${parameters}`, { replace: true });
-            }}>{reducedMotion ? 'Motion off' : 'Motion on'}</Button>
           </div>
         </div>
-        <div data-quiz-preview className='space-y-5'>
+        <div className='space-y-5'>
           {finished ? (
             <div className='border-4 border-black bg-white p-8'>
               <h2 className='text-2xl font-black'>{exam ? t.results.quizTitle : 'Practice complete'}</h2>

@@ -3,8 +3,8 @@ import type { LucideIcon } from 'lucide-react';
 import { useI18n } from '@/i18n/use-i18n';
 import { Confidence } from '@/http/generated/api.schemas';
 import { cn } from '@/lib/utils';
+import { Pop } from '@/components/pop';
 import { needsReview } from '@/lib/confidence';
-import './quiz-motion.css';
 
 type ConfidenceRatingProps = {
   /** The current rating, or null when the question is unrated. */
@@ -81,15 +81,15 @@ export function ConfidenceRating({ value, onRate }: ConfidenceRatingProps) {
                 aria-pressed={isSelected}
                 onClick={() => onRate(option)}
                 className={cn(
-                  'quiz-confidence flex items-center gap-1.5 rounded-none border-2 border-black px-3 py-1.5 text-sm font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2',
+                  'flex items-center gap-1.5 rounded-none border-2 border-black px-3 py-1.5 text-sm font-bold transition-[translate,box-shadow,background-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2',
                   isSelected
                     ? cn('translate-x-[2px] translate-y-[2px] shadow-none', selected)
-                    : 'bg-white text-black shadow-[4px_4px_0px_0px_#000] hover:bg-background'
+                    : 'bg-white text-black shadow-[4px_4px_0px_0px_#000] hover:bg-background active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
                 )}
               >
-                <span key={String(isSelected)} className='flex' aria-hidden='true'>
+                <Pop key={String(isSelected)}>
                   <Icon className={cn('h-4 w-4', !isSelected && icons)} />
-                </span>
+                </Pop>
                 {t.confidence.options[option]}
               </button>
             );
