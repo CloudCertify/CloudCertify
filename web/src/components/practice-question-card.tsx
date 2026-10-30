@@ -104,8 +104,9 @@ export function PracticeQuestionCard({
   });
 
   return (
-    <Card ref={ref} className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
-      <CardHeader className='border-b-2 border-black pb-6'>
+    // Full-bleed on mobile: cancels the page's px-4 so the card gets the whole screen width.
+    <Card ref={ref} className='-mx-4 border-y-4 border-x-0 border-black shadow-none sm:mx-0 sm:w-full sm:border-x-4 sm:shadow-[8px_8px_0px_0px_#000]'>
+      <CardHeader className='border-b-2 border-black px-4 pb-6 sm:px-6'>
         <div className='flex justify-between items-center mb-4 flex-wrap gap-2'>
           <Badge variant='outline'>{t.question.counter(index + 1, total)}</Badge>
           <div className='flex gap-2 flex-wrap'>
@@ -127,7 +128,7 @@ export function PracticeQuestionCard({
           <Progress value={progress} />
         </div>
       </CardHeader>
-      <CardContent className='py-6'>
+      <CardContent className='px-4 py-6 sm:px-6'>
         <motion.div
           key={question.id}
           {...enter(0.05)}
@@ -263,7 +264,7 @@ export function PracticeQuestionCard({
           <div className='mt-4 flex justify-end'>{reportControl}</div>
         )}
       </CardContent>
-      <CardFooter className='flex justify-end border-t-2 border-black pt-6'>
+      <CardFooter className='flex justify-end border-t-2 border-black px-4 pt-6 sm:px-6'>
         {!isRevealed ? (
           // Busy stays focusable (aria-disabled): disabling the focused button drops focus to <body>.
           <Button
