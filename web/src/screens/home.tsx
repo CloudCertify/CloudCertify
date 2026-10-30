@@ -42,22 +42,11 @@ export function HomePage({ quizzes }: { quizzes: QuizDto[] }) {
             <Link href='/dashboard'>{t.common.dashboard}</Link>
           </Button>
         }
-      >
-        <nav className='flex items-center gap-6'>
-          <a
-            href='#certifications'
-            className='text-sm font-bold text-black transition-colors hover:underline'
-          >
-            {t.nav.certifications}
-          </a>
-          <a
-            href='#pricing'
-            className='text-sm font-bold text-black transition-colors hover:underline'
-          >
-            {t.nav.pricing}
-          </a>
-        </nav>
-      </AppHeader>
+        links={[
+          { href: '#certifications', label: t.nav.certifications },
+          { href: '#pricing', label: t.nav.pricing }
+        ]}
+      />
 
       <main id='main-content' tabIndex={-1} className='flex-1'>
         {/* ---------------------------------------------------------------- HERO */}

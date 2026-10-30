@@ -60,7 +60,10 @@ export const en = {
 
   nav: {
     certifications: 'Certifications',
-    pricing: 'Pricing'
+    pricing: 'Pricing',
+    menu: 'Menu',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu'
   },
 
   footer: {

@@ -53,7 +53,10 @@ export const pt: Messages = {
 
   nav: {
     certifications: 'Certificações',
-    pricing: 'Preço'
+    pricing: 'Preço',
+    menu: 'Menu',
+    openMenu: 'Abrir menu',
+    closeMenu: 'Fechar menu'
   },
 
   footer: {
