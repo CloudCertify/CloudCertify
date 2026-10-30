@@ -136,7 +136,7 @@ export function DashboardPage({ quizzes: allQuizzes }: { quizzes: QuizDto[] }) {
     <div className='flex min-h-dvh flex-col bg-background'>
       <AppHeader anonymousActions={<AuthMenu />} />
 
-      <main id="main-content" tabIndex={-1} className='flex-1 container py-8'>
+      <main id='main-content' tabIndex={-1} className='flex-1 container py-8'>
         <div className='flex flex-col gap-8'>
           <div>
             <h1 className='text-3xl font-black tracking-tight text-black'>

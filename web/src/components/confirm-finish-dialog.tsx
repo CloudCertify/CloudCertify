@@ -58,7 +58,7 @@ export function ConfirmFinishDialog({
           long-label locale (pt-BR) would overflow the dialog to the left past
           its border. Let the row wrap instead. */}
       <div className='flex flex-wrap justify-end gap-3 border-t-2 border-black px-6 py-4'>
-        <Button autoFocus variant='outline' onClick={onCancel}>
+        <Button variant='outline' onClick={onCancel}>
           {t.confirmFinish.keepAnswering}
         </Button>
         <Button onClick={onConfirm}>{t.confirmFinish.finishAnyway}</Button>

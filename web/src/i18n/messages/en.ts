@@ -1,7 +1,5 @@
 import type { QuestionDifficulty } from '@/http/generated/api.schemas';
 
-const formatNumber = new Intl.NumberFormat('en-US').format;
-
 type SampleQuestion = {
   question: string;
   options: string[];
@@ -249,7 +247,7 @@ export const en = {
     nextMove: 'Your next move',
     leadTitle: (domain: string) => `Focus on ${domain}.`,
     leadBody: (standing: number, seen: number) =>
-      `${formatNumber(standing)}% Standing across ${formatNumber(seen)} seen Questions. It is your weakest eligible Domain.`,
+      `${standing}% Standing across ${seen} seen Questions. It is your weakest eligible Domain.`,
     buildBaselineTitle: 'Build a useful baseline.',
     buildBaselineBody:
       'Finish more Questions so CloudCertify can identify the Domain where a Drill Mix will help most.',
@@ -263,10 +261,10 @@ export const en = {
     latestSnapshot: 'Latest snapshot',
     noDomains: 'Finish some Questions to establish Domain standing.',
     domainMeta: (index: number, seen: number) =>
-      `Domain ${String(index).padStart(2, '0')} / ${formatNumber(seen)} seen`,
-    delta: (value: number) => `${value >= 0 ? '+' : ''}${formatNumber(value)} pts`,
+      `Domain ${String(index).padStart(2, '0')} / ${seen} seen`,
+    delta: (value: number) => `${value >= 0 ? '+' : ''}${value} pts`,
     standingLabel: (domain: string, standing: number) =>
-      `${domain}: ${formatNumber(standing)}% Standing`,
+      `${domain}: ${standing}% Standing`,
     movement: 'Movement',
     examScore: 'Exam percent correct',
     noExamEyebrow: 'No Exam baseline',
@@ -277,7 +275,7 @@ export const en = {
     baselineBody:
       'Finish one more Exam to see movement from this baseline. Your Domain standing is already useful now.',
     trendLabel: (first: number, last: number, count: number) =>
-      `Exam percent correct moved from ${formatNumber(first)}% to ${formatNumber(last)}% across ${count} finished Exams`,
+      `Exam percent correct moved from ${first}% to ${last}% across ${count} finished Exams`,
     finishedOnly: 'Finished Submissions only / newest 10 Exams'
   },
 
@@ -324,7 +322,7 @@ export const en = {
       question: 'Which AWS service provides a virtual network dedicated to your AWS account?',
       options: ['Amazon VPC', 'AWS Direct Connect', 'Amazon Route 53', 'AWS Transit Gateway']
     }
-  ] as Pick<SampleQuestion, 'question' | 'options'>[],
+  ],
 
   question: {
     counter: (index: number, total: number) => `Question ${index} of ${total}`,

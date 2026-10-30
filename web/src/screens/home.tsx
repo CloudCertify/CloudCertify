@@ -59,7 +59,7 @@ export function HomePage({ quizzes }: { quizzes: QuizDto[] }) {
         </nav>
       </AppHeader>
 
-      <main id="main-content" tabIndex={-1} className='flex-1'>
+      <main id='main-content' tabIndex={-1} className='flex-1'>
         {/* ---------------------------------------------------------------- HERO */}
         <section
           id='hero'

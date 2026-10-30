@@ -298,7 +298,6 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
                     className='w-full aria-disabled:opacity-50'
                     onClick={handleStartExam}
                     aria-disabled={isStartingExam || undefined}
-                    aria-busy={isStartingExam}
                   >
                     {isStartingExam ? t.common.starting : t.quizDetail.startExam}
                     {!isStartingExam && <ArrowRight className='ml-2 h-4 w-4' />}
@@ -386,7 +385,6 @@ function DrillCard({
             onClick={onStart}
             disabled={isUnavailable}
             aria-disabled={isStarting || undefined}
-            aria-busy={isStarting}
           >
             {isStarting ? t.common.starting : t.quizDetail.practice}
             {!isStarting && <ArrowRight className='ml-1 h-3 w-3' />}

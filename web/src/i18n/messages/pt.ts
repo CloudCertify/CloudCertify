@@ -1,7 +1,5 @@
 import type { Messages } from './en';
 
-const formatNumber = new Intl.NumberFormat('pt-BR').format;
-
 /**
  * PT-BR copy. Typed as `Messages`, so this file fails to compile the moment a
  * key is added to `en.ts` and not translated here — no silent English leaks.
@@ -59,7 +57,7 @@ export const pt: Messages = {
   },
 
   footer: {
-    buyMeACoffee: 'Pague um café',
+    buyMeACoffee: 'Me pague um café',
     rights: (year: number) =>
       `© ${year} CloudCertify. Todos os direitos reservados.`
   },
@@ -241,7 +239,7 @@ export const pt: Messages = {
     nextMove: 'Seu próximo passo',
     leadTitle: (domain: string) => `Foque em ${domain}.`,
     leadBody: (standing: number, seen: number) =>
-      `${formatNumber(standing)}% de desempenho em ${formatNumber(seen)} questões vistas. Este é seu domínio elegível mais fraco.`,
+      `${standing}% de desempenho em ${seen} questões vistas. Este é seu domínio elegível mais fraco.`,
     buildBaselineTitle: 'Crie uma base útil.',
     buildBaselineBody:
       'Conclua mais questões para o CloudCertify identificar onde um treino personalizado mais ajudará.',
@@ -256,10 +254,10 @@ export const pt: Messages = {
     noDomains:
       'Conclua algumas questões para medir seu desempenho por domínio.',
     domainMeta: (index: number, seen: number) =>
-      `Domínio ${String(index).padStart(2, '0')} / ${formatNumber(seen)} vistas`,
-    delta: (value: number) => `${value >= 0 ? '+' : ''}${formatNumber(value)} pts`,
+      `Domínio ${String(index).padStart(2, '0')} / ${seen} vistas`,
+    delta: (value: number) => `${value >= 0 ? '+' : ''}${value} pts`,
     standingLabel: (domain: string, standing: number) =>
-      `${domain}: ${formatNumber(standing)}% de desempenho`,
+      `${domain}: ${standing}% de desempenho`,
     movement: 'Evolução',
     examScore: 'Percentual de acertos no simulado',
     noExamEyebrow: 'Sem base de simulado',
@@ -270,7 +268,7 @@ export const pt: Messages = {
     baselineBody:
       'Conclua mais um simulado para ver a evolução a partir desta base. Seu desempenho por domínio já é útil agora.',
     trendLabel: (first: number, last: number, count: number) =>
-      `O percentual de acertos foi de ${formatNumber(first)}% para ${formatNumber(last)}% em ${count} simulados concluídos`,
+      `O percentual de acertos foi de ${first}% para ${last}% em ${count} simulados concluídos`,
     finishedOnly: 'Somente atividades concluídas / 10 simulados mais recentes'
   },
 

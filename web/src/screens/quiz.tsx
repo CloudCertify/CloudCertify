@@ -58,7 +58,6 @@ const quizData: Quiz = {
     {
       id: 136,
       quizId: 1,
-
       type: 'multiple_choice',
       createdAt: '2025-03-30T00:31:34.728842Z',
       answers: [
@@ -91,7 +90,6 @@ const quizData: Quiz = {
     {
       id: 137,
       quizId: 1,
-
       type: 'multiple_choice',
       createdAt: '2025-03-30T00:31:34.728842Z',
       answers: [
@@ -124,7 +122,6 @@ const quizData: Quiz = {
     {
       id: 138,
       quizId: 1,
-
       type: 'multiple_choice',
       createdAt: '2025-03-30T00:31:34.728842Z',
       answers: [
@@ -233,7 +230,7 @@ export function QuizPage() {
       <div className='flex min-h-dvh flex-col bg-background'>
         <AppHeader />
 
-        <main id="main-content" tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        <main id='main-content' tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
           <PageBackLink href='/dashboard' className='mb-6'>
             {t.common.backToDashboard}
           </PageBackLink>
@@ -383,7 +380,7 @@ export function QuizPage() {
     <div className='flex min-h-dvh flex-col bg-background'>
       <AppHeader languageLocked />
 
-      <main id="main-content" tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+      <main id='main-content' tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
         <PageBackLink href='/dashboard' className='mb-6'>
           {t.common.backToDashboard}
         </PageBackLink>
@@ -419,7 +416,7 @@ export function QuizPage() {
                     } flex items-start gap-3 cursor-pointer transition-all`}
                     onClick={() => handleAnswerSelect(answer.id)}
                   >
-                    <div
+                    <span
                       className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
                         isSelected
                           ? 'bg-black text-white'
@@ -427,7 +424,7 @@ export function QuizPage() {
                       }`}
                     >
                       {isSelected && <CheckCircle className='h-4 w-4' />}
-                    </div>
+                    </span>
                     <span
                       className={`font-medium ${isSelected ? 'text-white' : 'text-black'}`}
                     >
