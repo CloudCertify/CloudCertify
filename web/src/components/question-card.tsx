@@ -79,7 +79,7 @@ export function QuestionCard({
   });
 
   return (
-    <Card ref={ref} className='w-full scroll-mt-6 border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
+    <Card ref={ref} className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
       <CardHeader className='border-b-2 border-black pb-6'>
         <div className='flex justify-between items-center mb-4 flex-wrap gap-2'>
           <Badge variant='outline'>{t.question.counter(index + 1, total)}</Badge>

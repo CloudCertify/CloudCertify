@@ -19,9 +19,11 @@ export function useQuestionMotion(index: number) {
   }
 
   useEffect(() => {
-    const card = ref.current;
-    if (card && card.getBoundingClientRect().top < 0) {
-      card.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    const top = ref.current?.getBoundingClientRect().top;
+    // Clear the sticky header, whatever height it wrapped to.
+    const header = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0;
+    if (top != null && top < header) {
+      window.scrollBy({ top: top - header - 16, behavior: reduce ? 'auto' : 'smooth' });
     }
   }, [index, reduce]);
 
