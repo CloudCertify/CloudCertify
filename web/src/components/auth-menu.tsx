@@ -144,7 +144,7 @@ const accountLinkClass =
 
 /**
  * The profile menu's contents laid out flat, for the mobile sidebar. Only
- * meaningful when authenticated — the anonymous sidebar shows `AuthMenu`.
+ * meaningful when authenticated; the anonymous sidebar shows `AuthMenu`.
  */
 export function AccountNav({ onNavigate }: { onNavigate?: () => void }) {
   const { user, logout } = useAuth();

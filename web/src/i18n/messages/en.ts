@@ -47,7 +47,7 @@ export const en = {
     label: 'Language',
     switcherAriaLabel: 'Change language',
     lockedDuringAttempt:
-      'Language is fixed for this attempt — finish or leave it to switch.',
+      'Language is fixed for this attempt. Finish or leave it to switch.',
     names: {
       'en-US': 'English',
       'pt-BR': 'Português'
@@ -79,7 +79,7 @@ export const en = {
     signingIn: 'Signing you in...',
     failedTitle: "Login didn't work",
     failedBody:
-      "We couldn't complete the sign-in — the login link was missing or expired. You can try again, or keep using CloudCertify without an account.",
+      "We couldn't complete the sign-in because the login link was missing or expired. You can try again, or keep using CloudCertify without an account.",
     tryAgainFromDashboard: 'Try again from the Dashboard',
     goHome: 'Go Home'
   },
@@ -98,7 +98,7 @@ export const en = {
   },
 
   home: {
-    heroBadge: 'Free — no card, no account',
+    heroBadge: 'Free, no card or account',
     heroTitleLead: 'Pass your',
     heroTitleCert: 'cert',
     heroTitleTail: 'the first time.',
@@ -108,7 +108,7 @@ export const en = {
      */
     heroTitleChipFirst: true,
     heroSubtitle:
-      'Real exam-style questions, focused domain drills and full-length simulations for AWS, Google Cloud and Azure. Built to get you certified — not to upsell you.',
+      'Real exam-style questions, focused domain drills and full-length simulations for AWS, Google Cloud and Azure. Built to get you certified, not to upsell you.',
     heroPrimaryCta: 'Start learning',
     heroSecondaryCta: 'Browse certifications',
     heroMockQuestion:
@@ -131,7 +131,7 @@ export const en = {
     roadmapEyebrow: 'The roadmap',
     roadmapTitle: 'Pick your path',
     roadmapSubtitle:
-      'Start at the foundations and work up to the specialty exams — one provider at a time.',
+      'Start at the foundations and work up to the specialty exams, one provider at a time.',
     sampleTitle: 'Try a question',
     sampleSubtitle:
       'The real thing: exam-style stems, plausible distractors, instant feedback.',
@@ -215,7 +215,7 @@ export const en = {
   },
 
   roadmap: {
-    emptyTier: 'No exams at this tier yet — check back soon.',
+    emptyTier: 'No exams at this tier yet. Check back soon.',
     providerSoon: 'This provider is launching soon. Get notified when it goes live.'
   },
 
@@ -372,7 +372,7 @@ export const en = {
   navigator: {
     open: 'Open question navigator',
     openTitle: (index: number, total: number) =>
-      `Open question navigator — question ${index} of ${total}`,
+      `Open question navigator, question ${index} of ${total}`,
     close: 'Close question navigator',
     title: 'Questions',
     landmark: 'Question navigator',
@@ -428,7 +428,7 @@ export const en = {
     cancel: 'Cancel',
     submit: 'Send report',
     submitting: 'Sending...',
-    success: 'Thanks — we will take a look at this question.',
+    success: 'Thanks, we will take a look at this question.',
     error: 'Could not send this report. Please try again.'
   },
 
@@ -437,7 +437,7 @@ export const en = {
     reviewHeading: 'Question review',
     questionLabel: (index: number, text: string) => `Question ${index}: ${text}`,
     clickToView: (correct: boolean) =>
-      `${correct ? 'Correct' : 'Incorrect'} — Click to view details`,
+      `${correct ? 'Correct' : 'Incorrect'}. Click to view details`,
     explanation: 'Explanation',
     yourAnswer: '(Your answer)',
     correctAnswer: '(Correct answer)',
@@ -453,15 +453,15 @@ export const en = {
       `You got ${correct} out of ${total} questions correct`,
     confidenceHeading: 'What your confidence says',
     luckyGuesses: 'Lucky guesses',
-    luckyGuessesHint: 'Guessed, and got it right — worth studying anyway.',
+    luckyGuessesHint: 'Guessed, and got it right. Worth studying anyway.',
     misconceptions: 'Misconceptions',
-    misconceptionsHint: "You were sure, and you were wrong — start here.",
+    misconceptionsHint: "You were sure, and you were wrong. Start here.",
     domainBreakdown: 'Domain breakdown',
     domainStats: (correct: number, total: number, pct: number, weight: number) =>
       `${correct}/${total} (${pct}%) · weight ${weight}%`,
     restartQuiz: 'Restart Quiz',
     submitError:
-      'Could not submit this attempt. It may already be finished — use "Try Again" to start a new one.',
+      'Could not submit this attempt. It may already be finished. Use "Try Again" to start a new one.',
     restartError: 'Could not start a new attempt. Please try again.',
     answerError: 'Could not save that answer. Check your connection and pick it again.',
     checkError: 'Could not check this answer. Please try again.',
