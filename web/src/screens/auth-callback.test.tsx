@@ -1,8 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Router } from 'wouter';
-import { memoryLocation } from 'wouter/memory-location';
+import { navigation, resetNavigation } from '@/test/navigation';
 import { AuthCallbackPage } from './auth-callback';
 import { AuthProvider } from '@/auth/context';
 import { RETURN_TO_STORAGE_KEY, TOKEN_STORAGE_KEY } from '@/auth/token';
@@ -19,16 +18,11 @@ function makeJwt(payload: object): string {
 }
 
 function renderCallback() {
-  const { hook, history } = memoryLocation({
-    path: '/auth/callback',
-    record: true
-  });
+  const { history } = resetNavigation('/auth/callback');
   render(
     <QueryClientProvider client={new QueryClient()}>
       <AuthProvider>
-        <Router hook={hook}>
-          <AuthCallbackPage />
-        </Router>
+        <AuthCallbackPage />
       </AuthProvider>
     </QueryClientProvider>
   );
@@ -51,7 +45,9 @@ describe('AuthCallbackPage', () => {
       expect(localStorage.getItem(TOKEN_STORAGE_KEY)).toBe(token);
     });
     expect(window.location.hash).toBe('');
-    expect(history.at(-1)).toBe('/quiz/3');
+    expect(history).toEqual(['/quiz/3']);
+    expect(navigation.replace).toHaveBeenCalledWith('/quiz/3');
+    expect(navigation.push).not.toHaveBeenCalled();
   });
 
   it('redirects to /dashboard when no returnTo is stored', async () => {

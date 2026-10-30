@@ -32,6 +32,14 @@ export const en = {
     questions: (count: number) => `${count} Questions`
   },
 
+  route: {
+    notFound: 'Page not found',
+    notFoundBody: 'The page you are looking for does not exist.',
+    failed: 'This page could not load.',
+    recovery:
+      'Check your connection, then try again. If an attempt is open in another tab, keep that tab open.'
+  },
+
   language: {
     label: 'Language',
     switcherAriaLabel: 'Change language',
@@ -208,7 +216,6 @@ export const en = {
   dashboard: {
     title: 'Dashboard',
     subtitle: 'Continue your cloud certification journey',
-    loadError: 'Failed to load certifications. Please try again later.',
     empty: (provider: string) =>
       `No ${provider} certifications are available yet. Check back soon.`
   },
@@ -291,8 +298,7 @@ export const en = {
     practiceHeading: 'Drills',
     practiceSubtitle:
       '15-question focused drills per domain. Fast feedback, no pass/fail pressure.',
-    practice: 'Practice',
-    notFound: 'Quiz not found.'
+    practice: 'Practice'
   },
 
   question: {

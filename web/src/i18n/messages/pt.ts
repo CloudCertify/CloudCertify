@@ -25,6 +25,14 @@ export const pt: Messages = {
     questions: (count: number) => `${count} questões`
   },
 
+  route: {
+    notFound: 'Página não encontrada',
+    notFoundBody: 'A página que você procura não existe.',
+    failed: 'Não foi possível carregar esta página.',
+    recovery:
+      'Verifique sua conexão e tente novamente. Se uma tentativa estiver aberta em outra aba, mantenha essa aba aberta.'
+  },
+
   language: {
     label: 'Idioma',
     switcherAriaLabel: 'Mudar idioma',
@@ -199,7 +207,6 @@ export const pt: Messages = {
   dashboard: {
     title: 'Painel',
     subtitle: 'Continue sua jornada de certificação em nuvem',
-    loadError: 'Não foi possível carregar as certificações. Tente mais tarde.',
     empty: (provider: string) =>
       `Ainda não há certificações da ${provider} disponíveis. Volte em breve.`
   },
@@ -284,8 +291,7 @@ export const pt: Messages = {
     practiceHeading: 'Treinos',
     practiceSubtitle:
       'Treinos focados de 15 questões por domínio. Feedback rápido, sem pressão de aprovação.',
-    practice: 'Treinar',
-    notFound: 'Quiz não encontrado.'
+    practice: 'Treinar'
   },
 
   question: {

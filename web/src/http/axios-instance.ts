@@ -3,11 +3,11 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 /**
  * Where the API lives. Defaults to production so a plain `pnpm dev` (or a
- * preview build) needs no setup; point `VITE_API_URL` at `http://localhost:8080`
+ * preview build) needs no setup; point `NEXT_PUBLIC_API_URL` at `http://localhost:8080`
  * in `web/.env.local` to run the app against a local API. See `.env.example`.
  */
 export const API_BASE_URL: string =
-  import.meta.env.VITE_API_URL ?? 'https://api-cloudcertify.snowye.dev';
+  process.env.NEXT_PUBLIC_API_URL ?? 'https://api-cloudcertify.snowye.dev';
 
 /**
  * The single axios instance every generated endpoint goes through (orval

@@ -11,6 +11,7 @@ export type Language = (typeof LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: Language = 'en-US';
 
 export const LANGUAGE_STORAGE_KEY = 'cloudcertify:language';
+export const LANGUAGE_COOKIE_NAME = 'cloudcertify-language';
 
 /**
  * Maps any BCP-47 tag onto a supported Language, or null when unsupported —
@@ -26,9 +27,12 @@ export function normalizeLanguage(tag: string | null | undefined): Language | nu
   return null;
 }
 
-/** Stored choice first, then the browser's preferences, then EN-US. */
+/** Browser-only detection. Server callers must pass their request's language. */
 export function detectLanguage(): Language {
-  const stored = normalizeLanguage(readStored());
+  if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
+  const cookie = readLanguageCookie();
+  if (cookie) return cookie;
+  const stored = readStoredLanguage();
   if (stored) return stored;
 
   const preferences =
@@ -42,9 +46,18 @@ export function detectLanguage(): Language {
   return DEFAULT_LANGUAGE;
 }
 
-function readStored(): string | null {
+export function readLanguageCookie(): Language | null {
+  if (typeof document === 'undefined') return null;
+  const value = document.cookie.split('; ').find(cookie =>
+    cookie.startsWith(`${LANGUAGE_COOKIE_NAME}=`)
+  )?.slice(LANGUAGE_COOKIE_NAME.length + 1);
+  return LANGUAGES.find(language => language === value) ?? null;
+}
+
+export function readStoredLanguage(): Language | null {
+  if (typeof window === 'undefined') return null;
   try {
-    return localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
   } catch {
     return null; // storage unavailable (private mode) — fall through to navigator
   }
@@ -57,13 +70,16 @@ let current: Language | null = null;
  * axios interceptor can read it without a React context.
  */
 export function getCurrentLanguage(): Language {
+  if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
   current ??= detectLanguage();
   return current;
 }
 
 /** Persists the choice and makes it the language of all later requests. */
 export function setCurrentLanguage(language: Language): void {
+  if (typeof window === 'undefined') return;
   current = language;
+  document.cookie = `${LANGUAGE_COOKIE_NAME}=${language}; Path=/; SameSite=Lax; Max-Age=31536000`;
   try {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   } catch {

@@ -1,5 +1,8 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useParams } from 'wouter';
+import Link from 'next/link';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -45,7 +48,7 @@ export function DrillSessionPage() {
   const params = useParams<{ id: string; drillId: string }>();
   const quizId = Number(params.id);
   const drillId = Number(params.drillId);
-  const [, navigate] = useLocation();
+  const router = useRouter();
   const { t } = useI18n();
 
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
@@ -78,15 +81,15 @@ export function DrillSessionPage() {
   useEffect(() => {
     const raw = sessionStorage.getItem(`drill-session-${quizId}-${drillId}`);
     if (!raw) {
-      navigate(`/quiz/${quizId}`);
+      router.push(`/quiz/${quizId}`);
       return;
     }
     try {
       setSessionData(JSON.parse(raw));
     } catch {
-      navigate(`/quiz/${quizId}`);
+      router.push(`/quiz/${quizId}`);
     }
-  }, [quizId, drillId, navigate]);
+  }, [quizId, drillId, router]);
 
   if (!sessionData) return null;
 

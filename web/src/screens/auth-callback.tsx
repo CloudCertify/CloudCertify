@@ -1,6 +1,9 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Cloud } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/auth/use-auth';
 import { useI18n } from '@/i18n/use-i18n';
@@ -17,7 +20,7 @@ import {
  * happens — it must never reach history, logging, or analytics (ADR 0003).
  */
 export function AuthCallbackPage() {
-  const [, navigate] = useLocation();
+  const router = useRouter();
   const { completeLogin } = useAuth();
   const { t } = useI18n();
   const [failed, setFailed] = useState(false);
@@ -46,8 +49,8 @@ export function AuthCallbackPage() {
     } catch {
       /* storage unavailable */
     }
-    navigate(sanitizeReturnTo(returnTo) ?? '/dashboard', { replace: true });
-  }, [completeLogin, navigate]);
+    router.replace(sanitizeReturnTo(returnTo) ?? '/dashboard');
+  }, [completeLogin, router]);
 
   if (!failed) {
     return (

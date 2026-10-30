@@ -1,73 +1,25 @@
-# React + TypeScript + Vite
+# CloudCertify web
 
-## Pointing the app at an API
-
-Every generated endpoint goes through one axios instance,
-`src/http/axios-instance.ts` (wired as the orval mutator), so the base URL is
-configuration rather than generated code:
+Next.js 16 App Router, React, TypeScript and Tailwind. Run commands from `web/`.
 
 ```sh
-cp .env.example .env.local   # then set VITE_API_URL=http://localhost:8080
-pnpm dev
+pnpm install
+pnpm dev         # localhost:5173
+pnpm test
+pnpm typecheck
+pnpm lint
+pnpm build
+pnpm start       # production, localhost:4173
 ```
 
-Unset, `VITE_API_URL` falls back to production, so a fresh clone runs with no
-setup. Interceptors (`Authorization`, `Accept-Language`) live on that same
-instance — not on the global axios default.
+Copy `.env.example` to `.env.local` to use a local API. `NEXT_PUBLIC_API_URL`
+sets the browser API address at build time; `API_URL` optionally overrides it
+for server requests. Both default to `https://api-cloudcertify.snowye.dev`.
+Never put credentials in a `NEXT_PUBLIC_` variable.
 
-Regenerating the client (`pnpm api:generate`) logs an `import.meta is not
-available` warning while orval bundles the mutator to read its types; it is
-harmless, the mutator itself is never rewritten.
+Home, the catalog and quiz details render on the server from anonymous API
+reads cached for five minutes per URL and language. Auth, progress and attempt
+requests stay in the browser and never touch that cache. The language cookie
+takes priority over `Accept-Language`.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+Regenerate the API client with `pnpm api:generate` when the API schema changes.

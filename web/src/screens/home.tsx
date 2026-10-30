@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,19 +23,16 @@ import { Footer } from '@/components/footer';
 import { CertificationRoadmap } from '@/components/certification-roadmap';
 import { Reveal, CountUp } from '@/components/reveal';
 import { Marquee } from '@/components/marquee';
-import { Link } from 'wouter';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { useGetQuiz } from '@/http/generated/api';
 import { AppHeader } from '@/components/app-header';
 import { useI18n } from '@/i18n/use-i18n';
-import type { QuestionDifficulty } from '@/http/generated/api.schemas';
+import type { QuestionDifficulty, QuizDto } from '@/http/generated/api.schemas';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-export function HomePage() {
+export function HomePage({ quizzes }: { quizzes: QuizDto[] }) {
   const { t } = useI18n();
-  const { data, isLoading } = useGetQuiz();
-  const quizzes = data?.data ?? [];
 
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
@@ -176,7 +175,7 @@ export function HomePage() {
                 {t.home.roadmapSubtitle}
               </p>
             </Reveal>
-            <CertificationRoadmap quizzes={quizzes} isLoading={isLoading} />
+            <CertificationRoadmap quizzes={quizzes} />
           </div>
         </section>
 
@@ -338,7 +337,7 @@ function HeroCluster() {
       {/* back accent card */}
       <motion.div
         aria-hidden='true'
-        initial={{ opacity: 0, y: 40, rotate: -10 }}
+        initial={{ opacity: 1, y: 40, rotate: -10 }}
         whileInView={{ opacity: 1, y: 0, rotate: -6 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, ease: EASE }}
@@ -347,7 +346,7 @@ function HeroCluster() {
 
       {/* main mock quiz card */}
       <motion.div
-        initial={{ opacity: 0, y: 56, rotate: 6 }}
+        initial={{ opacity: 1, y: 56, rotate: 6 }}
         whileInView={{ opacity: 1, y: 0, rotate: -2 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
@@ -368,7 +367,7 @@ function HeroCluster() {
           {answers.map((a, i) => (
             <motion.div
               key={a.text}
-              initial={{ opacity: 0, x: 12 }}
+              initial={{ opacity: 1, x: 12 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4 + i * 0.1, duration: 0.4, ease: EASE }}
@@ -393,7 +392,7 @@ function HeroCluster() {
         </div>
         <div className='mt-4 h-2.5 w-full overflow-hidden rounded-none border-2 border-black bg-white'>
           <motion.div
-            initial={{ width: 0 }}
+            initial={{ width: '62%' }}
             whileInView={{ width: '62%' }}
             viewport={{ once: true }}
             transition={{ delay: 0.7, duration: 0.8, ease: EASE }}
@@ -413,7 +412,7 @@ function HeroCluster() {
         GCP
       </FloatSticker>
       <motion.div
-        initial={{ opacity: 0, scale: 0.4, rotate: -20 }}
+        initial={{ opacity: 1, scale: 0.4, rotate: -20 }}
         whileInView={{ opacity: 1, scale: 1, rotate: 12 }}
         viewport={{ once: true }}
         transition={{ delay: 0.7, type: 'spring', stiffness: 260, damping: 12 }}
@@ -441,7 +440,7 @@ function FloatSticker({
   return (
     <motion.div
       className={cn('absolute z-20', position)}
-      initial={{ opacity: 0, scale: 0.5 }}
+      initial={{ opacity: 1, scale: 0.5 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ delay: 0.4 + delay, type: 'spring', stiffness: 280, damping: 14 }}

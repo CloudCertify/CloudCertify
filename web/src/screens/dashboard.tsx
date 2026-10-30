@@ -1,7 +1,8 @@
+'use client';
+
 import { Card } from '@/components/ui/card';
 import { Footer } from '@/components/footer';
 import { CertificationCard } from '@/components/certification-card';
-import { useGetQuiz } from '@/http/generated/api';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
@@ -15,19 +16,6 @@ import type {
   QuizProvider
 } from '@/http/generated/api.schemas';
 import { useState } from 'react';
-
-function SkeletonCard() {
-  return (
-    <Card className='flex flex-col overflow-hidden h-56 animate-pulse'>
-      <div className='flex-1 p-6 flex flex-col gap-4'>
-        <div className='w-12 h-12 rounded-none bg-muted mx-auto' />
-        <div className='h-4 bg-muted rounded-none w-3/4 mx-auto' />
-        <div className='h-3 bg-muted rounded-none w-full' />
-        <div className='h-3 bg-muted rounded-none w-5/6' />
-      </div>
-    </Card>
-  );
-}
 
 type LevelTierProps = {
   level: QuizLevel;
@@ -125,11 +113,10 @@ function ProviderTabs({
   );
 }
 
-export function DashboardPage() {
+export function DashboardPage({ quizzes: allQuizzes }: { quizzes: QuizDto[] }) {
   const { t } = useI18n();
-  const { data, isLoading, isError } = useGetQuiz();
   const [provider, setProvider] = useState<QuizProvider>('aws');
-  const quizzes = (data?.data ?? []).filter(q => q.quizProvider === provider);
+  const quizzes = allQuizzes.filter(q => q.quizProvider === provider);
 
   const tiers = LEVEL_ORDER.map(level => ({
     level,
@@ -160,56 +147,43 @@ export function DashboardPage() {
 
           <ProviderTabs provider={provider} onSelect={setProvider} />
 
-          {isError && (
+          {tiers.length === 0 && unleveled.length === 0 ? (
             <Card className='p-8 text-center'>
-              <p className='text-muted-foreground'>{t.dashboard.loadError}</p>
+              <p className='text-muted-foreground'>
+                {t.dashboard.empty(providerLabel)}
+              </p>
             </Card>
+          ) : (
+            <div className='space-y-12 md:space-y-16'>
+              {tiers.map((tier, index) => (
+                <LevelTier
+                  key={tier.level}
+                  level={tier.level}
+                  index={index}
+                  quizzes={tier.quizzes}
+                  isLast={index === tiers.length - 1}
+                />
+              ))}
+              {unleveled.length > 0 && (
+                <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                  {unleveled.map(quiz => (
+                    <CertificationCard
+                      key={quiz.id}
+                      title={quiz.title ?? ''}
+                      description={quiz.description}
+                      icon={getLucideIcon(quiz.iconName, {
+                        className: 'h-6 w-6 text-current'
+                      })}
+                      difficulty={quiz.quizLevel ?? ''}
+                      questions={quiz.questionCount ?? 0}
+                      available={quiz.isAvailable}
+                      href={`/quiz/${quiz.id}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
-
-          {!isError &&
-            (isLoading ? (
-              <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
-              </div>
-            ) : tiers.length === 0 && unleveled.length === 0 ? (
-              <Card className='p-8 text-center'>
-                <p className='text-muted-foreground'>
-                  {t.dashboard.empty(providerLabel)}
-                </p>
-              </Card>
-            ) : (
-              <div className='space-y-12 md:space-y-16'>
-                {tiers.map((tier, index) => (
-                  <LevelTier
-                    key={tier.level}
-                    level={tier.level}
-                    index={index}
-                    quizzes={tier.quizzes}
-                    isLast={index === tiers.length - 1}
-                  />
-                ))}
-                {unleveled.length > 0 && (
-                  <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                    {unleveled.map(quiz => (
-                      <CertificationCard
-                        key={quiz.id}
-                        title={quiz.title ?? ''}
-                        description={quiz.description}
-                        icon={getLucideIcon(quiz.iconName, {
-                          className: 'h-6 w-6 text-current'
-                        })}
-                        difficulty={quiz.quizLevel ?? ''}
-                        questions={quiz.questionCount ?? 0}
-                        available={quiz.isAvailable}
-                        href={`/quiz/${quiz.id}`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
         </div>
       </main>
 
