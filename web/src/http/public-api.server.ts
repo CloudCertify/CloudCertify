@@ -6,14 +6,13 @@ import type { QuizDto } from './generated/api.schemas';
 import type { Language } from '@/i18n/language';
 
 export function isPublicQuizId(id: string): boolean {
-  return /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id)) && Number(id) <= 2147483647;
+  return /^[1-9]\d{0,9}$/.test(id) && Number(id) <= 2147483647;
 }
 
 async function publicFetch(path: string, language: Language): Promise<Response> {
   const base = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api-cloudcertify.snowye.dev';
   return fetch(`${base.replace(/\/$/, '')}${path}`, {
     headers: { Accept: 'application/json', 'Accept-Language': language },
-    credentials: 'omit',
     next: { revalidate: 300 },
     // Fail the render instead of holding it open while the API hangs.
     signal: AbortSignal.timeout(10_000)

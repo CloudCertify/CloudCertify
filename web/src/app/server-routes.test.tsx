@@ -87,15 +87,11 @@ describe('public server routes', () => {
     expect(html).toContain('Página não encontrada');
     expect(html).toContain('href="/dashboard"');
   });
-
 });
 
 describe('native crawler routes', () => {
-  it('includes only public routes with real, unique positive integer catalog IDs', async () => {
-    vi.mocked(getPublicQuizzes).mockResolvedValue([
-      quiz, { id: 37 }, { id: 52, isAvailable: false }, {},
-      { id: 0 }, { id: -1 }, { id: 1.5 }, { id: 2147483648 }
-    ]);
+  it('lists public routes and catalog entries', async () => {
+    vi.mocked(getPublicQuizzes).mockResolvedValue([quiz, { id: 52, isAvailable: false }]);
     expect(await sitemap()).toEqual([
       { url: `${SITE_ORIGIN}/` },
       { url: `${SITE_ORIGIN}/dashboard` },

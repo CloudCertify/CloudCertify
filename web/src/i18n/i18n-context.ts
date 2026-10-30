@@ -5,8 +5,6 @@ import { DEFAULT_LANGUAGE, type Language } from './language';
 import type { Messages } from './messages/en';
 import { MESSAGES } from './messages';
 
-export { MESSAGES } from './messages';
-
 export type I18nContextValue = {
   language: Language;
   /** Persists the choice, retags requests, and refetches server content. */

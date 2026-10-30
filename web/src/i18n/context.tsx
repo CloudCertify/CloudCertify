@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { I18nContext, MESSAGES, type I18nContextValue } from './i18n-context';
-import { registerLanguageInterceptor } from './interceptor';
+import { I18nContext, type I18nContextValue } from './i18n-context';
+import { MESSAGES } from './messages';
+import './interceptor';
 import {
   DEFAULT_LANGUAGE,
   readLanguageCookie,
@@ -29,7 +30,6 @@ export function LanguageProvider({
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
-    registerLanguageInterceptor();
     // The server cannot see the legacy localStorage choice. Migrate it only
     // after hydration, and never override a validated cookie with it.
     const restored = !readLanguageCookie() ? readStoredLanguage() : null;
@@ -59,7 +59,6 @@ export function LanguageProvider({
       if (next === language) return;
       setCurrentLanguage(next);
       setLanguageState(next);
-      document.documentElement.lang = next;
       // Cached quiz content was fetched under the old Accept-Language.
       void queryClient.invalidateQueries();
       router.refresh();

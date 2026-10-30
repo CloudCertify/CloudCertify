@@ -68,13 +68,9 @@ const TIERS: Tier[] = LEVEL_ORDER.map((level, index) => ({
 
 type CertificationRoadmapProps = {
   quizzes: QuizDto[];
-  isLoading?: boolean;
 };
 
-export function CertificationRoadmap({
-  quizzes,
-  isLoading
-}: CertificationRoadmapProps) {
+export function CertificationRoadmap({ quizzes }: CertificationRoadmapProps) {
   const { t } = useI18n();
   const [provider, setProvider] = useState<QuizProvider>('aws');
 
@@ -125,7 +121,6 @@ export function CertificationRoadmap({
               tier={tier}
               styles={TIER_STYLES[tier.level]}
               isLast={tierIndex === grouped.length - 1}
-              isLoading={isLoading}
               providerAvailable={
                 PROVIDERS.find(p => p.id === provider)?.available ?? false
               }
@@ -141,7 +136,6 @@ type TierRowProps = {
   tier: Tier & { quizzes: QuizDto[] };
   styles: TierStyle;
   isLast: boolean;
-  isLoading?: boolean;
   providerAvailable: boolean;
 };
 
@@ -149,7 +143,6 @@ function TierRow({
   tier,
   styles,
   isLast,
-  isLoading,
   providerAvailable
 }: TierRowProps) {
   const { t } = useI18n();
@@ -186,13 +179,7 @@ function TierRow({
         </h4>
 
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {isLoading ? (
-            <>
-              <NodeSkeleton />
-              <NodeSkeleton />
-              <NodeSkeleton />
-            </>
-          ) : tier.quizzes.length > 0 ? (
+          {tier.quizzes.length > 0 ? (
             tier.quizzes.map(quiz => (
               <CertificationNode
                 key={quiz.id}
@@ -288,12 +275,6 @@ function CertificationNode({
   }
 
   return <div className={baseClasses}>{content}</div>;
-}
-
-function NodeSkeleton() {
-  return (
-    <div className='h-24 animate-pulse rounded-none border-2 border-dashed border-black bg-gray-100' />
-  );
 }
 
 function EmptyTierCard({ providerAvailable }: { providerAvailable: boolean }) {

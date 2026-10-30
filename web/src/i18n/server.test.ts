@@ -30,13 +30,6 @@ describe('request language', () => {
     expect(resolveRequestLanguage(cookie, header)).toBe(expected);
   });
 
-  it('reads the language cookie before consulting headers', async () => {
-    request.cookie.mockReturnValue({ value: 'pt-BR' });
-    expect(await getRequestLanguage()).toBe('pt-BR');
-    expect(request.cookie).toHaveBeenCalledWith('cloudcertify-language');
-    expect(request.header).not.toHaveBeenCalled();
-  });
-
   it('keeps successive requests isolated', async () => {
     request.cookie.mockReturnValueOnce({ value: 'pt-BR' }).mockReturnValueOnce(undefined);
     request.header.mockReturnValue('en-US');

@@ -221,7 +221,7 @@ export function HomePage({ quizzes }: { quizzes: QuizDto[] }) {
                     <span className='text-7xl font-black leading-none text-black'>
                       $0
                     </span>
-                    <span className='mb-2 text-sm font-bold text-black/60'>
+                    <span className='mb-2 text-sm font-bold text-black/50'>
                       {t.home.pricingPeriod}
                     </span>
                   </div>
@@ -356,7 +356,7 @@ function HeroCluster() {
           <span className='rounded-none border-2 border-black bg-primary px-2 py-0.5 text-[11px] font-black uppercase text-white'>
             AWS · SAA
           </span>
-          <span className='font-mono text-xs font-bold tabular-nums text-black/60'>
+          <span className='font-mono text-xs font-bold tabular-nums text-black/50'>
             Q 07 / 65
           </span>
         </div>
@@ -408,7 +408,7 @@ function HeroCluster() {
       <FloatSticker position='-right-2 top-28' className='bg-white text-black rotate-6' delay={0.6}>
         Azure
       </FloatSticker>
-      <FloatSticker position='-left-1 bottom-6' className='bg-success text-black rotate-3' delay={0.3}>
+      <FloatSticker position='-left-1 bottom-6' className='bg-success text-white rotate-3' delay={0.3}>
         GCP
       </FloatSticker>
       <motion.div
@@ -480,7 +480,7 @@ function Stat({
       <div className='text-4xl font-black text-white md:text-5xl'>
         <CountUp to={value} prefix={prefix} suffix={suffix} />
       </div>
-      <div className='mt-1 text-xs font-bold uppercase tracking-wide text-white/80'>
+      <div className='mt-1 text-xs font-bold uppercase tracking-wide text-white/70'>
         {label}
       </div>
     </Reveal>
@@ -547,7 +547,7 @@ function QuizCard({
               >
                 {index === correctAnswer && <CheckCircle className='h-4 w-4' />}
               </div>
-              <span className='text-black'>
+              <span className={index === correctAnswer ? 'text-white' : 'text-black'}>
                 {option}
               </span>
             </div>

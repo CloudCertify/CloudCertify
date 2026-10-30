@@ -7,7 +7,6 @@
     "dev": "next dev --hostname 0.0.0.0 --port 5173",
     "build": "next build",
     "lint": "eslint .",
-    "preview": "next start --hostname 0.0.0.0 --port 4173",
     "test": "vitest run",
     "api:generate": "orval --config orval.config.ts",
     "start": "next start --hostname 0.0.0.0 --port 4173",
@@ -38,7 +37,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@tailwindcss/postcss": "4.2.4",
+    "@tailwindcss/postcss": "^4.2.4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

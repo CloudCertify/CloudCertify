@@ -9,7 +9,7 @@ export async function generateMetadata() {
   const { title, description } = publicMetadata('/', await getRequestLanguage());
   return { ...rootMetadata, title, description };
 }
-export const viewport: Viewport = { themeColor: '#2347d9', colorScheme: 'light' };
+export const viewport: Viewport = { themeColor: '#f0f9ff', colorScheme: 'light' };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const language = await getRequestLanguage();

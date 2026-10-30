@@ -44,7 +44,6 @@ export function publicMetadata(path: string, language: Language, quiz?: QuizDto)
   return {
     title, description,
     alternates: { canonical: path },
-    robots: { index: true, follow: true },
     openGraph: {
       title, description, url: path, type: 'website',
       siteName: 'CloudCertify', locale: language.replace('-', '_')

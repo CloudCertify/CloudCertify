@@ -8,7 +8,6 @@ describe('server discovery metadata', () => {
     const pt = publicMetadata('/dashboard', 'pt-BR');
     expect(en.title).not.toBe(pt.title);
     expect(pt.alternates).toEqual({ canonical: '/dashboard' });
-    expect(pt.robots).toEqual({ index: true, follow: true });
     expect(pt.openGraph).toMatchObject({ locale: 'pt_BR', url: '/dashboard' });
     expect(rootMetadata.metadataBase?.toString()).toBe(`${SITE_ORIGIN}/`);
   });

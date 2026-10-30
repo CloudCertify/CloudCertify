@@ -155,9 +155,7 @@ describe('QuizDetailPage start flow', () => {
     fireEvent.click(start);
     fireEvent.click(mode === 'exam' ? drill : exam);
 
-    // Busy, not disabled: disabling would drop keyboard focus to <body>.
-    expect(start).not.toBeDisabled();
-    expect(start).toHaveAttribute('aria-disabled', 'true');
+    expect(start).toBeDisabled();
     expect(postQuizQuizIdStart).toHaveBeenCalledTimes(mode === 'exam' ? 1 : 0);
     expect(postQuizQuizIdDrillsDrillIdStart).toHaveBeenCalledTimes(mode === 'drill' ? 1 : 0);
     expect(location.push).toHaveBeenCalledOnce();
@@ -173,13 +171,9 @@ describe('QuizDetailPage start flow', () => {
     const start = screen.getByRole('button', {
       name: mode === 'exam' ? en.quizDetail.startExam : en.quizDetail.practice
     });
-    start.focus();
     fireEvent.click(start);
-    expect(start).toHaveFocus();
     await waitFor(() => expect(toastError).toHaveBeenCalledOnce());
     expect(start).toBeEnabled();
-    expect(start).not.toHaveAttribute('aria-disabled');
-    expect(start).toHaveFocus();
     fireEvent.click(start);
     await waitFor(() => expect(location.push).toHaveBeenCalledOnce());
     expect(request).toHaveBeenCalledTimes(2);

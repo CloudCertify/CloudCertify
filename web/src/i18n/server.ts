@@ -27,10 +27,9 @@ export function resolveRequestLanguage(cookie?: string, acceptLanguage?: string 
 }
 
 export const getRequestLanguage = cache(async (): Promise<Language> => {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(LANGUAGE_COOKIE_NAME)?.value;
-  if (LANGUAGES.some(language => language === cookie)) {
-    return resolveRequestLanguage(cookie);
-  }
-  return resolveRequestLanguage(cookie, (await headers()).get('accept-language'));
+  const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
+  return resolveRequestLanguage(
+    cookieStore.get(LANGUAGE_COOKIE_NAME)?.value,
+    headerStore.get('accept-language')
+  );
 });
