@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { AlertTriangle, Check, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/i18n/use-i18n';
@@ -69,11 +69,24 @@ export function ReportQuestionControl({
   const [comment, setComment] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const id = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const headingRef = useRef<HTMLParagraphElement>(null);
+  const reportedRef = useRef<HTMLParagraphElement>(null);
+  const wasOpen = useRef(false);
+
+  useEffect(() => {
+    if (isOpen) headingRef.current?.focus();
+    else if (wasOpen.current) {
+      (reported ? reportedRef.current : triggerRef.current)?.focus();
+    }
+    wasOpen.current = isOpen;
+  }, [isOpen, reported]);
 
   if (reported) {
     return (
-      <p className='flex items-center gap-2 text-sm font-bold text-black/60'>
-        <Check className='h-4 w-4' />
+      <p ref={reportedRef} tabIndex={-1} role='status' className='flex items-center gap-2 text-sm font-bold text-black/60'>
+        <Check aria-hidden='true' className='h-4 w-4' />
         {t.report.reported}
       </p>
     );
@@ -155,6 +168,7 @@ export function ReportQuestionControl({
   if (!isOpen) {
     return (
       <Button
+        ref={triggerRef}
         type='button'
         variant='outline'
         size='sm'
@@ -167,15 +181,29 @@ export function ReportQuestionControl({
   }
 
   return (
-    <div className='w-full rounded-none border-2 border-black bg-white p-4 space-y-3'>
+    <form
+      aria-labelledby={`${id}-title`}
+      aria-busy={isSubmitting}
+      onSubmit={event => {
+        event.preventDefault();
+        if (!isSubmitting) void handleSubmit();
+      }}
+      onKeyDown={event => {
+        if (event.key === 'Escape' && !isSubmitting) {
+          event.stopPropagation();
+          close();
+        }
+      }}
+      className='w-full rounded-none border-2 border-black bg-white p-4 space-y-3'
+    >
       <div>
-        <p className='font-black text-black'>{t.report.title}</p>
-        <p className='text-sm text-black/60 font-medium'>
+        <p ref={headingRef} id={`${id}-title`} tabIndex={-1} className='font-black text-black'>{t.report.title}</p>
+        <p id={`${id}-hint`} className='text-sm text-black/60 font-medium'>
           {t.report.reasonsHint}
         </p>
       </div>
 
-      <div className='space-y-2' role='group' aria-label={t.report.title}>
+      <div className='space-y-2' role='group' aria-label={t.report.title} aria-describedby={`${id}-hint`}>
         {REASONS.map(reason => {
           const isInferred = inferred.includes(reason);
           return (
@@ -216,13 +244,14 @@ export function ReportQuestionControl({
 
           <div className='space-y-1'>
             <label
-              htmlFor={`suggest-question-${questionId}`}
+              htmlFor={`${id}-question`}
               className='block text-sm font-bold text-black'
             >
               {t.report.suggest.questionLabel}
             </label>
             <textarea
-              id={`suggest-question-${questionId}`}
+              id={`${id}-question`}
+              autoFocus
               value={draft.questionText}
               maxLength={SUGGESTION_MAX_LENGTH}
               onChange={e =>
@@ -237,25 +266,26 @@ export function ReportQuestionControl({
             {draft.answers.map((answer, index) => (
               <div key={answer.id} className='space-y-1'>
                 <label
-                  htmlFor={`suggest-answer-${answer.id}`}
+                  htmlFor={`${id}-answer-${answer.id}`}
                   className='block text-sm font-bold text-black'
                 >
                   {t.report.suggest.answerLabel(index)}
                 </label>
-                <div className='flex items-center gap-2'>
+                <div className='flex flex-wrap items-center gap-2'>
                   <input
-                    id={`suggest-answer-${answer.id}`}
+                    id={`${id}-answer-${answer.id}`}
                     type='text'
                     value={answer.text}
                     maxLength={SUGGESTION_MAX_LENGTH}
                     onChange={e =>
                       editAnswer(answer.id, { text: e.target.value })
                     }
-                    className='flex-1 rounded-none border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+                    className='min-w-0 flex-1 rounded-none border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
                   />
                   <label className='flex items-center gap-1 text-xs font-bold text-black cursor-pointer whitespace-nowrap'>
                     <input
                       type='checkbox'
+                      aria-label={t.report.suggest.correctLabel(index)}
                       className='h-4 w-4 accent-primary'
                       checked={answer.isCorrect}
                       onChange={e =>
@@ -279,13 +309,14 @@ export function ReportQuestionControl({
 
       <div className='space-y-1'>
         <label
-          htmlFor={`report-comment-${questionId}`}
+          htmlFor={`${id}-comment`}
           className='block text-sm font-bold text-black'
         >
           {t.report.commentLabel}
         </label>
         <textarea
-          id={`report-comment-${questionId}`}
+          id={`${id}-comment`}
+          aria-describedby={`${id}-counter`}
           value={comment}
           maxLength={COMMENT_MAX_LENGTH}
           onChange={e => setComment(e.target.value.slice(0, COMMENT_MAX_LENGTH))}
@@ -293,12 +324,12 @@ export function ReportQuestionControl({
           rows={3}
           className='w-full rounded-none border-2 border-black bg-white p-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
         />
-        <p className='text-right text-xs font-bold text-black/50'>
+        <p id={`${id}-counter`} className='text-right text-xs font-bold text-black/50'>
           {t.report.commentCounter(comment.length, COMMENT_MAX_LENGTH)}
         </p>
       </div>
 
-      <div className='flex justify-end gap-2'>
+      <div className='flex flex-wrap justify-end gap-2'>
         <Button
           type='button'
           variant='outline'
@@ -309,15 +340,17 @@ export function ReportQuestionControl({
           {t.report.cancel}
         </Button>
         <Button
-          type='button'
+          type='submit'
           size='sm'
-          onClick={handleSubmit}
-          disabled={effectiveReasons.length === 0 || isSubmitting}
+          // Stay focusable while sending so a failed send keeps keyboard focus here.
+          className='aria-disabled:opacity-50'
+          disabled={effectiveReasons.length === 0}
+          aria-disabled={isSubmitting || undefined}
         >
           {isSubmitting ? t.report.submitting : t.report.submit}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
 

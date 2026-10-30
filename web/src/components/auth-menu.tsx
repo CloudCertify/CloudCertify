@@ -64,20 +64,14 @@ export function AuthMenu({ languageLocked = false }: { languageLocked?: boolean 
 
   if (!isAuthenticated) {
     return (
-      <div className='flex items-center gap-2'>
+      <div className='flex flex-col gap-2 md:flex-row md:items-center'>
         <Button variant='outline' size='sm' onClick={() => login('google')}>
           <GoogleIcon />
-          <span className='ml-2 hidden sm:inline'>
-            {t.auth.continueWith('Google')}
-          </span>
-          <span className='ml-2 sm:hidden'>Google</span>
+          {t.auth.continueWith('Google')}
         </Button>
         <Button variant='outline' size='sm' onClick={() => login('github')}>
           <GitHubIcon />
-          <span className='ml-2 hidden sm:inline'>
-            {t.auth.continueWith('GitHub')}
-          </span>
-          <span className='ml-2 sm:hidden'>GitHub</span>
+          {t.auth.continueWith('GitHub')}
         </Button>
       </div>
     );
@@ -142,5 +136,57 @@ export function AuthMenu({ languageLocked = false }: { languageLocked?: boolean 
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+const accountLinkClass =
+  'flex min-h-11 items-center gap-3 px-3 text-sm font-bold text-black hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-4';
+
+/**
+ * The profile menu's contents laid out flat, for the mobile sidebar. Only
+ * meaningful when authenticated; the anonymous sidebar shows `AuthMenu`.
+ */
+export function AccountNav({ onNavigate }: { onNavigate?: () => void }) {
+  const { user, logout } = useAuth();
+  const { t } = useI18n();
+
+  return (
+    <div className='flex flex-col gap-1'>
+      <div className='flex items-center gap-3 px-3 py-2'>
+        <UserAvatar
+          user={user}
+          className='h-10 w-10 shrink-0 rounded-none border-2 border-black'
+        />
+        <span className='min-w-0'>
+          <span className='block truncate font-black'>
+            {user?.displayName ?? t.auth.profile}
+          </span>
+          {user?.email ? (
+            <span className='block truncate text-xs font-medium text-black/60'>
+              {user.email}
+            </span>
+          ) : null}
+        </span>
+      </div>
+      <Link href='/dashboard' onClick={onNavigate} className={accountLinkClass}>
+        <LayoutDashboard aria-hidden='true' />
+        {t.common.dashboard}
+      </Link>
+      <Link href='/progress' onClick={onNavigate} className={accountLinkClass}>
+        <TrendingUp aria-hidden='true' />
+        {t.common.progress}
+      </Link>
+      <button
+        type='button'
+        onClick={() => {
+          onNavigate?.();
+          logout();
+        }}
+        className={`${accountLinkClass} w-full cursor-pointer text-left`}
+      >
+        <LogOut aria-hidden='true' />
+        {t.auth.logOut}
+      </button>
+    </div>
   );
 }

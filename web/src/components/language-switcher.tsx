@@ -42,7 +42,7 @@ export function LanguageSwitcher({ locked = false, className }: LanguageSwitcher
             lang={code}
             disabled={locked}
             aria-pressed={isActive}
-            aria-label={t.language.names[code]}
+            aria-label={`${t.language.short[code]}: ${t.language.names[code]}`}
             onClick={() => setLanguage(code)}
             className={cn(
               'rounded-none border-2 px-2 py-0.5 text-xs font-black transition-all',
@@ -93,8 +93,9 @@ export function MenuLanguageSwitcher({ locked = false }: { locked?: boolean }) {
             <DropdownMenuRadioItem
               key={code}
               value={code}
+              lang={code}
               disabled={locked}
-              aria-label={t.language.names[code]}
+              aria-label={`${t.language.short[code]}: ${t.language.names[code]}`}
               onSelect={event => event.preventDefault()}
               className={cn(
                 'h-auto rounded-none border-2 px-2 py-0.5 text-xs font-black',

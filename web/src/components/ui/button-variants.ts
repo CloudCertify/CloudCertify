@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 
 export const buttonVariants = cva(
-  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-bold transition-[translate,box-shadow,background-color] duration-150 ease-[var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-black",
+  "cursor-pointer inline-flex items-center justify-center gap-2 text-center text-sm font-bold transition-[translate,box-shadow,background-color] duration-150 ease-[var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-black",
   {
     variants: {
       variant: {
@@ -17,9 +17,9 @@ export const buttonVariants = cva(
         link: 'text-black underline-offset-4 hover:underline border-transparent'
       },
       size: {
-        default: 'h-10 px-5 py-2 rounded-none',
-        sm: 'h-9 rounded-none gap-1.5 px-4',
-        lg: 'h-12 rounded-none px-8 text-base',
+        default: 'min-h-10 px-5 py-2 rounded-none',
+        sm: 'min-h-9 py-1.5 rounded-none gap-1.5 px-4',
+        lg: 'min-h-12 rounded-none px-8 py-2 text-base',
         icon: 'size-10 rounded-none'
       }
     },

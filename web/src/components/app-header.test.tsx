@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '@/auth/context';
 import { clearToken, setToken } from '@/auth/token';
@@ -47,9 +47,8 @@ function renderHeader({
           <AppHeader
             languageLocked={languageLocked}
             anonymousActions={<a href='/dashboard'>Dashboard</a>}
-          >
-            <a href='#certifications'>Certifications</a>
-          </AppHeader>
+            links={[{ href: '#certifications', label: 'Certifications' }]}
+          />
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
@@ -110,7 +109,7 @@ describe('AppHeader', () => {
     renderHeader({ authenticated: true });
     const trigger = openMenu();
 
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Português' }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'PT: Português' }));
 
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('pt-BR');
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
@@ -129,19 +128,19 @@ describe('AppHeader', () => {
     fireEvent.keyDown(progress, { key: 'ArrowDown', code: 'ArrowDown' });
 
     await waitFor(() =>
-      expect(screen.getByRole('menuitemradio', { name: 'English' })).toHaveFocus()
+      expect(screen.getByRole('menuitemradio', { name: 'EN: English' })).toHaveFocus()
     );
   });
 
   it('locks language controls both standalone and inside the profile menu', () => {
     const { unmount } = renderHeader({ languageLocked: true });
-    expect(screen.getByRole('button', { name: 'Português' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'PT: Português' })).toBeDisabled();
     unmount();
 
     renderHeader({ authenticated: true, languageLocked: true });
     openMenu();
     expect(
-      screen.getByRole('menuitemradio', { name: 'Português' })
+      screen.getByRole('menuitemradio', { name: 'PT: Português' })
     ).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('group', { name: 'Change language' })).toHaveAttribute(
       'title',
@@ -169,5 +168,49 @@ describe('AppHeader', () => {
       expect(screen.queryByRole('button', { name: /profile menu/i })).not.toBeInTheDocument()
     );
     expect(screen.getByRole('group', { name: 'Change language' })).toBeVisible();
+  });
+
+  describe('mobile sidebar', () => {
+    function openSidebar() {
+      fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
+      return within(screen.getByRole('dialog', { name: 'Menu' }));
+    }
+
+    it('lists section links, anonymous actions and language when anonymous', () => {
+      renderHeader();
+      const sidebar = openSidebar();
+
+      expect(sidebar.getByRole('link', { name: 'Certifications' })).toBeVisible();
+      expect(sidebar.getByRole('link', { name: 'Dashboard' })).toBeVisible();
+      expect(sidebar.getByRole('group', { name: 'Change language' })).toBeVisible();
+    });
+
+    it('flattens the profile menu when authenticated', async () => {
+      renderHeader({ authenticated: true });
+      const sidebar = openSidebar();
+
+      expect(sidebar.getByText('ada@example.com')).toBeVisible();
+      expect(sidebar.getByRole('link', { name: 'Progress' })).toHaveAttribute(
+        'href',
+        '/progress'
+      );
+      fireEvent.click(sidebar.getByRole('button', { name: 'Log out' }));
+
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      );
+      expect(screen.queryByRole('button', { name: /profile menu/i })).not.toBeInTheDocument();
+    });
+
+    it('closes after following a section link', async () => {
+      renderHeader();
+      const sidebar = openSidebar();
+
+      fireEvent.click(sidebar.getByRole('link', { name: 'Certifications' }));
+
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      );
+    });
   });
 });

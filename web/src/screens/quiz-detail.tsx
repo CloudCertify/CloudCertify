@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -65,7 +65,8 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
       /* no saved session */
     }
   }, [quizId]);
-  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   // Successful starts stay busy until navigation unmounts this page.
   const [isStartingExam, setIsStartingExam] = useState(false);
@@ -78,11 +79,12 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
     const result = emailSchema.safeParse(email.trim());
     if (!result.success) {
       const msg = result.error.issues[0]?.message ?? t.quizDetail.emailInvalid;
-      setEmailError(msg);
+      setEmailError(true);
       toast.error(msg);
+      emailRef.current?.focus();
       return false;
     }
-    setEmailError(null);
+    setEmailError(false);
     return true;
   };
 
@@ -148,7 +150,7 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
     <div className='flex min-h-dvh flex-col bg-background'>
       <AppHeader anonymousActions={<AuthMenu />} />
 
-      <main className='flex-1 container max-w-3xl mx-auto py-12 px-4 space-y-10'>
+      <main id='main-content' tabIndex={-1} className='flex-1 container max-w-3xl mx-auto py-12 px-4 space-y-10'>
         <PageBackLink href='/dashboard'>
           {t.common.backToDashboard}
         </PageBackLink>
@@ -198,23 +200,26 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
                 {t.quizDetail.emailLabel}
               </label>
               <input
+                ref={emailRef}
                 id='email'
                 type='email'
+                name='email'
+                autoComplete='email'
+                required
+                aria-invalid={emailError ? true : undefined}
+                aria-describedby={emailError ? 'email-error' : undefined}
                 value={email}
                 onChange={e => {
                   setEmail(e.target.value);
-                  if (emailError) setEmailError(null);
+                  if (emailError) setEmailError(false);
                 }}
                 onBlur={() => {
                   if (email.trim()) {
                     const result = emailSchema.safeParse(email.trim());
                     if (!result.success) {
-                      setEmailError(
-                        result.error.issues[0]?.message ??
-                          t.quizDetail.emailInvalid
-                      );
+                      setEmailError(true);
                     } else {
-                      setEmailError(null);
+                      setEmailError(false);
                     }
                   }
                 }}
@@ -226,7 +231,7 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
                 }`}
               />
               {emailError && (
-                <p className='text-sm font-bold text-destructive'>{emailError}</p>
+                <p id='email-error' role='alert' className='text-sm font-bold text-destructive'>{t.quizDetail.emailInvalid}</p>
               )}
             </div>
             )}
@@ -290,9 +295,9 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
                 </CardContent>
                 <CardFooter className='border-t-2 border-black pt-4'>
                   <Button
-                    className='w-full'
+                    className='w-full aria-disabled:opacity-50'
                     onClick={handleStartExam}
-                    disabled={isStartingExam}
+                    aria-disabled={isStartingExam || undefined}
                   >
                     {isStartingExam ? t.common.starting : t.quizDetail.startExam}
                     {!isStartingExam && <ArrowRight className='ml-2 h-4 w-4' />}
@@ -370,14 +375,16 @@ function DrillCard({
         ) : null}
       </CardHeader>
       <CardFooter className='pt-0'>
-        <div className='flex items-center justify-between w-full'>
-          <span className='text-xs font-bold text-black/50'>
+        <div className='flex flex-wrap items-center justify-between gap-2 w-full'>
+          <span className='text-xs font-bold text-black/70'>
             {t.common.questions(15)}
           </span>
           <Button
             size='sm'
+            className='aria-disabled:opacity-50'
             onClick={onStart}
-            disabled={isUnavailable || isStarting}
+            disabled={isUnavailable}
+            aria-disabled={isStarting || undefined}
           >
             {isStarting ? t.common.starting : t.quizDetail.practice}
             {!isStarting && <ArrowRight className='ml-1 h-3 w-3' />}

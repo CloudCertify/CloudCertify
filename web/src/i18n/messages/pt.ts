@@ -2,11 +2,14 @@ import type { Messages } from './en';
 
 /**
  * PT-BR copy. Typed as `Messages`, so this file fails to compile the moment a
- * key is added to `en.ts` and not translated here — no silent English leaks.
+ * key is added to `en.ts` and not translated here, so English never leaks in silently.
  * Cloud service names (Amazon S3, AWS Lambda, …) stay untranslated on purpose.
  */
 export const pt: Messages = {
   common: {
+    skipToContent: 'Pular para o conteúdo',
+    loading: 'Carregando...',
+    cloudProvider: 'Provedor de nuvem',
     dashboard: 'Painel',
     progress: 'Progresso',
     backToDashboard: 'Voltar ao painel',
@@ -22,7 +25,7 @@ export const pt: Messages = {
     fail: 'REPROVADO',
     correct: 'Correto',
     incorrect: 'Incorreto',
-    questions: (count: number) => `${count} questões`
+    questions: (count: number) => count === 1 ? '1 questão' : `${count} questões`
   },
 
   route: {
@@ -37,7 +40,7 @@ export const pt: Messages = {
     label: 'Idioma',
     switcherAriaLabel: 'Mudar idioma',
     lockedDuringAttempt:
-      'O idioma fica fixo nesta tentativa — finalize ou saia para trocar.',
+      'O idioma fica fixo nesta tentativa. Finalize ou saia para trocar.',
     names: {
       'en-US': 'English',
       'pt-BR': 'Português'
@@ -50,11 +53,14 @@ export const pt: Messages = {
 
   nav: {
     certifications: 'Certificações',
-    pricing: 'Preço'
+    pricing: 'Preço',
+    menu: 'Menu',
+    openMenu: 'Abrir menu',
+    closeMenu: 'Fechar menu'
   },
 
   footer: {
-    buyMeACoffee: 'Buy me a coffee',
+    buyMeACoffee: 'Me pague um café',
     rights: (year: number) =>
       `© ${year} CloudCertify. Todos os direitos reservados.`
   },
@@ -67,7 +73,7 @@ export const pt: Messages = {
     signingIn: 'Entrando...',
     failedTitle: 'O login não funcionou',
     failedBody:
-      'Não conseguimos concluir o login — o link estava ausente ou expirado. Você pode tentar de novo ou continuar usando o CloudCertify sem conta.',
+      'Não conseguimos concluir o login porque o link estava ausente ou expirado. Você pode tentar de novo ou continuar usando o CloudCertify sem conta.',
     tryAgainFromDashboard: 'Tentar de novo pelo painel',
     goHome: 'Ir para o início'
   },
@@ -86,13 +92,13 @@ export const pt: Messages = {
   },
 
   home: {
-    heroBadge: 'Grátis — sem cartão, sem conta',
+    heroBadge: 'Grátis, sem cartão e sem conta',
     heroTitleLead: 'Passe na sua',
     heroTitleCert: 'certificação',
     heroTitleTail: 'de primeira',
     heroTitleChipFirst: false,
     heroSubtitle:
-      'Questões no estilo da prova, treinos focados por domínio e simulados completos de AWS, Google Cloud e Azure. Feito para te certificar — não para te vender nada.',
+      'Questões no estilo da prova, treinos focados por domínio e simulados completos de AWS, Google Cloud e Azure. Feito para te certificar, não para te vender nada.',
     heroPrimaryCta: 'Começar a estudar',
     heroSecondaryCta: 'Ver certificações',
     heroMockQuestion:
@@ -115,7 +121,7 @@ export const pt: Messages = {
     roadmapEyebrow: 'A trilha',
     roadmapTitle: 'Escolha seu caminho',
     roadmapSubtitle:
-      'Comece pelas provas fundamentais e avance até as de especialidade — um provedor por vez.',
+      'Comece pelas provas fundamentais e avance até as de especialidade, um provedor por vez.',
     sampleTitle: 'Experimente uma questão',
     sampleSubtitle:
       'Como na prova: enunciados reais, alternativas plausíveis e feedback na hora.',
@@ -199,7 +205,7 @@ export const pt: Messages = {
   },
 
   roadmap: {
-    emptyTier: 'Ainda não há provas neste nível — volte em breve.',
+    emptyTier: 'Ainda não há provas neste nível. Volte em breve.',
     providerSoon:
       'Este provedor chega em breve. Avisaremos quando estiver no ar.'
   },
@@ -294,6 +300,26 @@ export const pt: Messages = {
     practice: 'Treinar'
   },
 
+  demoQuiz: [
+    {
+      question: 'Qual alternativa NÃO é um benefício de usar o AWS Lambda?',
+      options: [
+        'O AWS Lambda executa código sem provisionar ou gerenciar servidores.',
+        'O AWS Lambda oferece capacidade computacional redimensionável na nuvem.',
+        'Não há cobrança quando seu código do AWS Lambda não está em execução.',
+        'O AWS Lambda pode ser chamado diretamente de qualquer aplicativo móvel.'
+      ]
+    },
+    {
+      question: 'Qual serviço da AWS armazena e recupera objetos e é conhecido pela durabilidade?',
+      options: ['Amazon EC2', 'Amazon S3', 'Amazon RDS', 'Amazon VPC']
+    },
+    {
+      question: 'Qual serviço da AWS oferece uma rede virtual dedicada à sua conta AWS?',
+      options: ['Amazon VPC', 'AWS Direct Connect', 'Amazon Route 53', 'AWS Transit Gateway']
+    }
+  ],
+
   question: {
     counter: (index: number, total: number) => `Questão ${index} de ${total}`,
     selectAnswers: (count: number) => `Selecione ${count} respostas`,
@@ -339,7 +365,7 @@ export const pt: Messages = {
   navigator: {
     open: 'Abrir navegador de questões',
     openTitle: (index: number, total: number) =>
-      `Abrir navegador de questões — questão ${index} de ${total}`,
+      `Abrir navegador de questões, questão ${index} de ${total}`,
     close: 'Fechar navegador de questões',
     title: 'Questões',
     landmark: 'Navegador de questões',
@@ -385,6 +411,7 @@ export const pt: Messages = {
       answerLabel: (index: number) =>
         `Resposta ${String.fromCharCode(65 + index)}`,
       correct: 'Certa',
+      correctLabel: (index: number) => `Resposta ${String.fromCharCode(65 + index)} está certa`,
       noChanges: 'Nada alterado ainda.',
       changes: (count: number) =>
         count === 1
@@ -397,7 +424,7 @@ export const pt: Messages = {
     cancel: 'Cancelar',
     submit: 'Enviar relato',
     submitting: 'Enviando...',
-    success: 'Valeu — vamos revisar esta questão.',
+    success: 'Valeu, vamos revisar esta questão.',
     error: 'Não foi possível enviar este relato. Tente de novo.'
   },
 
@@ -406,7 +433,7 @@ export const pt: Messages = {
     reviewHeading: 'Revisão das questões',
     questionLabel: (index: number, text: string) => `Questão ${index}: ${text}`,
     clickToView: (correct: boolean) =>
-      `${correct ? 'Correto' : 'Incorreto'} — Clique para ver os detalhes`,
+      `${correct ? 'Correto' : 'Incorreto'}. Clique para ver os detalhes`,
     explanation: 'Explicação',
     yourAnswer: '(Sua resposta)',
     correctAnswer: '(Resposta correta)',
@@ -422,9 +449,9 @@ export const pt: Messages = {
       `Você acertou ${correct} de ${total} questões`,
     confidenceHeading: 'O que sua confiança diz',
     luckyGuesses: 'Chutes certeiros',
-    luckyGuessesHint: 'Você chutou e acertou — ainda vale estudar.',
+    luckyGuessesHint: 'Você chutou e acertou. Ainda vale estudar.',
     misconceptions: 'Conceitos errados',
-    misconceptionsHint: 'Você tinha certeza e errou — comece por aqui.',
+    misconceptionsHint: 'Você tinha certeza e errou. Comece por aqui.',
     domainBreakdown: 'Detalhe por domínio',
     domainStats: (
       correct: number,
@@ -434,7 +461,7 @@ export const pt: Messages = {
     ) => `${correct}/${total} (${pct}%) · peso ${weight}%`,
     restartQuiz: 'Refazer simulado',
     submitError:
-      'Não foi possível enviar esta tentativa. Ela pode já estar finalizada — use "Tentar de novo" para começar outra.',
+      'Não foi possível enviar esta tentativa. Ela pode já estar finalizada. Use "Tentar de novo" para começar outra.',
     restartError: 'Não foi possível iniciar uma nova tentativa. Tente de novo.',
     answerError:
       'Não foi possível salvar essa resposta. Verifique sua conexão e selecione de novo.',

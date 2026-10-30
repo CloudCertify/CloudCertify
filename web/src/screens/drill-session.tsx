@@ -215,7 +215,7 @@ export function DrillSessionPage() {
     return (
       <div className='flex min-h-dvh flex-col bg-background'>
         <AppHeader />
-        <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        <main id='main-content' tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
           <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
             {t.common.backToCertification}
           </PageBackLink>
@@ -315,7 +315,7 @@ export function DrillSessionPage() {
   return (
     <div className='flex min-h-dvh flex-col bg-background'>
       <AppHeader languageLocked />
-      <main className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+      <main id='main-content' tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
         <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
           {t.common.back}
         </PageBackLink>

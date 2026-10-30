@@ -42,24 +42,13 @@ export function HomePage({ quizzes }: { quizzes: QuizDto[] }) {
             <Link href='/dashboard'>{t.common.dashboard}</Link>
           </Button>
         }
-      >
-        <nav className='flex items-center gap-6'>
-          <a
-            href='#certifications'
-            className='text-sm font-bold text-black transition-colors hover:underline'
-          >
-            {t.nav.certifications}
-          </a>
-          <a
-            href='#pricing'
-            className='text-sm font-bold text-black transition-colors hover:underline'
-          >
-            {t.nav.pricing}
-          </a>
-        </nav>
-      </AppHeader>
+        links={[
+          { href: '#certifications', label: t.nav.certifications },
+          { href: '#pricing', label: t.nav.pricing }
+        ]}
+      />
 
-      <main className='flex-1'>
+      <main id='main-content' tabIndex={-1} className='flex-1'>
         {/* ---------------------------------------------------------------- HERO */}
         <section
           id='hero'
@@ -408,7 +397,7 @@ function HeroCluster() {
       <FloatSticker position='-right-2 top-28' className='bg-white text-black rotate-6' delay={0.6}>
         Azure
       </FloatSticker>
-      <FloatSticker position='-left-1 bottom-6' className='bg-success text-white rotate-3' delay={0.3}>
+      <FloatSticker position='-left-1 bottom-6' className='bg-success text-black rotate-3' delay={0.3}>
         GCP
       </FloatSticker>
       <motion.div
@@ -480,7 +469,7 @@ function Stat({
       <div className='text-4xl font-black text-white md:text-5xl'>
         <CountUp to={value} prefix={prefix} suffix={suffix} />
       </div>
-      <div className='mt-1 text-xs font-bold uppercase tracking-wide text-white/70'>
+      <div className='mt-1 text-xs font-bold uppercase tracking-wide text-white'>
         {label}
       </div>
     </Reveal>

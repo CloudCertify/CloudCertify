@@ -24,14 +24,14 @@ beforeEach(() => {
 describe('LanguageSwitcher', () => {
   it('switches the app language and persists the choice', () => {
     renderSwitcher();
-    expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'EN: English' })).toHaveAttribute(
       'aria-pressed',
       'true'
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Português' }));
+    fireEvent.click(screen.getByRole('button', { name: 'PT: Português' }));
 
-    expect(screen.getByRole('button', { name: 'Português' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'PT: Português' })).toHaveAttribute(
       'aria-pressed',
       'true'
     );
@@ -41,7 +41,7 @@ describe('LanguageSwitcher', () => {
 
   it('is disabled while an attempt is running', () => {
     renderSwitcher(true);
-    const option = screen.getByRole('button', { name: 'Português' });
+    const option = screen.getByRole('button', { name: 'PT: Português' });
     expect(option).toBeDisabled();
 
     fireEvent.click(option);
