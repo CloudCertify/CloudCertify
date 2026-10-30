@@ -1,5 +1,7 @@
+'use client';
+
 import { useState } from 'react';
-import { useLocation, useSearch } from 'wouter';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,9 +30,8 @@ const SAMPLES: { question: QuestionDto; correct: number[]; explanation: string }
 
 export function QuizMotionPrototypePage() {
   const { t } = useI18n();
-  const search = useSearch();
-  const [, navigate] = useLocation();
-  const parameters = new URLSearchParams(search);
+  const router = useRouter();
+  const parameters = new URLSearchParams(useSearchParams());
   const exam = parameters.get('mode') === 'exam';
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number[]>>({});
@@ -45,7 +46,7 @@ export function QuizMotionPrototypePage() {
   function reset() { setIndex(0); setAnswers({}); setRatings({}); setPhase('answering'); setFinished(false); }
   function changeMode(nextExam: boolean) {
     parameters.set('mode', nextExam ? 'exam' : 'practice');
-    navigate(`/prototype/quiz-motion?${parameters}`, { replace: true });
+    router.replace(`/prototype/quiz-motion?${parameters}`);
     reset();
   }
   function select(id: number) {
