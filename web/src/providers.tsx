@@ -1,6 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MotionConfig } from 'motion/react';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './auth/context';
 import { LanguageProvider } from './i18n/context';
@@ -15,9 +16,12 @@ export const Providers = ({ children, initialLanguage }: {
 
   return (
     <QueryClientProvider client={qc}>
-      <LanguageProvider initialLanguage={initialLanguage}>
-        <AuthProvider>{children}</AuthProvider>
-      </LanguageProvider>
+      {/* Honour the OS reduced-motion setting in every motion component. */}
+      <MotionConfig reducedMotion='user'>
+        <LanguageProvider initialLanguage={initialLanguage}>
+          <AuthProvider>{children}</AuthProvider>
+        </LanguageProvider>
+      </MotionConfig>
       <Toaster
         position='bottom-center'
         toastOptions={{

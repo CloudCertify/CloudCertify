@@ -11,7 +11,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
+import { motion } from 'motion/react';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
+import { Pop } from '@/components/pop';
+import { useQuestionMotion } from '@/hooks/use-question-motion';
 import { useI18n } from '@/i18n/use-i18n';
 import type { QuestionDto } from '@/http/generated/api.schemas';
 
@@ -46,6 +49,7 @@ export function QuestionCard({
   isSubmitting
 }: QuestionCardProps) {
   const { t } = useI18n();
+  const { ref, enter } = useQuestionMotion(index);
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
   const isFirst = index === 0;
   const isLast = index >= total - 1;
@@ -75,8 +79,9 @@ export function QuestionCard({
   });
 
   return (
-    <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
-      <CardHeader className='border-b-2 border-black pb-6'>
+    // Full-bleed on mobile: cancels the page's px-4 so the card gets the whole screen width.
+    <Card ref={ref} className='-mx-4 border-y-4 border-x-0 border-black shadow-none sm:mx-0 sm:w-full sm:border-x-4 sm:shadow-[8px_8px_0px_0px_#000]'>
+      <CardHeader className='border-b-2 border-black px-4 pb-6 sm:px-6'>
         <div className='flex justify-between items-center mb-4 flex-wrap gap-2'>
           <Badge variant='outline'>{t.question.counter(index + 1, total)}</Badge>
           <div className='flex gap-2 flex-wrap'>
@@ -84,9 +89,11 @@ export function QuestionCard({
             <DifficultyBadge difficulty={question.difficulty} />
           </div>
         </div>
-        <CardTitle className='text-xl md:text-2xl font-black text-black'>
-          {question.text}
-        </CardTitle>
+        <motion.div key={question.id} {...enter()}>
+          <CardTitle className='text-xl md:text-2xl font-black text-black'>
+            {question.text}
+          </CardTitle>
+        </motion.div>
         {isMultiResponse && (
           <p className='text-sm font-bold text-black/60 mt-2'>
             {t.question.selectAnswers(question.selectCount ?? 2)}
@@ -96,8 +103,10 @@ export function QuestionCard({
           <Progress value={progress} />
         </div>
       </CardHeader>
-      <CardContent className='py-6'>
-        <div
+      <CardContent className='px-4 py-6 sm:px-6'>
+        <motion.div
+          key={question.id}
+          {...enter(0.05)}
           className='space-y-3'
           role={isMultiResponse ? 'group' : 'radiogroup'}
           aria-label={question.text ?? undefined}
@@ -117,10 +126,10 @@ export function QuestionCard({
                 className={`p-4 rounded-none border-2 border-black ${
                   isSelected
                     ? 'bg-primary shadow-none translate-x-[2px] translate-y-[2px]'
-                    : 'bg-white hover:bg-background shadow-[4px_4px_0px_0px_#000]'
+                    : 'bg-white hover:bg-background shadow-[4px_4px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
                 } ${
                   isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-                } flex items-start gap-3 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
+                } flex items-start gap-3 transition-[translate,box-shadow,background-color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
                 onClick={() => !isDisabled && answer.id != null && onSelect(answer.id)}
               >
                 <div
@@ -128,7 +137,7 @@ export function QuestionCard({
                     isSelected ? 'bg-black text-white' : 'bg-white'
                   }`}
                 >
-                  {isSelected && <CheckCircle className='h-4 w-4' />}
+                  {isSelected && <Pop><CheckCircle className='h-4 w-4' /></Pop>}
                 </div>
                 <span
                   className={`font-medium ${isSelected ? 'text-white' : 'text-black'}`}
@@ -138,9 +147,9 @@ export function QuestionCard({
               </div>
             );
           })}
-        </div>
+        </motion.div>
       </CardContent>
-      <CardFooter className='flex justify-between border-t-2 border-black pt-6'>
+      <CardFooter className='flex justify-between border-t-2 border-black px-4 pt-6 sm:px-6'>
         <Button variant='outline' onClick={onPrev} disabled={isFirst}>
           <ArrowLeft className='mr-2 h-4 w-4' />
           {t.common.previous}
