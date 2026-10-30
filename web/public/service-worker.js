@@ -1,5 +1,5 @@
 // Bump this version whenever offline.html changes. Never cache the app or API data.
-const OFFLINE_CACHE = 'cloudcertify-offline-v1';
+const OFFLINE_CACHE = 'cloudcertify-offline-v2';
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', (event) => {

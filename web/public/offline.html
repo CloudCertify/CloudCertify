@@ -6,39 +6,104 @@
     <meta name="robots" content="noindex" />
     <meta name="cloudcertify-offline" content="1" />
     <meta name="color-scheme" content="light" />
-    <title>Connection unavailable | CloudCertify</title>
+    <title>You're offline | CloudCertify</title>
     <style>
-      :root { --background: #f5f3ec; --foreground: #000; --primary: #2347d9; --primary-foreground: #fff; --border: #000; --ring: #2347d9; --shadow-light: 4px 4px 0px 0px #000; }
+      :root { --background: #f5f3ec; --foreground: #000; --primary: #2347d9; --secondary: #ffb020; --success: #15a06e; --muted: #5a554a; --ring: #2347d9; --shadow: 4px 4px 0 0 #000; }
       * { box-sizing: border-box; }
-      body { margin: 0; padding: 1.5rem; background: var(--background); color: var(--foreground); font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; line-height: 1.5; }
-      main { max-width: 38rem; margin: 10vh auto; }
-      h1 { line-height: 1.2; overflow-wrap: anywhere; }
-      a { display: inline-block; min-height: 44px; padding: .5rem 1.25rem; border: 2px solid var(--border); background: var(--primary); color: var(--primary-foreground); box-shadow: var(--shadow-light); font-size: .875rem; font-weight: 700; text-decoration: none; }
-      a:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+      body { margin: 0; min-height: 100dvh; padding: 1.5rem; background: var(--background) radial-gradient(circle, rgb(0 0 0 / 12%) 1.5px, transparent 1.5px) 0 0 / 22px 22px; color: var(--foreground); font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; line-height: 1.5; }
+      main { max-width: 36rem; margin: 6vh auto; }
+      .brand { display: flex; align-items: center; gap: .625rem; font-weight: 900; }
+      .brand svg { width: 2.25rem; height: 2.25rem; padding: .375rem; border: 2px solid #000; background: var(--primary); box-shadow: 3px 3px 0 0 #000; }
+      .chip { display: inline-flex; align-items: center; gap: .5rem; margin-top: 2.5rem; padding: .25rem .75rem; border: 2px solid #000; background: var(--secondary); box-shadow: 3px 3px 0 0 #000; font-size: .75rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+      .chip::before { content: ""; width: .5rem; height: .5rem; background: #000; animation: blink 1.2s steps(1) infinite; }
+      h1 { margin: 1.25rem 0 0; font-size: clamp(2.25rem, 8vw, 3.5rem); font-weight: 900; line-height: .95; letter-spacing: -.02em; overflow-wrap: anywhere; }
+      .lead { margin: 1rem 0 0; font-size: 1.125rem; font-weight: 500; color: rgb(0 0 0 / 70%); }
+      .card { margin-top: 2rem; padding: 1.25rem; border: 2px solid #000; background: #fff; box-shadow: var(--shadow); }
+      .eyebrow { margin: 0; font-size: .75rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+      .question { margin: .375rem 0 1rem; font-weight: 800; }
+      ol { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+      li { display: flex; align-items: center; gap: .75rem; padding: .5rem .75rem; border: 2px solid #000; font-weight: 600; }
+      li span { display: grid; place-items: center; flex: none; width: 1.75rem; height: 1.75rem; border: 2px solid #000; font-size: .8125rem; font-weight: 900; }
+      li.correct { background: var(--success); color: #fff; box-shadow: 3px 3px 0 0 #000; }
+      li.correct span { background: #fff; color: #000; }
+      .explain { margin: 1rem 0 0; font-size: .875rem; color: var(--muted); }
+      .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 2rem; }
+      button { min-height: 44px; padding: .5rem 1.5rem; border: 2px solid #000; background: var(--primary); color: #fff; box-shadow: var(--shadow); font: inherit; font-size: .9375rem; font-weight: 800; cursor: pointer; transition: transform .1s, box-shadow .1s; }
+      button:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 0 #000; }
+      button:active { transform: translate(4px, 4px); box-shadow: none; }
+      button:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+      #status { margin: 0; font-size: .875rem; font-weight: 600; color: var(--muted); }
+      .note { margin-top: 2rem; padding-left: .875rem; border-left: 4px solid var(--secondary); font-size: .875rem; }
+      @keyframes blink { 50% { opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) { .chip::before { animation: none; } button { transition: none; } }
     </style>
   </head>
   <body>
     <main>
-      <p>CloudCertify</p>
-      <h1 id="heading">Connection unavailable</h1>
-      <p id="message">CloudCertify could not connect. Exams, answers, and account data need an internet connection.</p>
-      <p id="attempt">If you have an attempt open in another tab, keep that tab open and reconnect there. This page cannot confirm whether an answer was saved.</p>
-      <a id="retry" href="">Try this page again</a>
+      <div class="brand">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 20 20"/><path d="M5.782 5.782A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.307-.193"/><path d="M21.532 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7.008 7.008 0 0 0 10 5.07"/></svg>
+        CloudCertify
+      </div>
+
+      <p class="chip" data-t="chip">Offline</p>
+      <h1 data-t="heading">Lost connection to the cloud.</h1>
+      <p class="lead" data-t="lead">Questions, answers and your progress all live online, so we can't load anything until you're back.</p>
+
+      <section class="card" aria-labelledby="question">
+        <p class="eyebrow" data-t="eyebrow">Bonus question</p>
+        <p class="question" id="question" data-t="question">Which component is unavailable right now?</p>
+        <ol>
+          <li><span>A</span><b data-t="optionA">CloudCertify</b></li>
+          <li><span>B</span><b data-t="optionB">The entire cloud</b></li>
+          <li class="correct"><span>C</span><b data-t="optionC">Your internet connection</b></li>
+        </ol>
+        <p class="explain" data-t="explain">Most likely answer: C. Check your Wi-Fi or mobile data.</p>
+      </section>
+
+      <div class="actions">
+        <button id="reconnect" type="button" data-t="reconnect">Reconnect</button>
+        <p id="status" role="status" data-t="waiting">We'll reconnect automatically as soon as you're online.</p>
+      </div>
+
+      <p class="note" data-t="note">In the middle of an exam in another tab? Keep that tab open and continue there once you're back online. This page can't tell whether your last answer was saved.</p>
     </main>
     <script>
       // Self-contained so the fallback needs no network resources or app bundle.
+      const pt = {
+        title: 'Você está offline | CloudCertify',
+        chip: 'Offline',
+        heading: 'Perdemos a conexão com a nuvem.',
+        lead: 'Questões, respostas e seu progresso ficam online, então não dá para carregar nada até você voltar.',
+        eyebrow: 'Questão bônus',
+        question: 'Qual componente está indisponível agora?',
+        optionA: 'CloudCertify',
+        optionB: 'A nuvem inteira',
+        optionC: 'Sua conexão com a internet',
+        explain: 'Resposta mais provável: C. Confira seu Wi-Fi ou dados móveis.',
+        reconnect: 'Reconectar',
+        waiting: 'Vamos reconectar automaticamente assim que você estiver online.',
+        checking: 'Reconectando…',
+        note: 'Está no meio de um simulado em outra aba? Mantenha essa aba aberta e continue por lá quando a conexão voltar. Esta página não consegue confirmar se sua última resposta foi salva.'
+      };
+      let copy = { checking: 'Reconnecting…' };
       let stored;
       try { stored = localStorage.getItem('cloudcertify:language'); } catch { /* storage may be blocked */ }
       const supported = (tag) => /^(en|pt)(-|$)/i.test(tag || '');
       const language = supported(stored) ? stored : [...navigator.languages, navigator.language].find(supported);
       if (/^pt(-|$)/i.test(language || '')) {
+        copy = pt;
         document.documentElement.lang = 'pt-BR';
-        document.title = 'Conexão indisponível | CloudCertify';
-        document.getElementById('heading').textContent = 'Conexão indisponível';
-        document.getElementById('message').textContent = 'Não foi possível conectar ao CloudCertify. Simulados, respostas e dados da conta precisam de uma conexão com a internet.';
-        document.getElementById('attempt').textContent = 'Se você tem uma tentativa aberta em outra aba, mantenha essa aba aberta e reconecte por lá. Esta página não pode confirmar se uma resposta foi salva.';
-        document.getElementById('retry').textContent = 'Tentar esta página novamente';
+        document.title = pt.title;
+        document.querySelectorAll('[data-t]').forEach((el) => { el.textContent = pt[el.dataset.t]; });
       }
+
+      // Reloading re-requests this URL; the service worker serves the app again once the network answers.
+      const reconnect = () => {
+        document.getElementById('status').textContent = copy.checking;
+        location.reload();
+      };
+      document.getElementById('reconnect').addEventListener('click', reconnect);
+      window.addEventListener('online', reconnect);
     </script>
   </body>
 </html>
