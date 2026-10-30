@@ -101,9 +101,9 @@ describe('native crawler routes', () => {
     expect(getPublicQuizzes).toHaveBeenCalledWith('en-US');
   });
 
-  it('does not publish invented catalog entries during an outage', async () => {
+  it('falls back to the static routes during an outage', async () => {
     vi.mocked(getPublicQuizzes).mockRejectedValue(new Error('HTTP 503'));
-    await expect(sitemap()).rejects.toThrow('HTTP 503');
+    expect(await sitemap()).toEqual([{ url: `${SITE_ORIGIN}/` }, { url: `${SITE_ORIGIN}/dashboard` }]);
   });
 
   it('lets crawlers read utility noindex directives and advertises the native sitemap', () => {
