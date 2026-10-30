@@ -1,7 +1,14 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { useEffect, useRef, type ReactNode } from 'react';
+import {
+  animate,
+  motion,
+  useInView,
+  useMotionValue,
+  useReducedMotion,
+  useTransform
+} from 'motion/react';
 import { cn } from '@/lib/utils';
 
 type RevealProps = {
@@ -44,20 +51,46 @@ type CountUpProps = {
   to: number;
   suffix?: string;
   prefix?: string;
+  duration?: number;
   className?: string;
 };
 
-/** Keep the final count visible in server-rendered and hydrated content. */
+/**
+ * Server HTML carries the real number. Stats still below the fold at
+ * hydration reset to 0 and count up the first time they scroll into view.
+ */
 export function CountUp({
   to,
   suffix = '',
   prefix = '',
+  duration = 1.4,
   className
 }: CountUpProps) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-40px' });
+  const reduce = useReducedMotion();
+  const count = useMotionValue(to);
+  const rounded = useTransform(count, Math.round);
+  const armed = useRef(false);
+
+  useEffect(() => {
+    const top = ref.current?.getBoundingClientRect().top;
+    if (!reduce && top != null && top > window.innerHeight) {
+      count.set(0);
+      armed.current = true;
+    }
+  }, [count, reduce]);
+
+  useEffect(() => {
+    if (!armed.current || !inView) return;
+    const controls = animate(count, to, { duration, ease: [0.22, 1, 0.36, 1] });
+    return () => controls.stop();
+  }, [count, inView, to, duration]);
+
   return (
-    <span className={cn('tabular-nums', className)}>
+    <span ref={ref} className={cn('tabular-nums', className)}>
       {prefix}
-      {to}
+      <motion.span>{rounded}</motion.span>
       {suffix}
     </span>
   );
