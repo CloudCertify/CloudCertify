@@ -86,8 +86,9 @@
         note: 'Está no meio de um simulado em outra aba? Mantenha essa aba aberta e continue por lá quando a conexão voltar. Esta página não consegue confirmar se sua última resposta foi salva.'
       };
       let copy = { checking: 'Reconnecting…' };
-      let stored;
-      try { stored = localStorage.getItem('cloudcertify:language'); } catch { /* storage may be blocked */ }
+      // Same precedence as the app: language cookie, stored choice, then browser languages.
+      let stored = document.cookie.match(/(?:^|; )cloudcertify-language=([^;]*)/)?.[1];
+      try { stored ||= localStorage.getItem('cloudcertify:language'); } catch { /* storage may be blocked */ }
       const supported = (tag) => /^(en|pt)(-|$)/i.test(tag || '');
       const language = supported(stored) ? stored : [...navigator.languages, navigator.language].find(supported);
       if (/^pt(-|$)/i.test(language || '')) {
