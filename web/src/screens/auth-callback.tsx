@@ -70,7 +70,7 @@ export function AuthCallbackPage() {
         <h1 className='text-xl font-black text-black'>{t.auth.failedTitle}</h1>
         <p className='text-sm font-medium text-black/70'>{t.auth.failedBody}</p>
         <div className='flex flex-wrap justify-center gap-3'>
-          <Button asChild className='h-auto min-h-10 whitespace-normal'>
+          <Button asChild>
             <Link href='/dashboard'>{t.auth.tryAgainFromDashboard}</Link>
           </Button>
           <Button variant='outline' asChild>

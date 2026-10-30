@@ -237,7 +237,7 @@ export function QuizPage() {
           <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
             <CardHeader className='text-center border-b-2 border-black pb-6'>
               <CardTitle className='text-2xl md:text-3xl font-black text-black'>
-                {t.results.quizTitle}
+                <h1>{t.results.quizTitle}</h1>
               </CardTitle>
               <p className='text-black/70 font-medium mt-2'>{quiz.title}</p>
             </CardHeader>
@@ -381,6 +381,7 @@ export function QuizPage() {
       <AppHeader languageLocked />
 
       <main id='main-content' tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        <h1 className='sr-only'>{quiz.title}</h1>
         <PageBackLink href='/dashboard' className='mb-6'>
           {t.common.backToDashboard}
         </PageBackLink>

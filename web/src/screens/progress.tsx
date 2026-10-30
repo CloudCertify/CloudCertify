@@ -262,7 +262,7 @@ function LeadPanel({
         <Button
           type='button'
           size='lg'
-          className='mt-7 h-auto min-h-12 max-w-full w-fit whitespace-normal bg-black text-white'
+          className='mt-7 max-w-full w-fit bg-black text-white'
           disabled={starting !== null}
           onClick={() => onStartDrill(leadDrill)}
         >
@@ -277,7 +277,7 @@ function LeadPanel({
         <Button
           type='button'
           size='lg'
-          className='mt-7 h-auto min-h-12 max-w-full w-fit whitespace-normal bg-black text-white'
+          className='mt-7 max-w-full w-fit bg-black text-white'
           disabled={starting !== null}
           onClick={onStartExam}
         >

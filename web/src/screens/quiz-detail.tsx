@@ -376,7 +376,7 @@ function DrillCard({
       </CardHeader>
       <CardFooter className='pt-0'>
         <div className='flex flex-wrap items-center justify-between gap-2 w-full'>
-          <span className='text-xs font-bold text-black/50'>
+          <span className='text-xs font-bold text-black/70'>
             {t.common.questions(15)}
           </span>
           <Button

@@ -408,7 +408,7 @@ function HeroCluster() {
       <FloatSticker position='-right-2 top-28' className='bg-white text-black rotate-6' delay={0.6}>
         Azure
       </FloatSticker>
-      <FloatSticker position='-left-1 bottom-6' className='bg-success text-white rotate-3' delay={0.3}>
+      <FloatSticker position='-left-1 bottom-6' className='bg-success text-black rotate-3' delay={0.3}>
         GCP
       </FloatSticker>
       <motion.div
@@ -480,7 +480,7 @@ function Stat({
       <div className='text-4xl font-black text-white md:text-5xl'>
         <CountUp to={value} prefix={prefix} suffix={suffix} />
       </div>
-      <div className='mt-1 text-xs font-bold uppercase tracking-wide text-white/70'>
+      <div className='mt-1 text-xs font-bold uppercase tracking-wide text-white'>
         {label}
       </div>
     </Reveal>
