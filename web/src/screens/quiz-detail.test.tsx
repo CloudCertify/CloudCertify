@@ -205,7 +205,7 @@ describe('QuizDetailPage start flow', () => {
     fireEvent.click(start);
     fireEvent.click(mode === 'exam' ? drill : exam);
 
-    expect(start).toBeDisabled();
+    expect(start).toHaveAttribute('aria-disabled', 'true');
     expect(postQuizQuizIdStart).toHaveBeenCalledTimes(mode === 'exam' ? 1 : 0);
     expect(postQuizQuizIdDrillsDrillIdStart).toHaveBeenCalledTimes(mode === 'drill' ? 1 : 0);
     expect(location.push).toHaveBeenCalledOnce();
