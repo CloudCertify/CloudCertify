@@ -41,6 +41,7 @@
   - Revert: `dotnet ef database update <PreviousMigration> --project API`
 - Database: Uses PostgreSQL. Configure `ConnectionStrings.DefaultConnection` in appsettings.json or .env
 - Docker: Run `docker compose up` to start PostgreSQL container. API auto-migrates on startup.
+- Seeding: the quiz catalog seeds on startup only with `Seeding__RunOnStartup=true` (set in docker-compose). Question files in `API/External/questions/` are gitignored; seed from a checkout that has them.
 - Swagger: always document endpoints with XML comments. View docs at http://localhost:8080/scalar/v1
 
 ## Comments
