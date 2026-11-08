@@ -296,8 +296,14 @@ export const pt: Messages = {
     startExam: 'Iniciar simulado',
     practiceHeading: 'Treinos',
     practiceSubtitle:
-      'Treinos focados de 15 questões por domínio. Feedback rápido, sem pressão de aprovação.',
-    practice: 'Treinar'
+      'Treinos de 15 questões na prova toda ou em um domínio. Feedback rápido, sem pressão de aprovação.',
+    practice: 'Treinar',
+    mixTitle: 'Mix da prova',
+    mixBody:
+      '15 questões de todos os domínios, montadas a partir do que você errou e do que venceu para revisão.',
+    mixBodyAnonymous:
+      '15 questões de todos os domínios. Entre e o mix prioriza o que você errou e o que venceu.',
+    startMix: 'Iniciar mix'
   },
 
   demoQuiz: [
@@ -334,8 +340,8 @@ export const pt: Messages = {
 
   drill: {
     label: 'Feito para você',
-    composition: (missed: number, unseen: number, mastered: number) =>
-      `${missed} revisão · ${unseen} novas · ${mastered} reforço`,
+    composition: (missed: number, due: number, unseen: number, mastered: number) =>
+      `${missed} erradas · ${due} vencidas · ${unseen} novas${mastered > 0 ? ` · ${mastered} dominadas` : ''}`,
     signInPitch: 'Entre e as questões que você errou voltam para você.',
     reviewedMissed: (count: number) =>
       count === 1

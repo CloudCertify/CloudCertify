@@ -303,8 +303,14 @@ export const en = {
     startExam: 'Start Exam',
     practiceHeading: 'Drills',
     practiceSubtitle:
-      '15-question focused drills per domain. Fast feedback, no pass/fail pressure.',
-    practice: 'Practice'
+      '15-question drills across the exam or one domain. Fast feedback, no pass/fail pressure.',
+    practice: 'Practice',
+    mixTitle: 'Exam mix',
+    mixBody:
+      '15 questions from every domain, built around what you missed and what is due for review.',
+    mixBodyAnonymous:
+      '15 questions from every domain. Sign in and the mix puts what you missed and what is due first.',
+    startMix: 'Start mix'
   },
 
   demoQuiz: [
@@ -341,8 +347,8 @@ export const en = {
 
   drill: {
     label: 'Built for you',
-    composition: (missed: number, unseen: number, mastered: number) =>
-      `${missed} review · ${unseen} new · ${mastered} refresh`,
+    composition: (missed: number, due: number, unseen: number, mastered: number) =>
+      `${missed} missed · ${due} due · ${unseen} new${mastered > 0 ? ` · ${mastered} mastered` : ''}`,
     signInPitch: 'Sign in and your missed questions come back to you.',
     reviewedMissed: (count: number) =>
       count === 1

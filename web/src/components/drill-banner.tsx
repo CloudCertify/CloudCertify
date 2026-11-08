@@ -7,7 +7,7 @@ import { DrawRule, type DrillCompositionDto } from '@/http/generated/api.schemas
 /**
  * The one slot that says why this drill looks the way it does, shown before the first Question.
  *
- * Branch on the Draw Rule, not on a missing composition. A Domain Drill with a composition
+ * Branch on the Draw Rule, not on a missing composition. A Drill Mix with a composition
  * shows the make-up of the draw. A Mistakes drill has no composition on purpose (one bucket),
  * so it shows how many mistakes were served. An anonymous visitor on anything else still
  * gets the sign-in pitch: claiming retro-attaches their past attempts (ADR 0003).
@@ -34,6 +34,7 @@ export function DrillBanner({
 
   // The counts are optional on the wire; a missing count is a zero, not a gap.
   const missed = composition?.missed ?? 0;
+  const due = composition?.due ?? 0;
   const unseen = composition?.unseen ?? 0;
   const mastered = composition?.mastered ?? 0;
 
@@ -75,7 +76,7 @@ export function DrillBanner({
           {t.drill.label}
         </span>
         <span className='text-sm font-bold text-black/70'>
-          {t.drill.composition(missed, unseen, mastered)}
+          {t.drill.composition(missed, due, unseen, mastered)}
         </span>
       </div>
     );

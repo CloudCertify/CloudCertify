@@ -49,19 +49,34 @@ const quiz = {
   }]
 } satisfies import('@/http/generated/api.schemas').QuizDto;
 
+const quizWithMix = {
+  ...quiz,
+  drills: [
+    ...quiz.drills,
+    {
+      id: 5,
+      title: 'Mix',
+      domain: null,
+      drawRule: 'drill_mix',
+      slug: 'aws-ccp-mix',
+      isAvailable: true
+    }
+  ]
+} satisfies import('@/http/generated/api.schemas').QuizDto;
+
 function makeJwt(payload: object): string {
   const b64 = (obj: object) =>
     btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_');
   return `${b64({ alg: 'HS256' })}.${b64(payload)}.sig`;
 }
 
-function renderPage() {
+function renderPage(page: import('@/http/generated/api.schemas').QuizDto = quiz) {
   const location = resetNavigation('/quiz/1');
   render(
     <QueryClientProvider client={new QueryClient()}>
       <LanguageProvider>
       <AuthProvider>
-        <QuizDetailPage quiz={quiz} />
+        <QuizDetailPage quiz={page} />
       </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
@@ -254,6 +269,47 @@ describe('QuizDetailPage start flow', () => {
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith(en.quizDetail.startPracticeError);
     });
+  });
+});
+
+describe('QuizDetailPage Exam mix', () => {
+  beforeEach(() => {
+    clearToken();
+    setCurrentLanguage('en-US');
+    postQuizQuizIdDrillsDrillIdStart.mockReset();
+    postQuizQuizIdDrillsDrillIdStart.mockResolvedValue({
+      data: { id: 5, title: 'Mix', submissionId: 9 }
+    });
+  });
+
+  it.each([
+    ['an anonymous visitor', false],
+    ['a logged-in User', true]
+  ])('offers %s the Exam mix ahead of the Domain drills', (_, signedIn) => {
+    if (signedIn) setToken(makeJwt({ exp: Math.floor(Date.now() / 1000) + 3600 }));
+    renderPage(quizWithMix);
+
+    const mix = screen.getByRole('button', { name: en.quizDetail.startMix });
+    const domain = screen.getByRole('button', { name: en.quizDetail.practice });
+    expect(screen.getByText(en.quizDetail.mixTitle)).toBeInTheDocument();
+    expect(
+      mix.compareDocumentPosition(domain) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it('starts the Exam mix on the same drill route as any drill', async () => {
+    const location = renderPage(quizWithMix);
+    fireEvent.change(screen.getByLabelText(/your email/i), {
+      target: { value: 'visitor@example.com' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: en.quizDetail.startMix }));
+
+    await waitFor(() => {
+      expect(postQuizQuizIdDrillsDrillIdStart).toHaveBeenCalledWith(1, 5, {
+        email: 'visitor@example.com'
+      });
+    });
+    expect(location.push).toHaveBeenCalledWith('/quiz/1/drill/5/session');
   });
 });
 

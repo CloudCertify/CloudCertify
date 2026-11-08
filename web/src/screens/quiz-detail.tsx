@@ -35,6 +35,7 @@ import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
 import { drillStartErrorMessage } from '@/http/drill-start-error';
+import { isExamMix } from '@/lib/exam-mix';
 
 // --- Helpers ---
 // The per-exam count comes from the quiz's own [min, max] range: a single number
@@ -141,6 +142,9 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
 
   const { bg: levelColor, ink: levelInk } = getLevelStyle(quiz.quizLevel);
   const drills = quiz.drills ?? [];
+  // The Exam mix leads, whatever order the drills arrive in (ADR 0013).
+  const examMix = drills.find(isExamMix);
+  const otherDrills = drills.filter(drill => drill !== examMix);
   const examQuestionCount = formatExamQuestionRange(
     quiz.minQuestions,
     quiz.maxQuestions
@@ -317,8 +321,17 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
                 <p className='text-sm text-black/70 font-medium -mt-2'>
                   {t.quizDetail.practiceSubtitle}
                 </p>
+                {examMix && (
+                  <ExamMixCard
+                    drill={examMix}
+                    isAuthenticated={isAuthenticated}
+                    isStarting={startingDrillId === examMix.id}
+                    onStart={() => handleStartDrill(examMix)}
+                  />
+                )}
+                {otherDrills.length > 0 && (
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                  {drills.map(drill => (
+                  {otherDrills.map(drill => (
                     <DrillCard
                       key={drill.id}
                       drill={drill}
@@ -327,12 +340,66 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
                     />
                   ))}
                 </div>
+                )}
               </section>
             )}
         </>
       </main>
       <Footer />
     </div>
+  );
+}
+
+/** The whole-Quiz Drill Mix, shown as the page's main way to practice. */
+function ExamMixCard({
+  drill,
+  isAuthenticated,
+  isStarting,
+  onStart
+}: {
+  drill: DrillDto;
+  isAuthenticated: boolean;
+  isStarting: boolean;
+  onStart: () => void;
+}) {
+  const { t } = useI18n();
+  const isUnavailable = !drill.isAvailable;
+
+  return (
+    <Card
+      className={`border-4 border-black ${
+        isUnavailable
+          ? 'opacity-60 shadow-none bg-white/60'
+          : 'shadow-[6px_6px_0px_0px_#000] bg-secondary'
+      }`}
+    >
+      <CardHeader className='pb-2'>
+        <div className='flex items-start justify-between gap-2'>
+          <CardTitle className='text-lg font-black text-black leading-tight'>
+            {t.quizDetail.mixTitle}
+          </CardTitle>
+          {isUnavailable && (
+            <Lock className='h-4 w-4 text-black/40 shrink-0 mt-0.5' />
+          )}
+        </div>
+        <p className='text-sm font-medium text-black/80 mt-1 text-pretty'>
+          {isAuthenticated
+            ? t.quizDetail.mixBody
+            : t.quizDetail.mixBodyAnonymous}
+        </p>
+      </CardHeader>
+      <CardFooter className='pt-2'>
+        <Button
+          className='w-full aria-disabled:opacity-50'
+          onClick={onStart}
+          disabled={isUnavailable}
+          aria-disabled={isStarting || undefined}
+        >
+          {isStarting ? t.common.starting : t.quizDetail.startMix}
+          {!isStarting && <ArrowRight className='ml-2 h-4 w-4' />}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
 
