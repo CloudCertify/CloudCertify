@@ -126,15 +126,19 @@ builder.Services.AddScoped<ProgressService>();
 
 var app = builder.Build();
 
-// Apply pending migrations, then seed the quiz catalog so a fresh database
-// self-populates on first boot. Both steps are idempotent on later boots.
+// Apply pending migrations on every boot. Seeding the quiz catalog is opt-in
+// (Seeding:RunOnStartup): the question files are gitignored, so the deployed image has
+// none and a startup seed there can only half-sync the catalog.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.MigrateAsync();
 
-    var seeder = scope.ServiceProvider.GetRequiredService<QuizCatalogSeeder>();
-    await seeder.SeedCatalog();
+    if (app.Configuration.GetValue<bool>("Seeding:RunOnStartup"))
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<QuizCatalogSeeder>();
+        await seeder.SeedCatalog();
+    }
 }
 
 // Configure the HTTP request pipeline.

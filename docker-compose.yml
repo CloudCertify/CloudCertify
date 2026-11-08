@@ -23,6 +23,7 @@ services:
       dockerfile: API/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      Seeding__RunOnStartup: 'true'
       ConnectionStrings__DefaultConnection: Host=postgres;Username=cloudcertify;Password=cloudcertify;Database=cloudcertify
       Auth__JwtSecret: local-docker-secret-at-least-32-characters
       Auth__WebAppUrl: http://localhost:5173
