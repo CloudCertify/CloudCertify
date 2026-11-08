@@ -76,7 +76,7 @@ export function DrillBanner({
           {t.drill.label}
         </span>
         <span className='text-sm font-bold text-black/70'>
-          {t.drill.composition(missed, due, unseen, mastered)}
+          {t.drill.composition({ missed, due, unseen, mastered })}
         </span>
       </div>
     );

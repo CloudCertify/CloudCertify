@@ -300,9 +300,9 @@ export const pt: Messages = {
     practice: 'Treinar',
     mixTitle: 'Mix da prova',
     mixBody:
-      '15 questões de todos os domínios, montadas a partir do que você errou e do que venceu para revisão.',
+      '15 questões da prova inteira, montadas a partir do que você errou e do que venceu para revisão.',
     mixBodyAnonymous:
-      '15 questões de todos os domínios. Entre e o mix prioriza o que você errou e o que venceu.',
+      '15 questões da prova inteira. Entre e o mix prioriza o que você errou e o que venceu.',
     startMix: 'Iniciar mix'
   },
 
@@ -340,7 +340,7 @@ export const pt: Messages = {
 
   drill: {
     label: 'Feito para você',
-    composition: (missed: number, due: number, unseen: number, mastered: number) =>
+    composition: ({ missed, due, unseen, mastered }) =>
       `${missed} erradas · ${due} vencidas · ${unseen} novas${mastered > 0 ? ` · ${mastered} dominadas` : ''}`,
     signInPitch: 'Entre e as questões que você errou voltam para você.',
     reviewedMissed: (count: number) =>

@@ -7,6 +7,14 @@ type SampleQuestion = {
   difficulty: QuestionDifficulty;
 };
 
+/** A Drill Composition with every count filled in: a missing count is a zero. */
+type DrillCompositionCounts = {
+  missed: number;
+  due: number;
+  unseen: number;
+  mastered: number;
+};
+
 /**
  * EN-US copy. This object's shape is the contract every other locale must
  * satisfy (`pt.ts` is typed as `Messages`), so a missing key is a build error
@@ -307,9 +315,9 @@ export const en = {
     practice: 'Practice',
     mixTitle: 'Exam mix',
     mixBody:
-      '15 questions from every domain, built around what you missed and what is due for review.',
+      '15 questions from the whole exam, built around what you missed and what is due for review.',
     mixBodyAnonymous:
-      '15 questions from every domain. Sign in and the mix puts what you missed and what is due first.',
+      '15 questions from the whole exam. Sign in and the mix puts what you missed and what is due first.',
     startMix: 'Start mix'
   },
 
@@ -347,7 +355,7 @@ export const en = {
 
   drill: {
     label: 'Built for you',
-    composition: (missed: number, due: number, unseen: number, mastered: number) =>
+    composition: ({ missed, due, unseen, mastered }: DrillCompositionCounts) =>
       `${missed} missed · ${due} due · ${unseen} new${mastered > 0 ? ` · ${mastered} mastered` : ''}`,
     signInPitch: 'Sign in and your missed questions come back to you.',
     reviewedMissed: (count: number) =>

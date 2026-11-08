@@ -22,7 +22,7 @@ import { Footer } from '@/components/footer';
 import { AppHeader } from '@/components/app-header';
 import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
-import { isExamMix } from '@/lib/exam-mix';
+import { isWholeQuizMix } from '@/lib/whole-quiz-mix';
 import { toast } from 'sonner';
 import {
   postQuizQuizIdDrillsDrillIdStart,
@@ -96,7 +96,7 @@ export function DrillSessionPage() {
 
   const { drillDetail, email } = sessionData;
   const questions = drillDetail.questions ?? [];
-  const drillTitle = isExamMix(drillDetail) ? t.quizDetail.mixTitle : drillDetail.title;
+  const drillTitle = isWholeQuizMix(drillDetail) ? t.quizDetail.mixTitle : drillDetail.title;
   const questionsCount = questions.length;
   const currentQuestion = questions[currentIndex];
 

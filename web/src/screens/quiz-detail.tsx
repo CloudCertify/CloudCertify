@@ -35,7 +35,7 @@ import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
 import { drillStartErrorMessage } from '@/http/drill-start-error';
-import { isExamMix } from '@/lib/exam-mix';
+import { isWholeQuizMix } from '@/lib/whole-quiz-mix';
 
 // --- Helpers ---
 // The per-exam count comes from the quiz's own [min, max] range: a single number
@@ -142,9 +142,9 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
 
   const { bg: levelColor, ink: levelInk } = getLevelStyle(quiz.quizLevel);
   const drills = quiz.drills ?? [];
-  // The Exam mix leads, whatever order the drills arrive in (ADR 0013).
-  const examMix = drills.find(isExamMix);
-  const otherDrills = drills.filter(drill => drill !== examMix);
+  // The whole-Quiz Mix leads, whatever order the drills arrive in (ADR 0013).
+  const mix = drills.find(isWholeQuizMix);
+  const otherDrills = drills.filter(drill => drill !== mix);
   const examQuestionCount = formatExamQuestionRange(
     quiz.minQuestions,
     quiz.maxQuestions
@@ -321,12 +321,12 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
                 <p className='text-sm text-black/70 font-medium -mt-2'>
                   {t.quizDetail.practiceSubtitle}
                 </p>
-                {examMix && (
-                  <ExamMixCard
-                    drill={examMix}
+                {mix && (
+                  <MixCard
+                    drill={mix}
                     isAuthenticated={isAuthenticated}
-                    isStarting={startingDrillId === examMix.id}
-                    onStart={() => handleStartDrill(examMix)}
+                    isStarting={startingDrillId === mix.id}
+                    onStart={() => handleStartDrill(mix)}
                   />
                 )}
                 {otherDrills.length > 0 && (
@@ -350,8 +350,8 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
   );
 }
 
-/** The whole-Quiz Drill Mix, shown as the page's main way to practice. */
-function ExamMixCard({
+/** The whole-Quiz Mix, shown as the page's main way to practice. */
+function MixCard({
   drill,
   isAuthenticated,
   isStarting,

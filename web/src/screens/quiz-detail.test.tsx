@@ -272,7 +272,7 @@ describe('QuizDetailPage start flow', () => {
   });
 });
 
-describe('QuizDetailPage Exam mix', () => {
+describe('QuizDetailPage whole-Quiz Mix', () => {
   beforeEach(() => {
     clearToken();
     setCurrentLanguage('en-US');
@@ -285,7 +285,7 @@ describe('QuizDetailPage Exam mix', () => {
   it.each([
     ['an anonymous visitor', false],
     ['a logged-in User', true]
-  ])('offers %s the Exam mix ahead of the Domain drills', (_, signedIn) => {
+  ])('offers %s the Mix ahead of the Domain drills', (_, signedIn) => {
     if (signedIn) setToken(makeJwt({ exp: Math.floor(Date.now() / 1000) + 3600 }));
     renderPage(quizWithMix);
 
@@ -297,7 +297,7 @@ describe('QuizDetailPage Exam mix', () => {
     ).toBeTruthy();
   });
 
-  it('starts the Exam mix on the same drill route as any drill', async () => {
+  it('starts the Mix on the same drill route as any drill', async () => {
     const location = renderPage(quizWithMix);
     fireEvent.change(screen.getByLabelText(/your email/i), {
       target: { value: 'visitor@example.com' }
