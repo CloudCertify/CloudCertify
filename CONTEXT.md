@@ -28,7 +28,8 @@ _Avoid_: Attempt type, Kind, Style
 
 **Draw Rule**:
 How a Drill chooses which of the Quiz's questions to serve. Domain-scoped
-Uniform (no Outcomes) and Drill Mix; Mistakes across the whole Quiz.
+Uniform (no Outcomes); Drill Mix scoped to one Domain or across the whole
+Quiz; Mistakes across the whole Quiz.
 An Exam has no Draw Rule: it draws uniformly from the whole Quiz so the
 Scaled Score still predicts the real exam.
 _Avoid_: Selection, Algorithm
@@ -132,7 +133,8 @@ _Avoid_: Grid, Palette, Question map, Review screen
 **Domain**:
 An exam content area defined by the certification body (e.g. "Security and
 Compliance"). Carries an official Weight in a full Quiz's grade. A Drill Mix
-Drill is scoped to one Domain; Mistakes is not.
+Drill is scoped to one Domain or runs across the Quiz; Mistakes always runs
+across it.
 _Avoid_: Topic, Category, Section, Area
 
 **Service**:
@@ -174,19 +176,45 @@ _Avoid_: Analytics (implies population metrics, which V1 does not have),
 Dashboard (the exam catalog), Stats, Report
 
 **Standing**:
-Progress narrowed to one Domain: the share of the Domain's seen Questions the
-User has Mastered, as a percentage. Answers the question "where am I weak",
+Progress narrowed to one Domain: the mean Recall of the Domain's seen
+Questions, as a percentage. Unseen Questions are left out. A Standing falls
+over time without review. Answers the question "where am I weak",
 which is why it names the Domain to drill next. Distinct from a Score, which
 grades one attempt, and from a Scaled Score, which is exam-scale — a Standing
 is about a Quiz's Domain over the visitor's whole history, not about any single
 attempt.
 _Avoid_: Score, Mastery, Progress (the whole, not the slice), Rating
 
+**Recall**:
+How likely a User still knows a seen Question right now, from 0 to 1:
+`2^(-days since last proof / half-life)`. Starts at 1 on a proof, halves every
+half-life, and is 0 on a Missed Question. The half-life climbs a fixed ladder —
+1, 3, 7, 14, 30 days — one rung per consecutive proof, and stays at 30 days
+once reached; a miss drops it back to the first rung. A proof is a right answer
+to a Question that is already Due, or the first right answer after Unseen or
+Missed; a right answer before the Question is Due proves nothing new, so it
+neither climbs a rung nor restarts the clock. Exam answers prove like Practice
+ones; a Mistakes right Check proves nothing, as it writes no Mastered. The
+proof's time is its Submission's start. Computed on read from finished
+Submissions, never stored. An Unseen Question has no Recall: never seen is not
+forgotten. Distinct from Outcome, which is evidence and not a quantity.
+_Avoid_: Score, Mastery, Strength, Memory, Retention
+
+**Due**:
+A Mastered Question whose Recall has fallen to 0.5 or below, meaning its
+half-life has passed since its last proof, so it is owed a review. Not an
+Outcome: a Due Question is still Mastered.
+_Avoid_: Expired, Stale, Review, Decayed
+
 **Drill Mix**:
-The target make-up of a Domain-scoped Drill Mix attempt's served Questions,
-stated in Outcomes: mostly Missed, some Unseen, a little Mastered. A short
-bucket spills into the others rather than shortening the drill, so every Drill
-Mix attempt is full-length and a visitor with no history simply gets all-Unseen.
+The target make-up of a Drill Mix attempt's served Questions, whether the
+Drill is scoped to one Domain or runs across the whole Quiz,
+ordered by Recall: 11 seats for the lowest Recall among Missed and Due
+Questions (Missed first, most recently missed first, then Due, most forgotten
+first) and 4 seats for Unseen. A short side spills into the other, and a
+Mastered Question that is not Due is served only as a last resort, since
+answering it early proves nothing. Every Drill Mix attempt is full-length, and
+a visitor with no history simply gets all-Unseen.
 One Draw Rule, not the Mistakes draw. An Exam is drawn uniformly at
 random so its Scaled Score keeps predicting the real exam.
 _Avoid_: Weighting, Algorithm, Selection, Adaptive quiz
@@ -204,7 +232,8 @@ _Avoid_: Retry incorrect, Missed drill, Review mode, Mistakes list
 
 **Drill Composition**:
 What a Drill Mix attempt actually came out as — how many of the served
-Questions were Missed, Unseen and Mastered going in. Reported once, at start,
+Questions were Missed, Due and Unseen going in, with any not-Due Mastered
+last-resort seats counted as Mastered. Reported once, at start,
 and shown before the first Question so the adaptivity is visible; the shrinking
 Missed count doubles as progress. Exists only for a logged-in User on a Drill
 Mix: an anonymous Drill Mix is random, so it has none, and the sign-in pitch

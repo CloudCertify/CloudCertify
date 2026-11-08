@@ -41,8 +41,8 @@ Demand-validation MVP. Persists Recorded Answers, Confidence, Outcomes, Users, P
 
 **V2 — Adaptive Learning Engine**
 
-- [ ] Weighted quiz generation (40% weak topics, 30% retention, 20% reinforcement, 10% stretch)
-- [ ] Spaced repetition: a per-Question weight that decays with time since the last proof, so mastery expires instead of standing forever
+- [ ] Spaced repetition: a per-Question Recall (0-1) that halves every half-life (1, 3, 7, 14, 30 days, one rung per proof), so mastery expires instead of standing forever. Standing becomes mean Recall. See ADR 0013
+- [ ] Weighted quiz generation: drills draw the lowest Recall first (11 Missed/Due + 4 Unseen), and a whole-Quiz Mix drill sits on top of the Domain drills. See ADR 0013
 - [ ] Per-Service performance, the second axis on the analytics fold and the input weighted generation needs
 - [ ] Service comparison tables
 
