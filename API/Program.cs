@@ -119,6 +119,7 @@ builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<QuizCatalogSeeder>();
 builder.Services.AddScoped<SubmissionGrader>();
 builder.Services.AddScoped<QuizService>();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<DrillService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<ProgressService>();

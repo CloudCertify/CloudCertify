@@ -58,7 +58,7 @@ public class ProgressServiceTests
             Drill(1, T0,
                 (1, true), (2, true), (3, false), (4, true), (5, true),
                 (10, false), (11, false)),
-        ], Bank);
+        ], Bank, T0);
 
         Assert.Equal(0, progress.FinishedExams);
         Assert.Equal(1, progress.FinishedDrills);
@@ -77,7 +77,7 @@ public class ProgressServiceTests
         var progress = ProgressService.Build(
         [
             Drill(1, T0, (1, true), (2, null), (3, false)),
-        ], Bank);
+        ], Bank, T0);
 
         Assert.Equal(33, Domain(progress, "Cloud Concepts").Standing);
         Assert.Equal(3, Domain(progress, "Cloud Concepts").Seen);
@@ -89,8 +89,8 @@ public class ProgressServiceTests
         var progress = ProgressService.Build(
         [
             Drill(1, T0, (1, false), (2, false), (3, true)),
-            Drill(2, T0.AddHours(1), (1, true), (2, false)),
-        ], Bank);
+            Drill(2, T0.AddMinutes(1), (1, true), (2, false)),
+        ], Bank, T0.AddMinutes(1));
 
         // Q1 mastered on the later drill, Q2 still missed, Q3 mastered from the first.
         Assert.Equal(67, Domain(progress, "Cloud Concepts").Standing);
@@ -104,7 +104,7 @@ public class ProgressServiceTests
         [
             Exam(9, T0,
                 (1, true), (2, true), (3, true), (4, false), (5, true)),
-        ], Bank);
+        ], Bank, T0);
 
         Assert.Equal(1, progress.FinishedExams);
         Assert.Equal(0, progress.FinishedDrills);
@@ -123,7 +123,7 @@ public class ProgressServiceTests
         var second = Exam(2, T0.AddDays(1),
             (1, true), (2, true), (3, true), (4, true), (5, false));
 
-        var progress = ProgressService.Build([first, second], Bank);
+        var progress = ProgressService.Build([first, second], Bank, T0.AddDays(1));
 
         Assert.Equal(2, progress.FinishedExams);
         Assert.Equal(80, Domain(progress, "Cloud Concepts").Standing);
@@ -143,7 +143,7 @@ public class ProgressServiceTests
             Drill(1, T0,
                 (10, false), (11, false), (12, false), (13, false),
                 (1, true), (2, true), (3, true), (4, true), (5, true)),
-        ], Bank);
+        ], Bank, T0);
 
         Assert.Equal(0, Domain(progress, "Security").Standing);
         Assert.Equal(4, Domain(progress, "Security").Seen);
@@ -159,7 +159,7 @@ public class ProgressServiceTests
             Drill(1, T0,
                 (1, true), (2, true), (3, true), (4, true), (5, true),
                 (10, false), (11, false), (12, false), (13, false), (14, false)),
-        ], Bank);
+        ], Bank, T0);
 
         Assert.Equal(100, Domain(progress, "Cloud Concepts").Standing);
         Assert.Equal(0, Domain(progress, "Security").Standing);
@@ -174,7 +174,7 @@ public class ProgressServiceTests
             Drill(1, T0,
                 (1, false), (2, false), (3, false), (4, false), (5, false), (6, false),
                 (10, false), (11, false), (12, false), (13, false), (14, false)),
-        ], Bank);
+        ], Bank, T0);
 
         Assert.Equal(0, Domain(progress, "Cloud Concepts").Standing);
         Assert.Equal(0, Domain(progress, "Security").Standing);
@@ -191,7 +191,7 @@ public class ProgressServiceTests
             Drill(1, T0,
                 (20, false), (21, false), (22, false), (23, false), (24, false),
                 (10, false), (11, false), (12, false), (13, false), (14, false)),
-        ], Bank);
+        ], Bank, T0);
 
         Assert.Equal(5, Domain(progress, "Billing").Seen);
         Assert.Equal(5, Domain(progress, "Security").Seen);
@@ -204,7 +204,7 @@ public class ProgressServiceTests
         var progress = ProgressService.Build(
         [
             Drill(1, T0, (1, true), (10, false)),
-        ], Bank);
+        ], Bank, T0);
 
         Assert.Null(progress.Lead);
     }
@@ -215,7 +215,7 @@ public class ProgressServiceTests
         var abandoned = Attempt(1, T0, Mode.Practice, (1, true), (2, true));
         abandoned.Finished = false;
 
-        var progress = ProgressService.Build([abandoned], Bank);
+        var progress = ProgressService.Build([abandoned], Bank, T0);
 
         Assert.Equal(0, progress.FinishedDrills);
         Assert.Empty(progress.Domains);
@@ -229,7 +229,7 @@ public class ProgressServiceTests
             .Select(i => Exam(i, T0.AddDays(i), (1, i % 2 == 0)))
             .ToList();
 
-        var progress = ProgressService.Build(exams, Bank);
+        var progress = ProgressService.Build(exams, Bank, T0.AddDays(12));
 
         Assert.Equal(12, progress.FinishedExams);
         Assert.Equal(10, progress.Trend.Count);
@@ -254,7 +254,7 @@ public class ProgressServiceTests
         ]);
 
         var listed = await new ProgressService(
-                submissions.Object, new Mock<IQuestionRepository>().Object, quizzes.Object)
+                submissions.Object, new Mock<IQuestionRepository>().Object, quizzes.Object, TimeProvider.System)
             .ListQuizzes(7);
 
         var quiz = Assert.Single(listed);
@@ -268,14 +268,65 @@ public class ProgressServiceTests
         var prior = Drill(1, T0,
             (1, true), (2, true), (3, true), (4, true), (5, false));
         prior.DrawRule = DrawRule.DrillMix;
-        var review = Drill(2, T0.AddHours(1), (5, true));
+        var review = Drill(2, T0.AddMinutes(1), (5, true));
         review.DrawRule = DrawRule.Mistakes;
 
-        var progress = ProgressService.Build([prior, review], Bank);
+        var progress = ProgressService.Build([prior, review], Bank, T0.AddMinutes(1));
 
         Assert.Equal(80, Domain(progress, "Cloud Concepts").Standing);
         Assert.Null(Domain(progress, "Cloud Concepts").Delta);
         Assert.Equal(2, progress.FinishedDrills);
+    }
+
+    [Fact]
+    public void Standing_IsMeanRecall_AndFallsWhenTheClockMovesWithNoAttempts()
+    {
+        // Q1 proved twice (half-life 3 days), Q2 proved once (1 day), Q3 missed.
+        Submission[] history =
+        [
+            Drill(1, T0, (1, true), (2, false), (3, false)),
+            Drill(2, T0.AddDays(1), (1, true), (2, true), (3, false)),
+        ];
+
+        var fresh = ProgressService.Build(history, Bank, T0.AddDays(1));
+        var later = ProgressService.Build(history, Bank, T0.AddDays(4));
+
+        Assert.Equal(67, Domain(fresh, "Cloud Concepts").Standing);  // (1 + 1 + 0) / 3
+        Assert.Equal(21, Domain(later, "Cloud Concepts").Standing);  // (0.5 + 0.125 + 0) / 3
+        Assert.Equal(3, Domain(later, "Cloud Concepts").Seen);
+    }
+
+    [Fact]
+    public void Delta_ReadsThePreviousStandingAtThePreviousExamsTime()
+    {
+        // Exam 1 proves Q1-Q5 at T0. Ten days later Exam 2 proves them again (all Due by then).
+        // Previous Standing is read at T0, where Recall was 1, not at "now" where it had decayed.
+        (int, bool?)[] allRight = [(1, true), (2, true), (3, true), (4, true), (5, true)];
+        var progress = ProgressService.Build(
+            [Exam(1, T0, allRight), Exam(2, T0.AddDays(10), allRight)], Bank, T0.AddDays(10));
+
+        Assert.Equal(100, Domain(progress, "Cloud Concepts").Standing);
+        Assert.Equal(0, Domain(progress, "Cloud Concepts").Delta);
+    }
+
+    [Fact]
+    public async Task Get_ReadsRecallAtTheInjectedClock()
+    {
+        var quizzes = new Mock<IQuizRepository>();
+        quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz
+        {
+            Id = 1, Title = "CLF", Description = "", IconName = "aws", Slug = "clf"
+        });
+        var submissions = new Mock<ISubmissionRepository>();
+        submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync([Drill(1, T0, (1, true))]);
+        var questions = new Mock<IQuestionRepository>();
+        questions.Setup(r => r.GetQuestionsByQuizId(1)).ReturnsAsync(Bank.ToList());
+
+        var progress = await new ProgressService(
+                submissions.Object, questions.Object, quizzes.Object, new FixedClock(T0.AddDays(2)))
+            .Get(7, 1);
+
+        Assert.Equal(25, Domain(progress!, "Cloud Concepts").Standing);
     }
 
     [Fact]
@@ -287,7 +338,8 @@ public class ProgressServiceTests
         var result = await new ProgressService(
                 new Mock<ISubmissionRepository>().Object,
                 new Mock<IQuestionRepository>().Object,
-                quizzes.Object)
+                quizzes.Object,
+                TimeProvider.System)
             .Get(7, 99);
 
         Assert.Null(result);

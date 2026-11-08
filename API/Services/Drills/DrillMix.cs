@@ -3,97 +3,68 @@ using API.Entities;
 namespace API.Services.Drills;
 
 /// <summary>
-/// Draws a Drill's 15 Questions from a Domain to a fixed mix of Outcomes — 9 Missed, 4 Unseen,
-/// 2 Mastered — instead of uniformly at random, so the Questions a visitor missed come back and
-/// the ones they know get out of the way (ADR 0008).
+/// Draws a Drill's 15 Questions by Recall instead of uniformly at random: 11 seats for the lowest
+/// Recall among Missed and Due, 4 for Unseen, so what the visitor missed or is forgetting comes
+/// back and what they still know gets out of the way (ADR 0008, ADR 0013).
 /// </summary>
 /// <remarks>
 /// Two properties make this testable without a seeded RNG: the draw's <em>composition</em> is
-/// guaranteed even though the Questions within each bucket are random, and an empty
-/// <see cref="OutcomeSnapshot"/> degrades to a uniform random draw through the ordinary spill
-/// path rather than a branch. Bucket sizes, spill order and cooldown scope are tuning knobs —
-/// change them with data, they are not decisions of record.
+/// guaranteed even though the Unseen pick is random, and an empty <see cref="OutcomeSnapshot"/>
+/// degrades to a uniform random draw through the ordinary spill path rather than a branch. Seat
+/// counts, spill order and cooldown scope are tuning knobs — change them with data, they are not
+/// decisions of record. One rule for Domain-scoped and whole-Quiz drills: the caller picks scope.
 /// </remarks>
 public static class DrillMix
 {
     public const int Size = 15;
-
-    /// <summary>The mix, in fill order. Sums to <see cref="Size"/>.</summary>
-    private static readonly (Outcome Bucket, int Target)[] Mix =
-    [
-        (Outcome.Missed, 9),
-        (Outcome.Unseen, 4),
-        (Outcome.Mastered, 2),
-    ];
-
-    /// <summary>Where a bucket looks when its own pool runs dry, in order of preference.</summary>
-    private static readonly Dictionary<Outcome, Outcome[]> Spill = new()
-    {
-        [Outcome.Missed] = [Outcome.Unseen, Outcome.Mastered],
-        [Outcome.Unseen] = [Outcome.Missed, Outcome.Mastered],
-        [Outcome.Mastered] = [Outcome.Unseen, Outcome.Missed],
-    };
+    public const int ReviewSeats = 11;
+    public const int UnseenSeats = Size - ReviewSeats;
 
     /// <summary>
-    /// Draws up to <see cref="Size"/> distinct Questions from <paramref name="domainQuestions"/>.
-    /// Returns fewer only when the Domain bank itself holds fewer — a short bucket spills, it
-    /// never shortens the drill.
+    /// Draws up to <see cref="Size"/> distinct Questions from <paramref name="scopeQuestions"/>.
+    /// Returns fewer only when the scope itself holds fewer — a short side spills, it never
+    /// shortens the drill.
     /// </summary>
-    public static List<Question> Draw(IReadOnlyList<Question> domainQuestions, OutcomeSnapshot snapshot)
+    public static List<Question> Draw(IReadOnlyList<Question> scopeQuestions, OutcomeSnapshot snapshot)
     {
-        var pools = BuildPools(domainQuestions, snapshot);
+        var (review, unseen, lastResort) = BuildPools(scopeQuestions, snapshot);
         var cooldown = snapshot.Cooldown;
         var drill = new List<Question>();
 
-        // Pass 1: every bucket takes its own share first, so a big Missed pool cannot eat the
-        // Unseen the visitor is also owed.
-        var deficits = new List<(Outcome Bucket, int Missing)>();
-        foreach (var (bucket, target) in Mix)
-        {
-            var taken = Take(pools[bucket], cooldown, target, drill);
-            if (taken < target)
-            {
-                deficits.Add((bucket, target - taken));
-            }
-        }
+        // Each side takes its own share first, so a deep review cannot eat the Unseen the visitor
+        // is also owed. Then each side's shortfall spills into the other.
+        var reviewMissing = ReviewSeats - Take(review, cooldown, ReviewSeats, drill);
+        var unseenMissing = UnseenSeats - Take(unseen, cooldown, UnseenSeats, drill);
+        reviewMissing -= Take(unseen, cooldown, reviewMissing, drill);
+        unseenMissing -= Take(review, cooldown, unseenMissing, drill);
 
-        // Pass 2: what a bucket could not fill spills, in that bucket's own order of preference.
-        foreach (var (bucket, missing) in deficits)
-        {
-            var remaining = missing;
-            foreach (var fallback in Spill[bucket])
-            {
-                remaining -= Take(pools[fallback], cooldown, remaining, drill);
-                if (remaining == 0) break;
-            }
-        }
+        // Answering a not-Due Mastered Question early proves nothing, so it only fills what is
+        // left once both sides have run dry.
+        Take(lastResort, cooldown, reviewMissing + unseenMissing, drill);
 
-        // The buckets are an implementation detail, not a running order: served as built, every
-        // drill would open with nine Questions the visitor is known to have missed.
+        // Seat order is evidence, not a running order: served as built, every drill would open
+        // with the Questions the visitor is known to have missed.
         return Shuffle(drill);
     }
 
-    private static Dictionary<Outcome, List<Question>> BuildPools(
-        IReadOnlyList<Question> domainQuestions, OutcomeSnapshot snapshot)
+    private static (List<Question> Review, List<Question> Unseen, List<Question> LastResort) BuildPools(
+        IReadOnlyList<Question> scopeQuestions, OutcomeSnapshot snapshot)
     {
-        var byOutcome = domainQuestions
-            .GroupBy(q => snapshot.OutcomeOf(q.Id))
-            .ToDictionary(g => g.Key, g => g.ToList());
+        // Missed first — most recently missed, miss count breaking ties: the Question the visitor
+        // just got wrong is the one worth re-serving soonest. Then Due, most forgotten first.
+        var missed = scopeQuestions
+            .Where(q => snapshot.OutcomeOf(q.Id) == Outcome.Missed)
+            .OrderByDescending(q => snapshot.Outcomes[q.Id].LastMissedAt)
+            .ThenByDescending(q => snapshot.Outcomes[q.Id].MissCount);
+        var mastered = scopeQuestions
+            .Where(q => snapshot.OutcomeOf(q.Id) == Outcome.Mastered)
+            .OrderBy(q => snapshot.RecallOf(q.Id))
+            .ToList();
 
-        List<Question> Pool(Outcome outcome) =>
-            byOutcome.TryGetValue(outcome, out var questions) ? questions : [];
-
-        return new Dictionary<Outcome, List<Question>>
-        {
-            // Most-recently-missed first, miss count breaking ties: the Question the visitor just
-            // got wrong is the one worth re-serving soonest.
-            [Outcome.Missed] = Pool(Outcome.Missed)
-                .OrderByDescending(q => snapshot.Outcomes[q.Id].LastMissedAt)
-                .ThenByDescending(q => snapshot.Outcomes[q.Id].MissCount)
-                .ToList(),
-            [Outcome.Unseen] = Shuffle(Pool(Outcome.Unseen)),
-            [Outcome.Mastered] = Shuffle(Pool(Outcome.Mastered)),
-        };
+        return (
+            missed.Concat(mastered.Where(q => snapshot.IsDue(q.Id))).ToList(),
+            Shuffle(scopeQuestions.Where(q => snapshot.OutcomeOf(q.Id) == Outcome.Unseen).ToList()),
+            mastered.Where(q => !snapshot.IsDue(q.Id)).ToList());
     }
 
     /// <summary>

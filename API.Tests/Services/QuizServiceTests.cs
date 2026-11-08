@@ -39,6 +39,29 @@ public class QuizServiceTests
     }
 
     [Fact]
+    public async Task GetQuizById_ListsTheWholeQuizMixFirst()
+    {
+        // The Mix drill is seeded last on an existing catalog, so its Id is the highest; it is
+        // still the main way to practice and leads the list (ADR 0013).
+        var quiz = new Quiz
+        {
+            Id = 7, Title = "AWS CLF-C02", Slug = "CLF-C02", IsAvailable = true,
+            Drills =
+            [
+                new Drill { Id = 1, QuizId = 7, Title = "Domain A", Domain = "A", DrawRule = DrawRule.DrillMix, Slug = "a" },
+                new Drill { Id = 2, QuizId = 7, Title = "Mistakes", DrawRule = DrawRule.Mistakes, Slug = "m" },
+                new Drill { Id = 3, QuizId = 7, Title = "Domain B", Domain = "B", DrawRule = DrawRule.DrillMix, Slug = "b" },
+                new Drill { Id = 4, QuizId = 7, Title = "Mix", DrawRule = DrawRule.DrillMix, Slug = "mix" },
+            ],
+        };
+        _quizzes.Setup(r => r.GetQuizById(7)).ReturnsAsync(quiz);
+
+        var result = await CreateService().GetQuizById(7);
+
+        Assert.Equal([4, 1, 2, 3], result!.Drills!.Select(d => d.Id));
+    }
+
+    [Fact]
     public async Task GetQuizById_MapsQuizToDto_WhenFound()
     {
         var quiz = new Quiz { Id = 7, Title = "AWS CLF-C02", Slug = "CLF-C02", IsAvailable = true };

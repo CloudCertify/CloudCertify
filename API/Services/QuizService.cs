@@ -1,3 +1,4 @@
+using API.Services.Drills;
 using API.Dto;
 using API.Entities;
 using API.Model.Request;
@@ -47,7 +48,7 @@ public class QuizService
             QuestionCount = q.Questions?.Count ?? 0,
             MinQuestions = q.MinQuestions,
             MaxQuestions = q.MaxQuestions,
-            Drills = q.Drills?.Select(sq => new DrillDto
+            Drills = q.Drills == null ? null : DrillListing.Ordered(q.Drills).Select(sq => new DrillDto
             {
                 Id = sq.Id,
                 Title = sq.Title,

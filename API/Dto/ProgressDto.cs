@@ -1,8 +1,8 @@
 namespace API.Dto;
 
 /// <summary>
-/// One Domain's Standing on a Quiz: Mastered / seen as a percent, plus movement
-/// since the previous finished Exam. Delta is null until a second Exam exists
+/// One Domain's Standing on a Quiz: mean Recall of the seen Questions as a percent
+/// (ADR 0013), plus movement since the previous finished Exam. Delta is null until a second Exam exists
 /// and must not be sent as 0 in that case (issue #61).
 /// </summary>
 public class DomainStandingDto
@@ -22,8 +22,8 @@ public class TrendPointDto
 }
 
 /// <summary>
-/// Per-you Progress on one Quiz. Domains are latest-attempt-wins, same fold as
-/// <c>OutcomeSnapshot</c>. Trend is the newest 10 finished Exams only.
+/// Per-you Progress on one Quiz. Domains read the same fold as <c>OutcomeSnapshot</c>,
+/// at Recall's "now". Trend is the newest 10 finished Exams only.
 /// </summary>
 public class ProgressDto
 {

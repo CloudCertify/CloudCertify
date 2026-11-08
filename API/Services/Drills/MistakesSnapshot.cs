@@ -41,10 +41,11 @@ public sealed class MistakesSnapshot
     /// Folds a User's finished Submissions on one Quiz into review evidence.
     /// <paramref name="mistakesDrillId"/> is the Mistakes Drill itself: the cooldown is scoped to
     /// that drill's own attempts, so a Drill Mix or Exam sitting does not push a miss out of
-    /// review.
+    /// review. <paramref name="now"/> only reaches the Outcomes' Recall; the review draw itself
+    /// does not read it.
     /// </summary>
     public static MistakesSnapshot Build(
-        IEnumerable<Submission> submissions, IReadOnlySet<int> scopeQuestionIds, int mistakesDrillId)
+        IEnumerable<Submission> submissions, IReadOnlySet<int> scopeQuestionIds, int mistakesDrillId, DateTime now)
     {
         var finished = submissions
             .Where(s => s.Finished)
@@ -58,7 +59,7 @@ public sealed class MistakesSnapshot
             .LastOrDefault() ?? new HashSet<int>();
 
         return new MistakesSnapshot(
-            OutcomeSnapshot.Build(finished, scopeQuestionIds),
+            OutcomeSnapshot.Build(finished, scopeQuestionIds, now),
             BuildLowConfidence(finished, scopeQuestionIds),
             cooldown);
     }
