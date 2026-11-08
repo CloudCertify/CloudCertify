@@ -9,8 +9,8 @@ using Entities;
 
 /// <summary>
 /// Idempotently seeds the quiz catalog at startup. Each quiz with a questions file gets
-/// its question bank inserted, one drill generated per distinct question domain, and one
-/// cross-Domain Mistakes drill (ADR 0011).
+/// its question bank inserted, one drill generated per distinct question domain, one whole-Quiz
+/// Mix drill (ADR 0013) and one cross-Domain Mistakes drill (ADR 0011).
 /// The file's SHA-256 is stamped on the quiz; when the file changes on disk the quiz's
 /// questions are wiped and re-seeded on next boot. Drills whose domain disappeared
 /// from the file are disabled (not deleted — submissions may reference them).
@@ -115,13 +115,16 @@ public class QuizCatalogSeeder
             .Select(pair => BuildDrill(seed, quiz.Id, pair.Key, pair.Value))
             .ToList();
 
-        // Exactly one review drill per parent Quiz, and it outlives any single Domain: its scope
-        // is the whole Quiz, so nothing in the file can make it stale (ADR 0011).
-        var mistakesSlug = $"{seed.Slug}-mistakes";
-        if (existing.All(s => !string.Equals(s.Slug, mistakesSlug, StringComparison.OrdinalIgnoreCase)))
+        // Exactly one Mix and one review drill per parent Quiz, and both outlive any single
+        // Domain: their scope is the whole Quiz, so nothing in the file can make them stale
+        // (ADR 0011, ADR 0013).
+        var wholeQuizDrills = new[]
         {
-            toCreate.Add(BuildMistakesDrill(seed, quiz.Id, mistakesSlug));
-        }
+            BuildWholeQuizDrill(seed, quiz.Id, $"{seed.Slug}-mix", "Mix", DrawRule.DrillMix),
+            BuildWholeQuizDrill(seed, quiz.Id, $"{seed.Slug}-mistakes", $"Mistakes ({seed.Slug})", DrawRule.Mistakes),
+        };
+        toCreate.AddRange(wholeQuizDrills.Where(drill =>
+            existing.All(s => !string.Equals(s.Slug, drill.Slug, StringComparison.OrdinalIgnoreCase))));
 
         // Domain vanished from the file: hide the drill but keep the row —
         // Submission.DrillId still points at it. Only Domain-scoped Drills are the seeder's to
@@ -149,15 +152,15 @@ public class QuizCatalogSeeder
         };
     }
 
-    private static Drill BuildMistakesDrill(QuizSeed seed, int quizId, string slug)
+    private static Drill BuildWholeQuizDrill(QuizSeed seed, int quizId, string slug, string title, DrawRule drawRule)
     {
         return new Drill
         {
             QuizId = quizId,
-            Title = $"Mistakes ({seed.Slug})",
-            // Unset: the review runs across the parent Quiz, not one Domain (ADR 0010).
+            Title = title,
+            // Unset: the drill runs across the parent Quiz, not one Domain (ADR 0010).
             Domain = null,
-            DrawRule = DrawRule.Mistakes,
+            DrawRule = drawRule,
             Slug = slug,
             IsAvailable = seed.IsAvailable,
             CreatedAt = DateTime.UtcNow

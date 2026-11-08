@@ -30,7 +30,7 @@ public class MeControllerTests
         Mock<ISubmissionRepository> submissions,
         Mock<IQuestionRepository> questions,
         Mock<IQuizRepository> quizzes) =>
-        new(submissions.Object, questions.Object, quizzes.Object);
+        new(submissions.Object, questions.Object, quizzes.Object, TimeProvider.System);
 
     [Fact]
     public async Task GetMyProgressQuizzes_Returns401_WhenSignedOut()

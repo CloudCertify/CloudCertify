@@ -15,8 +15,9 @@ namespace API.Services;
 /// </summary>
 public class DrillService
 {
-    public DrillService(IDrillRepository drillRepository, IQuestionRepository questionRepository, ISubmissionRepository submissionRepository, SubmissionGrader submissionGrader)
+    public DrillService(IDrillRepository drillRepository, IQuestionRepository questionRepository, ISubmissionRepository submissionRepository, SubmissionGrader submissionGrader, TimeProvider timeProvider)
     {
+        _timeProvider = timeProvider;
         _drillRepository = drillRepository;
         _questionRepository = questionRepository;
         _submissionRepository = submissionRepository;
@@ -27,11 +28,14 @@ public class DrillService
     private readonly IQuestionRepository _questionRepository;
     private readonly ISubmissionRepository _submissionRepository;
     private readonly SubmissionGrader _submissionGrader;
+    private readonly TimeProvider _timeProvider;
+
+    private DateTime Now => _timeProvider.GetUtcNow().UtcDateTime;
 
     public async Task<List<DrillDto>> GetDrillsByQuizId(int quizId)
     {
         var drills = await _drillRepository.GetDrillsByQuizId(quizId);
-        return drills.Select(MapDrillToDto).ToList();
+        return DrillListing.Ordered(drills).Select(MapDrillToDto).ToList();
     }
 
     /// <summary>
@@ -73,7 +77,7 @@ public class DrillService
 
         List<Question> drillQuestions;
         // Mistakes is one bucket, so it reports no composition — the served count is the whole
-        // story, and a three-bucket line would be a lie on it (ADR 0011).
+        // story, and a per-seat line would be a lie on it (ADR 0011).
         DrillCompositionDto? composition = null;
 
         if (drill.DrawRule == DrawRule.Mistakes)
@@ -217,7 +221,8 @@ public class DrillService
             ? OutcomeSnapshot.Empty
             : OutcomeSnapshot.Build(
                 await _submissionRepository.GetFinishedByUserAndQuiz(userId.Value, quizId),
-                scope.Select(q => q.Id).ToHashSet());
+                scope.Select(q => q.Id).ToHashSet(),
+                Now);
 
     /// <summary>
     /// The review draw, plus the two gates that come with it: anonymous is locked, and an empty
@@ -233,7 +238,8 @@ public class DrillService
         var snapshot = MistakesSnapshot.Build(
             await _submissionRepository.GetFinishedByUserAndQuiz(userId.Value, quizId),
             scope.Select(q => q.Id).ToHashSet(),
-            drill.Id);
+            drill.Id,
+            Now);
 
         var drawn = MistakesDraw.Draw(scope, snapshot);
 
@@ -241,18 +247,20 @@ public class DrillService
     }
 
     /// <summary>
-    /// Counts the served Questions by the Outcome they had <em>going in</em>, so the visitor is
-    /// told what the draw did for them before they answer anything.
+    /// Counts the served Questions by what they were <em>going in</em>, so the visitor is told
+    /// what the draw did for them before they answer anything. A Due Question is still Mastered as
+    /// an Outcome; it is split out here because it is the review the draw is owed (ADR 0013).
     /// </summary>
-    private static DrillCompositionDto Compose(IEnumerable<Question> drill, OutcomeSnapshot snapshot)
+    private static DrillCompositionDto Compose(IReadOnlyList<Question> drill, OutcomeSnapshot snapshot)
     {
-        var byOutcome = drill.CountBy(q => snapshot.OutcomeOf(q.Id)).ToDictionary();
+        int Count(Func<int, bool> match) => drill.Count(q => match(q.Id));
 
         return new DrillCompositionDto
         {
-            Missed = byOutcome.GetValueOrDefault(Outcome.Missed),
-            Unseen = byOutcome.GetValueOrDefault(Outcome.Unseen),
-            Mastered = byOutcome.GetValueOrDefault(Outcome.Mastered),
+            Missed = Count(id => snapshot.OutcomeOf(id) == Outcome.Missed),
+            Due = Count(snapshot.IsDue),
+            Unseen = Count(id => snapshot.OutcomeOf(id) == Outcome.Unseen),
+            Mastered = Count(id => snapshot.OutcomeOf(id) == Outcome.Mastered && !snapshot.IsDue(id)),
         };
     }
 

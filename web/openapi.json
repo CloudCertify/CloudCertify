@@ -1010,6 +1010,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "due": {
+            "type": "integer",
+            "format": "int32"
+          },
           "unseen": {
             "type": "integer",
             "format": "int32"

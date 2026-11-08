@@ -94,6 +94,7 @@ export interface DomainResult {
  */
 export type DrillCompositionDto = {
   missed?: number;
+  due?: number;
   unseen?: number;
   mastered?: number;
 } | null;

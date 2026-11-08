@@ -46,7 +46,7 @@ public class MistakesDrawTests
         };
 
     private static MistakesSnapshot SnapshotOf(List<Question> bank, params Submission[] submissions) =>
-        MistakesSnapshot.Build(submissions, bank.Select(q => q.Id).ToHashSet(), DrillId);
+        MistakesSnapshot.Build(submissions, bank.Select(q => q.Id).ToHashSet(), DrillId, new DateTime(2026, 12, 1));
 
     private static List<int> DrawIds(List<Question> bank, MistakesSnapshot snapshot) =>
         MistakesDraw.Draw(bank, snapshot).Select(q => q.Id).ToList();

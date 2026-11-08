@@ -7,7 +7,8 @@ namespace API.Services;
 
 /// <summary>
 /// Per-you Progress on a Quiz. Folds finished Submissions the same way
-/// <see cref="OutcomeSnapshot"/> does, then reads Standing per Domain.
+/// <see cref="OutcomeSnapshot"/> does, then reads Standing per Domain as mean Recall at the
+/// injected clock's "now" (ADR 0013).
 /// </summary>
 /// <example>
 /// var progress = await progressService.Get(userId, quizId);
@@ -15,7 +16,8 @@ namespace API.Services;
 public class ProgressService(
     ISubmissionRepository submissionRepository,
     IQuestionRepository questionRepository,
-    IQuizRepository quizRepository)
+    IQuizRepository quizRepository,
+    TimeProvider timeProvider)
 {
     public const int EligibilityFloor = 5;
     public const int TrendLimit = 10;
@@ -41,19 +43,19 @@ public class ProgressService(
 
         var finished = await submissionRepository.GetFinishedByUserAndQuiz(userId, quizId);
         var questions = await questionRepository.GetQuestionsByQuizId(quizId);
-        return Build(finished, questions);
+        return Build(finished, questions, timeProvider.GetUtcNow().UtcDateTime);
     }
 
     /// <summary>
     /// Pure fold used by the endpoint and by tests. Unfinished Submissions are dropped,
-    /// matching <see cref="OutcomeSnapshot.Build"/>.
+    /// matching <see cref="OutcomeSnapshot.Build"/>. Recall is read at <paramref name="now"/>.
     /// </summary>
-    /// <example>var dto = ProgressService.Build(submissions, questions);</example>
-    public static ProgressDto Build(IEnumerable<Submission> submissions, IReadOnlyList<Question> questions)
+    /// <example>var dto = ProgressService.Build(submissions, questions, DateTime.UtcNow);</example>
+    public static ProgressDto Build(IEnumerable<Submission> submissions, IReadOnlyList<Question> questions, DateTime now)
     {
         var finished = submissions.Where(s => s.Finished).ToList();
         var exams = FinishedExams(finished);
-        var domains = DomainRows(finished, exams, questions);
+        var domains = DomainRows(finished, exams, questions, now);
         return new ProgressDto
         {
             Domains = domains,
@@ -68,10 +70,14 @@ public class ProgressService(
         finished.Where(s => s.Mode == Mode.Exam).OrderBy(s => s.CreatedAt).ThenBy(s => s.Id).ToList();
 
     private static List<DomainStandingDto> DomainRows(
-        List<Submission> finished, List<Submission> exams, IReadOnlyList<Question> questions)
+        List<Submission> finished, List<Submission> exams, IReadOnlyList<Question> questions, DateTime now)
     {
-        var current = Standings(finished, questions);
-        var previous = exams.Count >= 2 ? Standings(AsOf(finished, exams[^2]), questions) : null;
+        var current = Standings(finished, questions, now);
+        // Read the previous Standing at the previous Exam's own instant, so the delta compares
+        // Recall then against Recall now rather than two readings of today's decay.
+        var previous = exams.Count >= 2
+            ? Standings(AsOf(finished, exams[^2]), questions, exams[^2].CreatedAt)
+            : null;
         return current.Keys
             .OrderBy(name => name, StringComparer.Ordinal)
             .Select(name => DomainRow(name, current[name], previous))
@@ -79,11 +85,11 @@ public class ProgressService(
     }
 
     private static DomainStandingDto DomainRow(
-        string name, (int Mastered, int Seen) current, Dictionary<string, (int Mastered, int Seen)>? previous)
+        string name, (double Recall, int Seen) current, Dictionary<string, (double Recall, int Seen)>? previous)
     {
-        var standing = Percent(current.Mastered, current.Seen);
+        var standing = Percent(current.Recall, current.Seen);
         var prior = previous?.GetValueOrDefault(name) ?? (0, 0);
-        int? delta = previous == null ? null : standing - Percent(prior.Mastered, prior.Seen);
+        int? delta = previous == null ? null : standing - Percent(prior.Recall, prior.Seen);
         return new DomainStandingDto { Name = name, Standing = standing, Seen = current.Seen, Delta = delta };
     }
 
@@ -95,20 +101,21 @@ public class ProgressService(
             .ThenBy(d => d.Name, StringComparer.Ordinal)
             .FirstOrDefault()?.Name;
 
-    private static Dictionary<string, (int Mastered, int Seen)> Standings(
-        IEnumerable<Submission> submissions, IReadOnlyList<Question> questions)
+    /// <summary>Summed Recall and seen count per Domain. Unseen Questions have no Recall and stay out.</summary>
+    private static Dictionary<string, (double Recall, int Seen)> Standings(
+        IEnumerable<Submission> submissions, IReadOnlyList<Question> questions, DateTime at)
     {
         var domainOf = questions
             .Where(q => !string.IsNullOrEmpty(q.Domain))
             .ToDictionary(q => q.Id, q => q.Domain!);
-        var snapshot = OutcomeSnapshot.Build(submissions, domainOf.Keys.ToHashSet());
-        var counts = new Dictionary<string, (int Mastered, int Seen)>(StringComparer.Ordinal);
+        var snapshot = OutcomeSnapshot.Build(submissions, domainOf.Keys.ToHashSet(), at);
+        var counts = new Dictionary<string, (double Recall, int Seen)>(StringComparer.Ordinal);
 
         foreach (var (questionId, evidence) in snapshot.Outcomes)
         {
             if (!domainOf.TryGetValue(questionId, out var domain)) continue;
-            var (mastered, seen) = counts.GetValueOrDefault(domain);
-            counts[domain] = (mastered + (evidence.Outcome == Outcome.Mastered ? 1 : 0), seen + 1);
+            var (recall, seen) = counts.GetValueOrDefault(domain);
+            counts[domain] = (recall + evidence.RecallAt(at), seen + 1);
         }
 
         return counts;
@@ -131,6 +138,6 @@ public class ProgressService(
         };
     }
 
-    private static int Percent(int numerator, int denominator) =>
+    private static int Percent(double numerator, int denominator) =>
         denominator == 0 ? 0 : (int)Math.Round((double)numerator * 100 / denominator);
 }

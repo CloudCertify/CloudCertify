@@ -14,9 +14,27 @@ public class DrillServiceTests
     private readonly Mock<IQuestionRepository> _questions = new();
     private readonly Mock<ISubmissionRepository> _submissions = new();
 
-    private DrillService CreateService() =>
+    private DrillService CreateService(DateTime? now = null) =>
         new(_drills.Object, _questions.Object, _submissions.Object,
-            new SubmissionGrader(_questions.Object, _submissions.Object));
+            new SubmissionGrader(_questions.Object, _submissions.Object), new FixedClock(now ?? Now));
+
+    /// <summary>"Now" for every drill start: well after the fixtures' history, so a proof is Due.</summary>
+    private static readonly DateTime Now = new(2026, 12, 1);
+
+    [Fact]
+    public async Task GetDrillsByQuizId_ListsTheWholeQuizMixFirst()
+    {
+        _drills.Setup(r => r.GetDrillsByQuizId(1)).ReturnsAsync(
+        [
+            new Drill { Id = 1, QuizId = 1, Title = "Domain A", Domain = "A", DrawRule = DrawRule.DrillMix, Slug = "a" },
+            new Drill { Id = 2, QuizId = 1, Title = "Mistakes", DrawRule = DrawRule.Mistakes, Slug = "m" },
+            new Drill { Id = 3, QuizId = 1, Title = "Mix", DrawRule = DrawRule.DrillMix, Slug = "mix" },
+        ]);
+
+        var drills = await CreateService().GetDrillsByQuizId(1);
+
+        Assert.Equal([3, 1, 2], drills.Select(d => d.Id));
+    }
 
     [Fact]
     public async Task StartDrill_ReturnsNull_WhenDrillMissing()
@@ -109,8 +127,8 @@ public class DrillServiceTests
     [Fact]
     public async Task StartDrill_DrawsToTheDrillMix_ForALoggedInUser()
     {
-        // 20 missed, 20 mastered, 20 never served. The drill is asserted by composition, not by
-        // Question identity — the pick within each bucket is random (ADR 0008).
+        // 20 missed, 20 Due (proved once, eleven months ago), 20 never served. The drill is
+        // asserted by composition, not by Question identity — the Unseen pick is random.
         var bank = Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList();
         SetupDomainBank(bank);
         var history = FinishedAttempt(1, new DateTime(2026, 1, 1),
@@ -121,8 +139,8 @@ public class DrillServiceTests
 
         var served = result!.Questions.Select(q => q.Id).ToList();
         Assert.Equal(15, served.Count);
-        Assert.Equal(9, served.Count(id => id <= 20));            // Missed
-        Assert.Equal(2, served.Count(id => id is > 20 and <= 40)); // Mastered
+        Assert.Equal(11, served.Count(id => id <= 20));           // Missed
+        Assert.Equal(0, served.Count(id => id is > 20 and <= 40)); // Due, behind the Missed
         Assert.Equal(4, served.Count(id => id > 40));              // Unseen
     }
 
@@ -164,7 +182,7 @@ public class DrillServiceTests
 
         var result = await CreateService().StartDrill(1, 2, null, 7);
 
-        Assert.Equal(9, result!.Questions.Count(q => q.Id <= 20));
+        Assert.Equal(11, result!.Questions.Count(q => q.Id <= 20));
     }
 
     [Fact]
@@ -174,16 +192,65 @@ public class DrillServiceTests
         // going in — the same numbers the draw was made to (issue #53).
         var bank = Enumerable.Range(1, 60).Select(i => InDomain(i)).ToList();
         SetupDomainBank(bank);
+        // 5 missed, 35 proved long ago and now Due, 20 unseen: 5 Missed + 6 Due + 4 Unseen.
         var history = FinishedAttempt(1, new DateTime(2026, 1, 1),
-            served: Enumerable.Range(1, 40).ToArray(), correct: Enumerable.Range(21, 20).ToArray());
+            served: Enumerable.Range(1, 40).ToArray(), correct: Enumerable.Range(6, 35).ToArray());
         _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync([history]);
 
         var result = await CreateService().StartDrill(1, 2, null, 7);
 
         Assert.NotNull(result!.Composition);
-        Assert.Equal(9, result.Composition!.Missed);
+        Assert.Equal(5, result.Composition!.Missed);
+        Assert.Equal(6, result.Composition.Due);
         Assert.Equal(4, result.Composition.Unseen);
-        Assert.Equal(2, result.Composition.Mastered);
+        Assert.Equal(0, result.Composition.Mastered);
+    }
+
+    [Fact]
+    public async Task StartDrill_ReportsLastResortSeatsAsMastered_UntilTheClockMakesThemDue()
+    {
+        // The whole 20-Question bank was proved once at noon. Read an hour later nothing is Due,
+        // so every seat is a last-resort Mastered one; read a day later every one is Due.
+        var bank = Enumerable.Range(1, 20).Select(i => InDomain(i)).ToList();
+        SetupDomainBank(bank);
+        var provedAt = new DateTime(2026, 11, 30, 12, 0, 0);
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync(
+            [FinishedAttempt(1, provedAt, served: Enumerable.Range(1, 20).ToArray(), correct: Enumerable.Range(1, 20).ToArray())]);
+
+        var soon = await CreateService(provedAt.AddHours(1)).StartDrill(1, 2, null, 7);
+        var later = await CreateService(provedAt.AddDays(1)).StartDrill(1, 2, null, 7);
+
+        Assert.Equal(15, soon!.Composition!.Mastered);
+        Assert.Equal(0, soon.Composition.Due);
+        Assert.Equal(15, later!.Composition!.Due);
+        Assert.Equal(0, later.Composition.Mastered);
+    }
+
+    [Fact]
+    public async Task StartDrill_DrawsTheWholeQuizMix_AcrossDomains()
+    {
+        // The seeded Mix drill: Drill Mix with no Domain, so misses in either Domain seat.
+        _drills.Setup(r => r.GetDrillById(3)).ReturnsAsync(new Drill
+        {
+            Id = 3, QuizId = 1, Title = "Mix", Domain = null,
+            DrawRule = DrawRule.DrillMix, Slug = "mix", IsAvailable = true
+        });
+        var bank = Enumerable.Range(1, 30).Select(i => InDomain(i, "Security and Compliance"))
+            .Concat(Enumerable.Range(31, 30).Select(i => InDomain(i, "Cloud Concepts")))
+            .ToList();
+        _questions.Setup(r => r.GetQuestionsByQuizId(1)).ReturnsAsync(bank);
+        _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync(
+            [FinishedAttempt(1, new DateTime(2026, 1, 1), served: [1, 2, 3, 31, 32, 33], correct: [])]);
+
+        var result = await CreateService().StartDrill(1, 3, null, 7);
+        var anonymous = await CreateService().StartDrill(1, 3, "u@e.com", null);
+
+        Assert.Equal(15, result!.Questions.Count);
+        Assert.Equal(6, result.Composition!.Missed);
+        Assert.Equal(9, result.Composition.Unseen);
+        Assert.Subset(result.Questions.Select(q => q.Id).ToHashSet(), new HashSet<int> { 1, 2, 3, 31, 32, 33 });
+        Assert.Equal(15, anonymous!.Questions.Count);
+        Assert.Null(anonymous.Composition);
     }
 
     [Fact]
@@ -196,6 +263,7 @@ public class DrillServiceTests
 
         Assert.Equal(15, result!.Composition!.Unseen);
         Assert.Equal(0, result.Composition.Missed);
+        Assert.Equal(0, result.Composition.Due);
         Assert.Equal(0, result.Composition.Mastered);
     }
 
@@ -511,7 +579,7 @@ public class DrillServiceTests
     [Fact]
     public async Task StartDrill_ReportsNoComposition_ForMistakes()
     {
-        // A three-bucket line would be a lie on a single-bucket draw: the web shows a plain
+        // A per-seat line would be a lie on a single-bucket draw: the web shows a plain
         // count of what was seated instead (ADR 0011).
         SetupMistakesDrill();
         _submissions.Setup(r => r.GetFinishedByUserAndQuiz(7, 1)).ReturnsAsync(

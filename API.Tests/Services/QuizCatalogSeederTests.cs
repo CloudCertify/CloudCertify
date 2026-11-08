@@ -58,11 +58,11 @@ public class QuizCatalogSeederTests : IDisposable
         Assert.All(clf.Questions, q => Assert.Equal(QuestionDifficulty.Hard, q.Difficulty));
         Assert.NotNull(clf.QuestionsHash);
 
-        // One drill per distinct domain per quiz with a questions file, plus one Mistakes drill.
+        // One drill per distinct domain per quiz with a questions file, plus Mix and Mistakes.
         var clfDrills = _drills.Store.Where(s => s.QuizId == clf.Id).ToList();
-        Assert.Equal(3, clfDrills.Count);
+        Assert.Equal(4, clfDrills.Count);
         Assert.Contains(clfDrills, s => s.Slug == "CLF-C02-domain-a");
-        Assert.Equal(SeededFileSlugs.Length * 3, _drills.Store.Count);
+        Assert.Equal(SeededFileSlugs.Length * 4, _drills.Store.Count);
     }
 
     [Fact]
@@ -80,6 +80,36 @@ public class QuizCatalogSeederTests : IDisposable
     }
 
     [Fact]
+    public async Task SeedCatalog_SeedsOneWholeQuizMixDrill_PerQuiz()
+    {
+        await CreateSeeder().SeedCatalog();
+
+        foreach (var quiz in _quizzes.Store.Where(q => _drills.Store.Any(d => d.QuizId == q.Id)))
+        {
+            var mix = Assert.Single(_drills.Store,
+                s => s.QuizId == quiz.Id && s.DrawRule == DrawRule.DrillMix && s.Domain == null);
+            Assert.Equal($"{quiz.Slug}-mix", mix.Slug);
+            Assert.Equal("Mix", mix.Title);
+            Assert.Equal(quiz.IsAvailable, mix.IsAvailable);
+        }
+    }
+
+    [Fact]
+    public async Task SeedCatalog_AddsTheMixDrillOnce_ToACatalogSeededBeforeIt()
+    {
+        // A database seeded before ADR 0013 has Domain and Mistakes drills only.
+        var seeder = CreateSeeder();
+        await seeder.SeedCatalog();
+        _drills.Store.RemoveAll(s => s.Slug.EndsWith("-mix"));
+
+        await seeder.SeedCatalog();
+        await seeder.SeedCatalog();
+
+        var clf = _quizzes.Store.Single(q => q.Slug == "CLF-C02");
+        Assert.Single(_drills.Store, s => s.QuizId == clf.Id && s.Slug == "CLF-C02-mix");
+    }
+
+    [Fact]
     public async Task SeedCatalog_LeavesTheMistakesDrillAlone_WhenADomainVanishes()
     {
         // It is scoped to no Domain, so no change to the file can make it stale.
@@ -92,6 +122,7 @@ public class QuizCatalogSeederTests : IDisposable
         var clf = _quizzes.Store.Single(q => q.Slug == "CLF-C02");
         var mistakes = Assert.Single(_drills.Store, s => s.QuizId == clf.Id && s.DrawRule == DrawRule.Mistakes);
         Assert.True(mistakes.IsAvailable);
+        Assert.True(Assert.Single(_drills.Store, s => s.QuizId == clf.Id && s.Slug == "CLF-C02-mix").IsAvailable);
     }
 
     [Fact]

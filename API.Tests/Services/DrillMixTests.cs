@@ -5,19 +5,23 @@ using static API.Tests.QuizBuilder;
 namespace API.Tests.Services;
 
 /// <summary>
-/// The draw is random within each bucket, so these assert its <em>composition</em> — how many
-/// Missed/Unseen/Mastered came back — never which Questions. That is the whole point of choosing
-/// buckets over weighted sampling (ADR 0008): the mix is guaranteed, so it can be asserted
-/// without a seeded RNG.
+/// The draw is random among Unseen and ordered by Recall elsewhere, so most of these assert its
+/// <em>composition</em> — how many Missed/Due/Unseen/Mastered came back going in — and only
+/// assert identity where Recall order decides it (ADR 0008, ADR 0013).
 /// </summary>
 public class DrillMixTests
 {
     private const string Domain = "Security and Compliance";
+    private static readonly DateTime Now = new(2026, 12, 1);
+
+    private enum Seat { Missed, Due, Unseen, Mastered }
 
     private static List<Question> Bank(int count, int firstId = 1) =>
         Enumerable.Range(firstId, count)
             .Select(i => Question(i, Domain, correctIds: [i * 10], wrongIds: [i * 10 + 1]))
             .ToList();
+
+    private static int[] Ids(int first, int count) => Enumerable.Range(first, count).ToArray();
 
     /// <summary>A finished attempt that served <paramref name="served"/> and got <paramref name="correct"/> right.</summary>
     private static Submission Finished(int id, DateTime at, int[] served, int[] correct, int? unanswered = null) =>
@@ -32,28 +36,56 @@ public class DrillMixTests
         };
 
     private static OutcomeSnapshot SnapshotOf(List<Question> bank, params Submission[] submissions) =>
-        OutcomeSnapshot.Build(submissions, bank.Select(q => q.Id).ToHashSet());
+        OutcomeSnapshot.Build(submissions, bank.Select(q => q.Id).ToHashSet(), Now);
 
-    private static Dictionary<Outcome, int> Composition(List<Question> drill, OutcomeSnapshot snapshot) =>
-        drill.GroupBy(q => snapshot.OutcomeOf(q.Id)).ToDictionary(g => g.Key, g => g.Count());
+    private static Seat SeatOf(OutcomeSnapshot snapshot, int id) => snapshot.OutcomeOf(id) switch
+    {
+        Outcome.Missed => Seat.Missed,
+        Outcome.Unseen => Seat.Unseen,
+        _ => snapshot.IsDue(id) ? Seat.Due : Seat.Mastered,
+    };
 
-    private static int CountOf(List<Question> drill, OutcomeSnapshot snapshot, Outcome outcome) =>
-        Composition(drill, snapshot).GetValueOrDefault(outcome);
+    private static int CountOf(List<Question> drill, OutcomeSnapshot snapshot, Seat seat) =>
+        drill.Count(q => SeatOf(snapshot, q.Id) == seat);
 
     [Fact]
-    public void Draw_FillsNineMissedFourUnseenTwoMastered_WhenEveryBucketIsDeep()
+    public void Draw_FillsElevenMissedAndFourUnseen_WhenEveryPoolIsDeep()
     {
-        var bank = Bank(60);
-        // 20 missed, 20 mastered, 20 untouched.
-        var snapshot = SnapshotOf(bank, Finished(1, new DateTime(2026, 1, 1),
-            served: Enumerable.Range(1, 40).ToArray(), correct: Enumerable.Range(21, 20).ToArray()));
+        var bank = Bank(80);
+        // 1-20 missed, 21-40 proved long ago (Due), 41-60 proved just now (not Due), 61-80 unseen.
+        var snapshot = SnapshotOf(bank,
+            Finished(1, new DateTime(2026, 1, 1), served: Ids(1, 40), correct: Ids(21, 20)),
+            Finished(2, Now, served: Ids(41, 20), correct: Ids(41, 20)));
 
         var drill = DrillMix.Draw(bank, snapshot);
 
         Assert.Equal(DrillMix.Size, drill.Count);
-        Assert.Equal(9, CountOf(drill, snapshot, Outcome.Missed));
-        Assert.Equal(4, CountOf(drill, snapshot, Outcome.Unseen));
-        Assert.Equal(2, CountOf(drill, snapshot, Outcome.Mastered));
+        Assert.Equal(11, CountOf(drill, snapshot, Seat.Missed));
+        Assert.Equal(4, CountOf(drill, snapshot, Seat.Unseen));
+        Assert.Equal(0, CountOf(drill, snapshot, Seat.Due));
+        Assert.Equal(0, CountOf(drill, snapshot, Seat.Mastered));
+    }
+
+    [Fact]
+    public void Draw_SeatsDueAfterMissed_LowestRecallFirst()
+    {
+        var bank = Bank(55);
+        // 1-5 missed. 6-25 each proved once, k days ago for k = 2..21: Recall 2^-k, so the
+        // oldest proofs (20-25) are the most forgotten. 26-55 unseen.
+        var history = new List<Submission>
+        {
+            Finished(1, new DateTime(2026, 1, 1), served: Ids(1, 5), correct: []),
+        };
+        history.AddRange(Enumerable.Range(6, 20).Reverse()
+            .Select(q => Finished(q, Now.AddDays(-(q - 4)), served: [q], correct: [q])));
+        var snapshot = SnapshotOf(bank, history.ToArray());
+
+        var drill = DrillMix.Draw(bank, snapshot);
+        var due = drill.Where(q => SeatOf(snapshot, q.Id) == Seat.Due).Select(q => q.Id).Order();
+
+        Assert.Equal(5, CountOf(drill, snapshot, Seat.Missed));
+        Assert.Equal([20, 21, 22, 23, 24, 25], due);
+        Assert.Equal(4, CountOf(drill, snapshot, Seat.Unseen));
     }
 
     [Fact]
@@ -65,55 +97,65 @@ public class DrillMixTests
         var drill = DrillMix.Draw(bank, OutcomeSnapshot.Empty);
 
         Assert.Equal(DrillMix.Size, drill.Count);
-        Assert.Equal(DrillMix.Size, CountOf(drill, OutcomeSnapshot.Empty, Outcome.Unseen));
+        Assert.Equal(DrillMix.Size, CountOf(drill, OutcomeSnapshot.Empty, Seat.Unseen));
         Assert.Equal(DrillMix.Size, drill.Select(q => q.Id).Distinct().Count());
     }
 
     [Fact]
-    public void Draw_SpillsShortMissedIntoUnseenBeforeMastered()
+    public void Draw_SpillsShortReviewIntoUnseen()
     {
         var bank = Bank(60);
-        // Only 3 missed available; 9 - 3 = 6 must spill, and Unseen is first in line.
-        var snapshot = SnapshotOf(bank, Finished(1, new DateTime(2026, 1, 1),
-            served: Enumerable.Range(1, 23).ToArray(), correct: Enumerable.Range(4, 20).ToArray()));
+        // Only 3 missed and nothing Due; 20 fresh Mastered must stay out while Unseen lasts.
+        var snapshot = SnapshotOf(bank,
+            Finished(1, new DateTime(2026, 1, 1), served: Ids(1, 3), correct: []),
+            Finished(2, Now, served: Ids(4, 20), correct: Ids(4, 20)));
 
         var drill = DrillMix.Draw(bank, snapshot);
 
         Assert.Equal(DrillMix.Size, drill.Count);
-        Assert.Equal(3, CountOf(drill, snapshot, Outcome.Missed));
-        Assert.Equal(10, CountOf(drill, snapshot, Outcome.Unseen)); // 4 own + 6 spilled
-        Assert.Equal(2, CountOf(drill, snapshot, Outcome.Mastered));
+        Assert.Equal(3, CountOf(drill, snapshot, Seat.Missed));
+        Assert.Equal(12, CountOf(drill, snapshot, Seat.Unseen)); // 4 own + 8 spilled
+        Assert.Equal(0, CountOf(drill, snapshot, Seat.Mastered));
     }
 
     [Fact]
-    public void Draw_SpillsShortUnseenIntoMissed_LeavingMasteredIntact()
+    public void Draw_SpillsShortUnseenIntoReview()
     {
-        var bank = Bank(30);
-        // Whole bank seen: 28 missed, 2 mastered, 0 unseen. Unseen's 4 spill into Missed first.
-        var snapshot = SnapshotOf(bank, Finished(1, new DateTime(2026, 1, 1),
-            served: Enumerable.Range(1, 30).ToArray(), correct: [29, 30]));
+        var bank = Bank(22);
+        // 10 missed, 10 Due, 2 unseen: Unseen's 2 missing seats go to the next-lowest Recall.
+        var snapshot = SnapshotOf(bank,
+            Finished(1, new DateTime(2026, 1, 1), served: Ids(1, 20), correct: Ids(11, 10)));
 
         var drill = DrillMix.Draw(bank, snapshot);
 
         Assert.Equal(DrillMix.Size, drill.Count);
-        Assert.Equal(13, CountOf(drill, snapshot, Outcome.Missed)); // 9 own + 4 spilled from Unseen
-        Assert.Equal(2, CountOf(drill, snapshot, Outcome.Mastered));
+        Assert.Equal(10, CountOf(drill, snapshot, Seat.Missed));
+        Assert.Equal(3, CountOf(drill, snapshot, Seat.Due));
+        Assert.Equal(2, CountOf(drill, snapshot, Seat.Unseen));
     }
 
     [Fact]
-    public void Draw_GivesLightReviewPass_WhenDomainIsFullyMastered()
+    public void Draw_ServesNotDueMastered_OnlyWhenBothSidesRunDry_LowestRecallFirst()
     {
-        var bank = Bank(24);
-        // 20 mastered, 4 unseen, nothing missed: Missed's 9 exhaust Unseen and land on Mastered.
-        var snapshot = SnapshotOf(bank, Finished(1, new DateTime(2026, 1, 1),
-            served: Enumerable.Range(1, 20).ToArray(), correct: Enumerable.Range(1, 20).ToArray()));
+        var bank = Bank(28);
+        // 1-2 missed, 3 Due, 4-5 unseen. 6-28 proved h = 1..23 hours ago: Mastered, none Due yet,
+        // and the ones proved longest ago (19-28) have the lowest Recall.
+        var history = new List<Submission>
+        {
+            Finished(1, new DateTime(2026, 1, 1), served: [1, 2, 3], correct: [3]),
+        };
+        history.AddRange(Enumerable.Range(6, 23).Reverse()
+            .Select(q => Finished(q, Now.AddHours(-(q - 5)), served: [q], correct: [q])));
+        var snapshot = SnapshotOf(bank, history.ToArray());
 
         var drill = DrillMix.Draw(bank, snapshot);
+        var mastered = drill.Where(q => SeatOf(snapshot, q.Id) == Seat.Mastered).Select(q => q.Id).Order();
 
         Assert.Equal(DrillMix.Size, drill.Count);
-        Assert.Equal(0, CountOf(drill, snapshot, Outcome.Missed));
-        Assert.Equal(4, CountOf(drill, snapshot, Outcome.Unseen));
-        Assert.Equal(11, CountOf(drill, snapshot, Outcome.Mastered));
+        Assert.Equal(2, CountOf(drill, snapshot, Seat.Missed));
+        Assert.Equal(1, CountOf(drill, snapshot, Seat.Due));
+        Assert.Equal(2, CountOf(drill, snapshot, Seat.Unseen));
+        Assert.Equal(Enumerable.Range(19, 10), mastered); // the 10 proved longest ago
     }
 
     [Fact]
@@ -121,8 +163,7 @@ public class DrillMixTests
     {
         // A 16-question bank cannot honour the cooldown: 15 of the 16 were served last time.
         var bank = Bank(16);
-        var snapshot = SnapshotOf(bank, Finished(1, new DateTime(2026, 1, 1),
-            served: Enumerable.Range(1, 15).ToArray(), correct: Enumerable.Range(1, 15).ToArray()));
+        var snapshot = SnapshotOf(bank, Finished(1, Now, served: Ids(1, 15), correct: Ids(1, 15)));
 
         var drill = DrillMix.Draw(bank, snapshot);
 
@@ -136,29 +177,28 @@ public class DrillMixTests
         var bank = Bank(60);
         // 1-20 missed in January, 21-35 missed in June. The June attempt is the cooldown; its
         // Questions are the most-recently-missed, so the cooldown outranks the recency ordering.
-        var lastAttempt = Enumerable.Range(21, 15).ToArray();
+        var lastAttempt = Ids(21, 15);
         var snapshot = SnapshotOf(bank,
-            Finished(1, new DateTime(2026, 1, 1), served: Enumerable.Range(1, 20).ToArray(), correct: []),
+            Finished(1, new DateTime(2026, 1, 1), served: Ids(1, 20), correct: []),
             Finished(2, new DateTime(2026, 6, 1), served: lastAttempt, correct: []));
 
         var drill = DrillMix.Draw(bank, snapshot);
 
-        Assert.Equal(9, drill.Count(q => snapshot.OutcomeOf(q.Id) == Outcome.Missed));
+        Assert.Equal(11, CountOf(drill, snapshot, Seat.Missed));
         Assert.DoesNotContain(drill, q => lastAttempt.Contains(q.Id));
     }
 
     [Fact]
-    public void Draw_DropsTheCooldown_RatherThanLeaveABucketShort()
+    public void Draw_DropsTheCooldown_RatherThanLeaveTheReviewShort()
     {
         var bank = Bank(30);
-        // Every missed Question is also cooled down; the Missed bucket cannot be filled otherwise.
-        var snapshot = SnapshotOf(bank, Finished(1, new DateTime(2026, 1, 1),
-            served: Enumerable.Range(1, 15).ToArray(), correct: []));
+        // Every missed Question is also cooled down; the review cannot be filled otherwise.
+        var snapshot = SnapshotOf(bank, Finished(1, new DateTime(2026, 1, 1), served: Ids(1, 15), correct: []));
 
         var drill = DrillMix.Draw(bank, snapshot);
 
         Assert.Equal(DrillMix.Size, drill.Count);
-        Assert.Equal(9, CountOf(drill, snapshot, Outcome.Missed));
+        Assert.Equal(11, CountOf(drill, snapshot, Seat.Missed));
     }
 
     [Fact]
@@ -166,18 +206,19 @@ public class DrillMixTests
     {
         var bank = Bank(40);
         // 1-10 missed long ago, 11-20 missed later, then a clean attempt on 21-30 so the cooldown
-        // sits on neither group and recency alone decides. Only 9 fit; the later misses win.
+        // sits on neither group and recency alone decides. All ten later misses get a seat; the
+        // eleventh goes to an older miss, ahead of the Due 21-30.
         var snapshot = SnapshotOf(bank,
-            Finished(1, new DateTime(2026, 1, 1), served: Enumerable.Range(1, 10).ToArray(), correct: []),
-            Finished(2, new DateTime(2026, 6, 1), served: Enumerable.Range(11, 10).ToArray(), correct: []),
-            Finished(3, new DateTime(2026, 7, 1), served: Enumerable.Range(21, 10).ToArray(),
-                correct: Enumerable.Range(21, 10).ToArray()));
+            Finished(1, new DateTime(2026, 1, 1), served: Ids(1, 10), correct: []),
+            Finished(2, new DateTime(2026, 6, 1), served: Ids(11, 10), correct: []),
+            Finished(3, new DateTime(2026, 7, 1), served: Ids(21, 10), correct: Ids(21, 10)));
 
         var drill = DrillMix.Draw(bank, snapshot);
-        var missed = drill.Where(q => snapshot.OutcomeOf(q.Id) == Outcome.Missed).Select(q => q.Id).ToList();
+        var missed = drill.Where(q => SeatOf(snapshot, q.Id) == Seat.Missed).Select(q => q.Id).ToList();
 
-        Assert.Equal(9, missed.Count);
-        Assert.All(missed, id => Assert.InRange(id, 11, 20));
+        Assert.Equal(11, missed.Count);
+        Assert.Equal(10, missed.Count(id => id is >= 11 and <= 20));
+        Assert.Equal(0, CountOf(drill, snapshot, Seat.Due));
     }
 }
 
@@ -185,6 +226,7 @@ public class DrillMixTests
 public class OutcomeSnapshotTests
 {
     private static readonly HashSet<int> DomainQuestions = Enumerable.Range(1, 10).ToHashSet();
+    private static readonly DateTime Now = new(2026, 12, 1);
 
     private static Submission Attempt(int id, DateTime at, bool finished, int[] served,
         int[] correct, int[]? wrong = null, DrawRule? drawRule = null) =>
@@ -203,7 +245,7 @@ public class OutcomeSnapshotTests
     {
         var snapshot = OutcomeSnapshot.Build(
             [Attempt(1, new DateTime(2026, 1, 1), finished: false, served: [1, 2], correct: [1], wrong: [2])],
-            DomainQuestions);
+            DomainQuestions, Now);
 
         Assert.Equal(Outcome.Unseen, snapshot.OutcomeOf(1));
         Assert.Equal(Outcome.Unseen, snapshot.OutcomeOf(2));
@@ -216,7 +258,7 @@ public class OutcomeSnapshotTests
         // Mirrors grading: a served Question left unanswered is wrong (ADR 0001).
         var snapshot = OutcomeSnapshot.Build(
             [Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1, 2], correct: [1])],
-            DomainQuestions);
+            DomainQuestions, Now);
 
         Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(2));
@@ -229,7 +271,7 @@ public class OutcomeSnapshotTests
         [
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [], wrong: [1]),
             Attempt(2, new DateTime(2026, 6, 1), finished: true, served: [1], correct: [1]),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
     }
@@ -241,7 +283,7 @@ public class OutcomeSnapshotTests
         var fullQuiz = Attempt(1, new DateTime(2026, 1, 1), finished: true,
             served: [1, 2, 3, 99], correct: [1], wrong: [2, 3]);
 
-        var snapshot = OutcomeSnapshot.Build([fullQuiz], DomainQuestions);
+        var snapshot = OutcomeSnapshot.Build([fullQuiz], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(2));
@@ -255,7 +297,7 @@ public class OutcomeSnapshotTests
         [
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [], wrong: [1]),
             Attempt(2, new DateTime(2026, 2, 1), finished: true, served: [1], correct: [], wrong: [1]),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(2, snapshot.Outcomes[1].MissCount);
         Assert.Equal(new DateTime(2026, 2, 1), snapshot.Outcomes[1].LastMissedAt);
@@ -270,7 +312,7 @@ public class OutcomeSnapshotTests
         attempt.RecordedAnswers[0].Confidence = Confidence.Guess;
         attempt.RecordedAnswers[1].Confidence = Confidence.Confident;
 
-        var snapshot = OutcomeSnapshot.Build([attempt], DomainQuestions);
+        var snapshot = OutcomeSnapshot.Build([attempt], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(2));
@@ -284,7 +326,7 @@ public class OutcomeSnapshotTests
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1, 2], correct: [1, 2]),
             Attempt(2, new DateTime(2026, 6, 1), finished: true, served: [3, 4], correct: [3, 4]),
             Attempt(3, new DateTime(2026, 7, 1), finished: true, served: [99], correct: [99]), // other Domain
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal([3, 4], snapshot.Cooldown.Order());
     }
@@ -298,7 +340,7 @@ public class OutcomeSnapshotTests
         var attempt = Attempt(1, new DateTime(2026, 1, 1), finished: true,
             served: [1, 2, 99], correct: [1], wrong: [2, 99]);
 
-        var snapshot = OutcomeSnapshot.Build([attempt], wholeQuiz);
+        var snapshot = OutcomeSnapshot.Build([attempt], wholeQuiz, Now);
 
         Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(2));
@@ -314,7 +356,7 @@ public class OutcomeSnapshotTests
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [], wrong: [1]),
             Attempt(2, new DateTime(2026, 6, 1), finished: true, served: [1], correct: [1],
                 drawRule: DrawRule.Mistakes),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
     }
@@ -328,7 +370,7 @@ public class OutcomeSnapshotTests
             Attempt(1, firstMiss, finished: true, served: [1], correct: [], wrong: [1]),
             Attempt(2, new DateTime(2026, 6, 1), finished: true, served: [1], correct: [1],
                 drawRule: DrawRule.Mistakes),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
         Assert.Equal(1, snapshot.Outcomes[1].MissCount);
@@ -342,7 +384,7 @@ public class OutcomeSnapshotTests
         [
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [1],
                 drawRule: DrawRule.Mistakes),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Unseen, snapshot.OutcomeOf(1));
         Assert.False(snapshot.Outcomes.ContainsKey(1));
@@ -357,7 +399,7 @@ public class OutcomeSnapshotTests
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [], wrong: [1]),
             Attempt(2, at, finished: true, served: [1], correct: [], wrong: [1],
                 drawRule: DrawRule.Mistakes),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
         Assert.Equal(2, snapshot.Outcomes[1].MissCount);
@@ -371,7 +413,7 @@ public class OutcomeSnapshotTests
         [
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [],
                 drawRule: DrawRule.Mistakes),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
     }
@@ -383,7 +425,7 @@ public class OutcomeSnapshotTests
             drawRule: DrawRule.Mistakes);
         attempt.RecordedAnswers[0].IsCorrect = null;
 
-        var snapshot = OutcomeSnapshot.Build([attempt], DomainQuestions);
+        var snapshot = OutcomeSnapshot.Build([attempt], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Missed, snapshot.OutcomeOf(1));
     }
@@ -395,7 +437,7 @@ public class OutcomeSnapshotTests
         [
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [1],
                 drawRule: DrawRule.DrillMix),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
     }
@@ -406,7 +448,7 @@ public class OutcomeSnapshotTests
         var snapshot = OutcomeSnapshot.Build(
         [
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [1]),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Mastered, snapshot.OutcomeOf(1));
     }
@@ -418,7 +460,7 @@ public class OutcomeSnapshotTests
         [
             Attempt(1, new DateTime(2026, 1, 1), finished: false, served: [1], correct: [], wrong: [1],
                 drawRule: DrawRule.Mistakes),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Unseen, snapshot.OutcomeOf(1));
     }
@@ -431,7 +473,7 @@ public class OutcomeSnapshotTests
             Attempt(1, new DateTime(2026, 1, 1), finished: true, served: [1], correct: [], wrong: [1],
                 drawRule: DrawRule.Mistakes),
             Attempt(2, new DateTime(2026, 2, 1), finished: true, served: [1], correct: [1]),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         var toMissed = OutcomeSnapshot.Build(
         [
@@ -440,7 +482,7 @@ public class OutcomeSnapshotTests
             Attempt(2, new DateTime(2026, 2, 1), finished: true, served: [1], correct: [1],
                 drawRule: DrawRule.Mistakes),
             Attempt(3, new DateTime(2026, 3, 1), finished: true, served: [1], correct: [], wrong: [1]),
-        ], DomainQuestions);
+        ], DomainQuestions, Now);
 
         Assert.Equal(Outcome.Mastered, toMastered.OutcomeOf(1));
         Assert.Equal(Outcome.Missed, toMissed.OutcomeOf(1));
