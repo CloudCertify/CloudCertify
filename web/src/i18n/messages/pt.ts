@@ -285,25 +285,19 @@ export const pt: Messages = {
     emailInvalid: 'Informe um endereço de e-mail válido.',
     startExamError: 'Não foi possível iniciar o simulado. Tente de novo.',
     startPracticeError: 'Não foi possível iniciar o treino. Tente de novo.',
-    fullExamHeading: 'Simulado completo',
     fullExamBody:
       'Simulado no formato da prova. No fim você vê sua pontuação escalada, se passaria e quais domínios precisam de atenção.',
-    questionsInPool: (count: number) => `${count} questões no banco`,
-    perExam: (range: string) => `~${range} por prova`,
-    scaledScoreBadge: 'Pontuação escalada',
-    passFailBadge: 'Aprovado / Reprovado',
-    domainBreakdownBadge: 'Detalhe por domínio',
-    startExam: 'Iniciar simulado',
-    practiceHeading: 'Treinos',
-    practiceSubtitle:
-      'Treinos de 15 questões na prova toda ou em um domínio. Feedback rápido, sem pressão de aprovação.',
-    practice: 'Treinar',
     mixTitle: 'Mix da prova',
-    mixBody:
-      '15 questões da prova inteira, montadas a partir do que você errou e do que venceu para revisão.',
-    mixBodyAnonymous:
-      '15 questões da prova inteira. Entre e o mix prioriza o que você errou e o que venceu.',
-    startMix: 'Iniciar mix'
+    mixBody: (signedIn: boolean) =>
+      signedIn
+        ? '15 questões da prova inteira, primeiro o que você errou e o que venceu.'
+        : '15 questões da prova inteira.',
+    examTitle: 'Simulado completo',
+    examBody: (count: string | null) =>
+      count ? `${count} questões, pontuadas como na prova real.` : 'Pontuado como na prova real.',
+    domainHeading: 'Ou foque em um domínio',
+    domainCount: '15 questões cada',
+    reviewMistakes: 'Revisar meus erros'
   },
 
   demoQuiz: [

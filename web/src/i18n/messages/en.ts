@@ -300,25 +300,19 @@ export const en = {
     emailInvalid: 'Please enter a valid email address.',
     startExamError: 'Failed to start the exam. Please try again.',
     startPracticeError: 'Failed to start the drill. Please try again.',
-    fullExamHeading: 'Full simulation exam',
     fullExamBody:
       "Full-length exam simulation. At the end you'll see your scaled score, whether you'd pass, and which domains need work.",
-    questionsInPool: (count: number) => `${count} Questions in pool`,
-    perExam: (range: string) => `~${range} per exam`,
-    scaledScoreBadge: 'Scaled Score',
-    passFailBadge: 'Pass / Fail',
-    domainBreakdownBadge: 'Domain Breakdown',
-    startExam: 'Start Exam',
-    practiceHeading: 'Drills',
-    practiceSubtitle:
-      '15-question drills across the exam or one domain. Fast feedback, no pass/fail pressure.',
-    practice: 'Practice',
     mixTitle: 'Exam mix',
-    mixBody:
-      '15 questions from the whole exam, built around what you missed and what is due for review.',
-    mixBodyAnonymous:
-      '15 questions from the whole exam. Sign in and the mix puts what you missed and what is due first.',
-    startMix: 'Start mix'
+    mixBody: (signedIn: boolean): string =>
+      signedIn
+        ? '15 questions from the whole exam, what you missed and what is due first.'
+        : '15 questions from the whole exam.',
+    examTitle: 'Full exam',
+    examBody: (count: string | null) =>
+      count ? `${count} questions, scored like the real one.` : 'Scored like the real one.',
+    domainHeading: 'Or focus on one domain',
+    domainCount: '15 questions each',
+    reviewMistakes: 'Review my mistakes'
   },
 
   demoQuiz: [
