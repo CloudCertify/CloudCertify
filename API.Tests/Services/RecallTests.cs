@@ -12,7 +12,7 @@ public class RecallTests
     private static readonly DateTime T0 = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     private static readonly HashSet<int> Scope = [1, 2];
 
-    private static Submission Attempt(int id, DateTime at, bool correct, Mode mode = Mode.Practice,
+    private static Submission FinishedSubmission(int id, DateTime at, bool correct, Mode mode = Mode.Practice,
         DrawRule? drawRule = DrawRule.DrillMix) =>
         new()
         {
@@ -21,8 +21,8 @@ public class RecallTests
             RecordedAnswers = [new RecordedAnswer { QuestionId = 1, IsCorrect = correct }],
         };
 
-    private static Submission Right(int id, DateTime at) => Attempt(id, at, correct: true);
-    private static Submission Wrong(int id, DateTime at) => Attempt(id, at, correct: false);
+    private static Submission Right(int id, DateTime at) => FinishedSubmission(id, at, correct: true);
+    private static Submission Wrong(int id, DateTime at) => FinishedSubmission(id, at, correct: false);
 
     private static OutcomeSnapshot At(DateTime now, params Submission[] submissions) =>
         OutcomeSnapshot.Build(submissions, Scope, now);
@@ -98,7 +98,7 @@ public class RecallTests
     public void MistakesRightCheck_ProvesNothing_EvenWhileDue()
     {
         var snapshot = At(T0.AddDays(2), Right(1, T0),
-            Attempt(2, T0.AddDays(2), correct: true, drawRule: DrawRule.Mistakes));
+            FinishedSubmission(2, T0.AddDays(2), correct: true, drawRule: DrawRule.Mistakes));
 
         Assert.Equal(1, snapshot.Outcomes[1].HalfLifeDays);
         Assert.Equal(T0, snapshot.Outcomes[1].LastProvedAt);
@@ -109,7 +109,7 @@ public class RecallTests
     public void ExamRightWhileDue_Proves()
     {
         var examAt = T0.AddDays(1);
-        var snapshot = At(examAt, Right(1, T0), Attempt(2, examAt, correct: true, Mode.Exam, drawRule: null));
+        var snapshot = At(examAt, Right(1, T0), FinishedSubmission(2, examAt, correct: true, Mode.Exam, drawRule: null));
 
         Assert.Equal(3, snapshot.Outcomes[1].HalfLifeDays);
         Assert.Equal(examAt, snapshot.Outcomes[1].LastProvedAt);

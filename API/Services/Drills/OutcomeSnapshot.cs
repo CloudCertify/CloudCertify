@@ -11,7 +11,11 @@ namespace API.Services.Drills;
 public sealed record QuestionOutcome(
     Outcome Outcome, DateTime LastMissedAt, int MissCount, int HalfLifeDays, DateTime LastProvedAt)
 {
-    /// <summary><c>2^(-days since last proof / half-life)</c>; 0 when Missed.</summary>
+    /// <summary>
+    /// How likely the Question is still known at <paramref name="now"/>:
+    /// <c>2^(-days since last proof / half-life)</c>; 0 when Missed.
+    /// </summary>
+    /// <example>var recall = outcome.RecallAt(DateTime.UtcNow); // 0.5 one half-life after a proof</example>
     public double RecallAt(DateTime now)
     {
         if (Outcome != Outcome.Mastered) return 0;
@@ -20,6 +24,7 @@ public sealed record QuestionOutcome(
     }
 
     /// <summary>Mastered and owed a review: Recall has fallen to 0.5 or below. Not an Outcome.</summary>
+    /// <example>if (outcome.IsDueAt(submission.CreatedAt)) { /* a right answer here proves */ }</example>
     public bool IsDueAt(DateTime now) => Outcome == Outcome.Mastered && RecallAt(now) <= DueThreshold;
 
     public const double DueThreshold = 0.5;
@@ -66,9 +71,12 @@ public sealed class OutcomeSnapshot
         Outcomes.TryGetValue(questionId, out var outcome) ? outcome.Outcome : Outcome.Unseen;
 
     /// <summary>Recall at <see cref="Now"/>, or null for an Unseen Question: never seen is not forgotten.</summary>
+    /// <example>var recall = snapshot.RecallOf(question.Id) ?? 1; // treat Unseen as not owed</example>
     public double? RecallOf(int questionId) =>
         Outcomes.TryGetValue(questionId, out var outcome) ? outcome.RecallAt(Now) : null;
 
+    /// <summary>Whether the Question is Due at <see cref="Now"/>; false for Unseen and Missed.</summary>
+    /// <example>var due = drill.Count(q => snapshot.IsDue(q.Id));</example>
     public bool IsDue(int questionId) =>
         Outcomes.TryGetValue(questionId, out var outcome) && outcome.IsDueAt(Now);
 
@@ -85,6 +93,7 @@ public sealed class OutcomeSnapshot
     /// Mastered or prove anything, while a wrong Check or a served skip still writes Missed
     /// (ADR 0011 decision 3, issue #84). The skip is per Question, never the whole Submission.
     /// </remarks>
+    /// <example>var snapshot = OutcomeSnapshot.Build(submissions, scopeIds, DateTime.UtcNow);</example>
     public static OutcomeSnapshot Build(IEnumerable<Submission> submissions, IReadOnlySet<int> scopeQuestionIds, DateTime now)
     {
         var finished = submissions
@@ -123,32 +132,30 @@ public sealed class OutcomeSnapshot
         if (submission.DrawRule == DrawRule.Mistakes && isCorrect == true)
             return;
 
-        var at = submission.CreatedAt;
-        outcomes.TryGetValue(questionId, out var previous);
-
         // A served Question with no Recorded Answer counts as Missed, mirroring grading
         // (ADR 0001). A null IsCorrect — an answer recorded before correctness was
         // stamped — is not evidence of knowing it either.
-        if (isCorrect != true)
-        {
-            outcomes[questionId] = new QuestionOutcome(
-                Outcome.Missed, at, (previous?.MissCount ?? 0) + 1, Ladder[0], previous?.LastProvedAt ?? at);
-            return;
-        }
+        outcomes.TryGetValue(questionId, out var previous);
+        outcomes[questionId] = isCorrect == true
+            ? Proved(previous, submission.CreatedAt)
+            : Missed(previous, submission.CreatedAt);
+    }
 
+    /// <summary>A miss: Missed, recency and count bumped, half-life back to the first rung.</summary>
+    private static QuestionOutcome Missed(QuestionOutcome? previous, DateTime at) =>
+        new(Outcome.Missed, at, (previous?.MissCount ?? 0) + 1, Ladder[0], previous?.LastProvedAt ?? at);
+
+    /// <summary>A right answer, which proves only after Unseen, after Missed, or while Due.</summary>
+    private static QuestionOutcome Proved(QuestionOutcome? previous, DateTime at)
+    {
         // A first right answer after Unseen or Missed proves from the first rung.
         if (previous is not { Outcome: Outcome.Mastered })
-        {
-            outcomes[questionId] = new QuestionOutcome(
-                Outcome.Mastered, previous?.LastMissedAt ?? DateTime.MinValue, previous?.MissCount ?? 0, Ladder[0], at);
-            return;
-        }
+            return new(Outcome.Mastered, previous?.LastMissedAt ?? DateTime.MinValue, previous?.MissCount ?? 0, Ladder[0], at);
 
         // Right before it is Due proves nothing new: no rung, no clock restart (ADR 0013).
-        if (!previous.IsDueAt(at))
-            return;
-
-        outcomes[questionId] = previous with { HalfLifeDays = NextRung(previous.HalfLifeDays), LastProvedAt = at };
+        return previous.IsDueAt(at)
+            ? previous with { HalfLifeDays = NextRung(previous.HalfLifeDays), LastProvedAt = at }
+            : previous;
     }
 
     private static int NextRung(int halfLifeDays)

@@ -9,6 +9,8 @@ namespace API.Services.Drills;
 /// </summary>
 public static class DrillListing
 {
+    /// <summary>Lists <paramref name="drills"/> with the whole-Quiz Mix first, the rest by Id.</summary>
+    /// <example>var listed = DrillListing.Ordered(quiz.Drills).Select(MapDrillToDto);</example>
     public static IEnumerable<Drill> Ordered(IEnumerable<Drill> drills) =>
         drills.OrderBy(d => IsWholeQuizMix(d) ? 0 : 1).ThenBy(d => d.Id);
 
