@@ -7,6 +7,14 @@ type SampleQuestion = {
   difficulty: QuestionDifficulty;
 };
 
+/** A Drill Composition with every count filled in: a missing count is a zero. */
+type DrillCompositionCounts = {
+  missed: number;
+  due: number;
+  unseen: number;
+  mastered: number;
+};
+
 /**
  * EN-US copy. This object's shape is the contract every other locale must
  * satisfy (`pt.ts` is typed as `Messages`), so a missing key is a build error
@@ -292,19 +300,19 @@ export const en = {
     emailInvalid: 'Please enter a valid email address.',
     startExamError: 'Failed to start the exam. Please try again.',
     startPracticeError: 'Failed to start the drill. Please try again.',
-    fullExamHeading: 'Full simulation exam',
     fullExamBody:
       "Full-length exam simulation. At the end you'll see your scaled score, whether you'd pass, and which domains need work.",
-    questionsInPool: (count: number) => `${count} Questions in pool`,
-    perExam: (range: string) => `~${range} per exam`,
-    scaledScoreBadge: 'Scaled Score',
-    passFailBadge: 'Pass / Fail',
-    domainBreakdownBadge: 'Domain Breakdown',
-    startExam: 'Start Exam',
-    practiceHeading: 'Drills',
-    practiceSubtitle:
-      '15-question focused drills per domain. Fast feedback, no pass/fail pressure.',
-    practice: 'Practice'
+    mixTitle: 'Exam mix',
+    mixBody: (signedIn: boolean): string =>
+      signedIn
+        ? '15 questions from the whole exam, what you missed and what is due first.'
+        : '15 questions from the whole exam.',
+    examTitle: 'Full exam',
+    examBody: (count: string | null) =>
+      count ? `${count} questions, scored like the real one.` : 'Scored like the real one.',
+    domainHeading: 'Or focus on one domain',
+    domainCount: '15 questions each',
+    reviewMistakes: 'Review my mistakes'
   },
 
   demoQuiz: [
@@ -341,8 +349,8 @@ export const en = {
 
   drill: {
     label: 'Built for you',
-    composition: (missed: number, unseen: number, mastered: number) =>
-      `${missed} review · ${unseen} new · ${mastered} refresh`,
+    composition: ({ missed, due, unseen, mastered }: DrillCompositionCounts) =>
+      `${missed} missed · ${due} due · ${unseen} new${mastered > 0 ? ` · ${mastered} mastered` : ''}`,
     signInPitch: 'Sign in and your missed questions come back to you.',
     reviewedMissed: (count: number) =>
       count === 1

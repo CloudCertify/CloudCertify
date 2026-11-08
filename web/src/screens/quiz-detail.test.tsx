@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderToString } from 'react-dom/server';
 import { resetNavigation } from '@/test/navigation';
@@ -49,19 +49,49 @@ const quiz = {
   }]
 } satisfies import('@/http/generated/api.schemas').QuizDto;
 
+const quizWithMix = {
+  ...quiz,
+  drills: [
+    ...quiz.drills,
+    {
+      id: 5,
+      title: 'Mix',
+      domain: null,
+      drawRule: 'drill_mix',
+      slug: 'aws-ccp-mix',
+      isAvailable: true
+    }
+  ]
+} satisfies import('@/http/generated/api.schemas').QuizDto;
+
+const quizWithMistakes = {
+  ...quizWithMix,
+  drills: [
+    ...quizWithMix.drills,
+    {
+      id: 6,
+      title: 'Mistakes',
+      domain: null,
+      drawRule: 'mistakes',
+      slug: 'aws-ccp-mistakes',
+      isAvailable: true
+    }
+  ]
+} satisfies import('@/http/generated/api.schemas').QuizDto;
+
 function makeJwt(payload: object): string {
   const b64 = (obj: object) =>
     btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_');
   return `${b64({ alg: 'HS256' })}.${b64(payload)}.sig`;
 }
 
-function renderPage() {
+function renderPage(page: import('@/http/generated/api.schemas').QuizDto = quiz) {
   const location = resetNavigation('/quiz/1');
   render(
     <QueryClientProvider client={new QueryClient()}>
       <LanguageProvider>
       <AuthProvider>
-        <QuizDetailPage quiz={quiz} />
+        <QuizDetailPage quiz={page} />
       </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
@@ -102,8 +132,8 @@ describe('QuizDetailPage start flow', () => {
     request.mockReturnValue(new Promise((_, reject) => { fail = reject; }));
     renderPage();
     fireEvent.change(screen.getByLabelText(/your email/i), { target: { value: 'visitor@example.com' } });
-    const exam = screen.getByRole('button', { name: en.quizDetail.startExam });
-    const drill = screen.getByRole('button', { name: en.quizDetail.practice });
+    const exam = screen.getByRole('button', { name: en.quizDetail.examTitle });
+    const drill = screen.getByRole('button', { name: 'Cloud Concepts' });
     const start = mode === 'exam' ? exam : drill;
     start.focus();
     fireEvent.click(start);
@@ -123,7 +153,7 @@ describe('QuizDetailPage start flow', () => {
     renderPage();
     const input = screen.getByRole('textbox', { name: en.quizDetail.emailLabel });
     expect(input).toHaveAttribute('autocomplete', 'email');
-    fireEvent.click(screen.getByRole('button', { name: en.quizDetail.startExam }));
+    fireEvent.click(screen.getByRole('button', { name: en.quizDetail.examTitle }));
     expect(input).toHaveFocus();
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAccessibleDescription(en.quizDetail.emailInvalid);
@@ -135,7 +165,7 @@ describe('QuizDetailPage start flow', () => {
 
   it('updates an existing validation error when the language changes', () => {
     renderPage();
-    fireEvent.click(screen.getByRole('button', { name: en.quizDetail.startExam }));
+    fireEvent.click(screen.getByRole('button', { name: en.quizDetail.examTitle }));
     fireEvent.click(screen.getByRole('button', { name: 'PT: Português' }));
     expect(screen.getByRole('textbox', { name: pt.quizDetail.emailLabel })).toHaveAccessibleDescription(pt.quizDetail.emailInvalid);
     expect(screen.getByRole('alert')).toHaveTextContent(pt.quizDetail.emailInvalid);
@@ -147,7 +177,7 @@ describe('QuizDetailPage start flow', () => {
     expect(input).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: 'visitor@example.com' } });
-    fireEvent.click(screen.getByRole('button', { name: /start exam/i }));
+    fireEvent.click(screen.getByRole('button', { name: en.quizDetail.examTitle }));
 
     await waitFor(() => {
       expect(postQuizQuizIdStart).toHaveBeenCalledWith(1, {
@@ -162,7 +192,7 @@ describe('QuizDetailPage start flow', () => {
 
     expect(screen.queryByLabelText(/your email/i)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /start exam/i }));
+    fireEvent.click(screen.getByRole('button', { name: en.quizDetail.examTitle }));
 
     await waitFor(() => {
       expect(postQuizQuizIdStart).toHaveBeenCalledWith(1, {});
@@ -173,7 +203,7 @@ describe('QuizDetailPage start flow', () => {
     const location = renderPage();
     const input = screen.getByLabelText(/your email/i);
     fireEvent.change(input, { target: { value: 'visitor@example.com' } });
-    fireEvent.click(screen.getByRole('button', { name: /practice/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cloud Concepts' }));
 
     await waitFor(() => {
       expect(postQuizQuizIdDrillsDrillIdStart).toHaveBeenCalledWith(1, 2, {
@@ -195,8 +225,8 @@ describe('QuizDetailPage start flow', () => {
     fireEvent.change(screen.getByLabelText(/your email/i), {
       target: { value: 'visitor@example.com' }
     });
-    const exam = screen.getByRole('button', { name: en.quizDetail.startExam });
-    const drill = screen.getByRole('button', { name: en.quizDetail.practice });
+    const exam = screen.getByRole('button', { name: en.quizDetail.examTitle });
+    const drill = screen.getByRole('button', { name: 'Cloud Concepts' });
     const start = mode === 'exam' ? exam : drill;
     fireEvent.click(start);
 
@@ -219,7 +249,7 @@ describe('QuizDetailPage start flow', () => {
       target: { value: 'visitor@example.com' }
     });
     const start = screen.getByRole('button', {
-      name: mode === 'exam' ? en.quizDetail.startExam : en.quizDetail.practice
+      name: mode === 'exam' ? en.quizDetail.examTitle : 'Cloud Concepts'
     });
     fireEvent.click(start);
     await waitFor(() => expect(toastError).toHaveBeenCalledOnce());
@@ -257,6 +287,66 @@ describe('QuizDetailPage start flow', () => {
   });
 });
 
+describe('QuizDetailPage whole-Quiz Mix', () => {
+  beforeEach(() => {
+    clearToken();
+    setCurrentLanguage('en-US');
+    postQuizQuizIdDrillsDrillIdStart.mockReset();
+    postQuizQuizIdDrillsDrillIdStart.mockResolvedValue({
+      data: { id: 5, title: 'Mix', submissionId: 9 }
+    });
+  });
+
+  it.each([
+    ['an anonymous visitor', false],
+    ['a logged-in User', true]
+  ])('offers %s the Mix ahead of the Domain drills', (_, signedIn) => {
+    if (signedIn) setToken(makeJwt({ exp: Math.floor(Date.now() / 1000) + 3600 }));
+    renderPage(quizWithMix);
+
+    const mix = screen.getByRole('button', { name: en.quizDetail.mixTitle });
+    const domain = screen.getByRole('button', { name: 'Cloud Concepts' });
+    expect(
+      mix.compareDocumentPosition(domain) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it('keeps Mistakes apart from the Domain drills', () => {
+    renderPage(quizWithMistakes);
+
+    const domains = screen.getByRole('group', { name: en.quizDetail.domainHeading });
+    expect(within(domains).getByRole('button', { name: 'Cloud Concepts' })).toBeInTheDocument();
+    expect(
+      within(domains).queryByRole('button', { name: en.quizDetail.reviewMistakes })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.quizDetail.reviewMistakes })
+    ).toBeInTheDocument();
+  });
+
+  it('drops the domain heading when the Quiz has no Domain drills', () => {
+    renderPage({ ...quizWithMix, drills: quizWithMix.drills.filter(d => d.domain == null) });
+
+    expect(screen.getByRole('button', { name: en.quizDetail.mixTitle })).toBeInTheDocument();
+    expect(screen.queryByText(en.quizDetail.domainHeading)).not.toBeInTheDocument();
+  });
+
+  it('starts the Mix on the same drill route as any drill', async () => {
+    const location = renderPage(quizWithMix);
+    fireEvent.change(screen.getByLabelText(/your email/i), {
+      target: { value: 'visitor@example.com' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: en.quizDetail.mixTitle }));
+
+    await waitFor(() => {
+      expect(postQuizQuizIdDrillsDrillIdStart).toHaveBeenCalledWith(1, 5, {
+        email: 'visitor@example.com'
+      });
+    });
+    expect(location.push).toHaveBeenCalledWith('/quiz/1/drill/5/session');
+  });
+});
+
 function axiosStatus(status: number) {
   return Object.assign(new Error('request failed'), {
     isAxiosError: true,
@@ -269,5 +359,5 @@ async function startDrillAsVisitor() {
   fireEvent.change(screen.getByLabelText(/your email/i), {
     target: { value: 'visitor@example.com' }
   });
-  fireEvent.click(screen.getByRole('button', { name: /practice/i }));
+  fireEvent.click(screen.getByRole('button', { name: 'Cloud Concepts' }));
 }

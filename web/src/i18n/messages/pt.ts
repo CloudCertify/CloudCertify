@@ -285,19 +285,19 @@ export const pt: Messages = {
     emailInvalid: 'Informe um endereço de e-mail válido.',
     startExamError: 'Não foi possível iniciar o simulado. Tente de novo.',
     startPracticeError: 'Não foi possível iniciar o treino. Tente de novo.',
-    fullExamHeading: 'Simulado completo',
     fullExamBody:
       'Simulado no formato da prova. No fim você vê sua pontuação escalada, se passaria e quais domínios precisam de atenção.',
-    questionsInPool: (count: number) => `${count} questões no banco`,
-    perExam: (range: string) => `~${range} por prova`,
-    scaledScoreBadge: 'Pontuação escalada',
-    passFailBadge: 'Aprovado / Reprovado',
-    domainBreakdownBadge: 'Detalhe por domínio',
-    startExam: 'Iniciar simulado',
-    practiceHeading: 'Treinos',
-    practiceSubtitle:
-      'Treinos focados de 15 questões por domínio. Feedback rápido, sem pressão de aprovação.',
-    practice: 'Treinar'
+    mixTitle: 'Mix da prova',
+    mixBody: (signedIn: boolean) =>
+      signedIn
+        ? '15 questões da prova inteira, primeiro o que você errou e o que venceu.'
+        : '15 questões da prova inteira.',
+    examTitle: 'Simulado completo',
+    examBody: (count: string | null) =>
+      count ? `${count} questões, pontuadas como na prova real.` : 'Pontuado como na prova real.',
+    domainHeading: 'Ou foque em um domínio',
+    domainCount: '15 questões cada',
+    reviewMistakes: 'Revisar meus erros'
   },
 
   demoQuiz: [
@@ -334,8 +334,8 @@ export const pt: Messages = {
 
   drill: {
     label: 'Feito para você',
-    composition: (missed: number, unseen: number, mastered: number) =>
-      `${missed} revisão · ${unseen} novas · ${mastered} reforço`,
+    composition: ({ missed, due, unseen, mastered }) =>
+      `${missed} erradas · ${due} vencidas · ${unseen} novas${mastered > 0 ? ` · ${mastered} dominadas` : ''}`,
     signInPitch: 'Entre e as questões que você errou voltam para você.',
     reviewedMissed: (count: number) =>
       count === 1

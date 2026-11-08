@@ -1,31 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import {
-  ArrowRight,
-  BookOpen,
-  Lock,
-  Target,
-  Zap
-} from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { ArrowRight, Lock, RotateCcw, Shuffle, Target } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Footer } from '@/components/footer';
 import {
   postQuizQuizIdStart,
   postQuizQuizIdDrillsDrillIdStart
 } from '@/http/generated/api';
-import type { DrillDto, QuizDto, QuizProvider } from '@/http/generated/api.schemas';
+import { DrawRule, type DrillDto, type QuizDto, type QuizProvider } from '@/http/generated/api.schemas';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { getLevelStyle } from '@/lib/quiz-level';
 import { capitalize } from '@/lib/utils';
@@ -35,6 +21,7 @@ import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
 import { drillStartErrorMessage } from '@/http/drill-start-error';
+import { isWholeQuizMix } from '@/lib/whole-quiz-mix';
 
 // --- Helpers ---
 // The per-exam count comes from the quiz's own [min, max] range: a single number
@@ -141,6 +128,11 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
 
   const { bg: levelColor, ink: levelInk } = getLevelStyle(quiz.quizLevel);
   const drills = quiz.drills ?? [];
+  // The whole-Quiz Mix leads, whatever order the drills arrive in (ADR 0013).
+  const mix = drills.find(isWholeQuizMix);
+  const domainDrills = drills.filter(drill => drill.domain != null);
+  // Whole-Quiz drills that are not the Mix, such as Mistakes.
+  const otherDrills = drills.filter(drill => drill !== mix && drill.domain == null);
   const examQuestionCount = formatExamQuestionRange(
     quiz.minQuestions,
     quiz.maxQuestions
@@ -236,99 +228,76 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
             </div>
             )}
 
-            {/* Full simulation exam */}
-            <section className='space-y-3'>
-              <div className='flex items-center gap-2'>
-                <Target className='h-5 w-5 text-black' />
-                <h2 className='text-xl font-black text-black'>
-                  {t.quizDetail.fullExamHeading}
-                </h2>
+            {/* Practice: the Mix and the Full exam as the two main starts, then one
+                click per Domain, then Mistakes apart (it spans the whole Quiz) */}
+            <section className='space-y-6'>
+              <div className={`grid gap-4 ${mix ? 'sm:grid-cols-[3fr_2fr]' : ''}`}>
+                {mix && (
+                  <PracticeTile
+                    primary
+                    icon={<Shuffle className='h-7 w-7' aria-hidden='true' />}
+                    title={t.quizDetail.mixTitle}
+                    body={t.quizDetail.mixBody(isAuthenticated)}
+                    isStarting={startingDrillId === mix.id}
+                    disabled={!mix.isAvailable}
+                    onStart={() => handleStartDrill(mix)}
+                  />
+                )}
+                <PracticeTile
+                  icon={<Target className='h-7 w-7' aria-hidden='true' />}
+                  title={t.quizDetail.examTitle}
+                  body={t.quizDetail.examBody(examQuestionCount)}
+                  isStarting={isStartingExam}
+                  onStart={handleStartExam}
+                />
               </div>
-              <Card className='border-4 border-black shadow-[6px_6px_0px_0px_#000]'>
-                <CardHeader className='border-b-2 border-black pb-4'>
-                  <CardTitle className='text-lg font-black text-black'>
-                    {quiz.title}
-                  </CardTitle>
-                  <p className='text-sm font-medium text-black/70 mt-1'>
-                    {t.quizDetail.fullExamBody}
-                  </p>
-                </CardHeader>
-                <CardContent className='py-4'>
-                  <div className='flex gap-3 flex-wrap'>
-                    {quiz.questionCount != null && (
-                      <Badge
-                        variant='outline'
-                        className='border-2 border-black font-bold flex items-center gap-1'
-                      >
-                        <BookOpen className='h-3 w-3' />
-                        {t.quizDetail.questionsInPool(quiz.questionCount)}
-                      </Badge>
-                    )}
-                    {examQuestionCount && (
-                      <Badge
-                        variant='outline'
-                        className='border-2 border-black font-bold flex items-center gap-1'
-                      >
-                        <Target className='h-3 w-3' />
-                        {t.quizDetail.perExam(examQuestionCount)}
-                      </Badge>
-                    )}
-                    <Badge
-                      variant='outline'
-                      className='border-2 border-black font-bold'
-                    >
-                      {t.quizDetail.scaledScoreBadge}
-                    </Badge>
-                    <Badge
-                      variant='outline'
-                      className='border-2 border-black font-bold'
-                    >
-                      {t.quizDetail.passFailBadge}
-                    </Badge>
-                    <Badge
-                      variant='outline'
-                      className='border-2 border-black font-bold'
-                    >
-                      {t.quizDetail.domainBreakdownBadge}
-                    </Badge>
-                  </div>
-                </CardContent>
-                <CardFooter className='border-t-2 border-black pt-4'>
-                  <Button
-                    className='w-full aria-disabled:opacity-50'
-                    onClick={handleStartExam}
-                    aria-disabled={isStartingExam || undefined}
-                  >
-                    {isStartingExam ? t.common.starting : t.quizDetail.startExam}
-                    {!isStartingExam && <ArrowRight className='ml-2 h-4 w-4' />}
-                  </Button>
-                </CardFooter>
-              </Card>
-            </section>
 
-            {drills.length > 0 && (
-              <section className='space-y-4'>
-                <div className='flex items-center gap-2'>
-                  <Zap className='h-5 w-5 text-black' />
-                  <h2 className='text-xl font-black text-black'>
-                    {t.quizDetail.practiceHeading}
-                  </h2>
+              {domainDrills.length > 0 && (
+                <div className='space-y-3'>
+                  <div className='flex flex-wrap items-baseline gap-x-2'>
+                    <h2
+                      id='domain-drills-heading'
+                      className='text-sm font-black uppercase tracking-wide text-black'
+                    >
+                      {t.quizDetail.domainHeading}
+                    </h2>
+                    <span className='text-sm font-bold text-black/60'>
+                      {t.quizDetail.domainCount}
+                    </span>
+                  </div>
+                  <div
+                    role='group'
+                    aria-labelledby='domain-drills-heading'
+                    className='flex flex-col gap-3 sm:flex-row sm:flex-wrap'
+                  >
+                    {domainDrills.map(drill => (
+                      <DrillButton
+                        key={drill.id}
+                        drill={drill}
+                        label={drill.domain ?? drill.title}
+                        isStarting={startingDrillId === drill.id}
+                        onStart={() => handleStartDrill(drill)}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <p className='text-sm text-black/70 font-medium -mt-2'>
-                  {t.quizDetail.practiceSubtitle}
-                </p>
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                  {drills.map(drill => (
-                    <DrillCard
-                      key={drill.id}
-                      drill={drill}
-                      isStarting={startingDrillId === drill.id}
-                      onStart={() => handleStartDrill(drill)}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+              )}
+
+              {otherDrills.map(drill => (
+                <DrillButton
+                  key={drill.id}
+                  drill={drill}
+                  label={
+                    drill.drawRule === DrawRule.mistakes
+                      ? t.quizDetail.reviewMistakes
+                      : drill.title
+                  }
+                  icon={<RotateCcw className='h-3.5 w-3.5' aria-hidden='true' />}
+                  isStarting={startingDrillId === drill.id}
+                  onStart={() => handleStartDrill(drill)}
+                />
+              ))}
+            </section>
         </>
       </main>
       <Footer />
@@ -336,12 +305,71 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
   );
 }
 
-function DrillCard({
+const pressable =
+  'transition-[translate,box-shadow] duration-150 ease-[var(--ease-out)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-x-0 disabled:active:translate-y-0 aria-disabled:opacity-50';
+
+/** One of the two main starts. The whole tile is the button; the body describes it. */
+function PracticeTile({
+  icon,
+  title,
+  body,
+  primary = false,
+  isStarting,
+  disabled = false,
+  onStart
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  primary?: boolean;
+  isStarting: boolean;
+  disabled?: boolean;
+  onStart: () => void;
+}) {
+  const { t } = useI18n();
+  const id = useId();
+
+  return (
+    <button
+      type='button'
+      onClick={onStart}
+      disabled={disabled}
+      aria-disabled={isStarting || undefined}
+      aria-labelledby={`${id}-title`}
+      aria-describedby={`${id}-body`}
+      className={`group flex cursor-pointer flex-col items-start gap-2 border-4 border-black p-4 text-left shadow-[6px_6px_0px_0px_#000] sm:gap-3 sm:p-6 ${pressable} ${
+        primary ? 'bg-primary text-white' : 'bg-white text-black'
+      }`}
+    >
+      {disabled ? <Lock className='h-7 w-7' aria-hidden='true' /> : icon}
+      <span id={`${id}-title`} className='text-xl font-black sm:text-2xl'>
+        {isStarting ? t.common.starting : title}
+      </span>
+      <span
+        id={`${id}-body`}
+        className={`text-sm font-medium ${primary ? 'text-white/85' : 'text-black/70'}`}
+      >
+        {body}
+      </span>
+      <ArrowRight
+        className='mt-auto h-6 w-6 self-end transition-transform group-hover:translate-x-1'
+        aria-hidden='true'
+      />
+    </button>
+  );
+}
+
+/** A one-click start for a narrower drill: full-width rows on phones, wrapping buttons above. */
+function DrillButton({
   drill,
+  label,
+  icon,
   isStarting,
   onStart
 }: {
   drill: DrillDto;
+  label: string;
+  icon?: React.ReactNode;
   isStarting: boolean;
   onStart: () => void;
 }) {
@@ -349,48 +377,18 @@ function DrillCard({
   const isUnavailable = !drill.isAvailable;
 
   return (
-    <Card
-      className={`border-2 border-black ${
-        isUnavailable
-          ? 'opacity-60 shadow-none bg-white/60'
-          : 'shadow-[4px_4px_0px_0px_#000] bg-white'
-      }`}
+    <button
+      type='button'
+      onClick={onStart}
+      disabled={isUnavailable}
+      aria-disabled={isStarting || undefined}
+      className={`inline-flex w-full cursor-pointer items-center justify-between gap-2 border-2 border-black bg-white px-4 py-2.5 text-left text-sm font-bold text-black shadow-[3px_3px_0px_0px_#000] hover:bg-secondary sm:w-auto sm:justify-start ${pressable}`}
     >
-      <CardHeader className='pb-2'>
-        <div className='flex items-start justify-between gap-2'>
-          <CardTitle className='text-base font-black text-black leading-tight'>
-            {drill.title}
-          </CardTitle>
-          {isUnavailable && (
-            <Lock className='h-4 w-4 text-black/40 shrink-0 mt-0.5' />
-          )}
-        </div>
-        {drill.domain ? (
-          <Badge
-            variant='outline'
-            className='border-2 border-black font-bold text-xs w-fit mt-1'
-          >
-            {drill.domain}
-          </Badge>
-        ) : null}
-      </CardHeader>
-      <CardFooter className='pt-0'>
-        <div className='flex flex-wrap items-center justify-between gap-2 w-full'>
-          <span className='text-xs font-bold text-black/70'>
-            {t.common.questions(15)}
-          </span>
-          <Button
-            size='sm'
-            className='aria-disabled:opacity-50'
-            onClick={onStart}
-            disabled={isUnavailable}
-            aria-disabled={isStarting || undefined}
-          >
-            {isStarting ? t.common.starting : t.quizDetail.practice}
-            {!isStarting && <ArrowRight className='ml-1 h-3 w-3' />}
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+      <span className='flex min-w-0 items-center gap-2'>
+        {isUnavailable ? <Lock className='h-3.5 w-3.5 shrink-0' aria-hidden='true' /> : icon}
+        <span className='text-pretty'>{isStarting ? t.common.starting : label}</span>
+      </span>
+      <ArrowRight className='h-3.5 w-3.5 shrink-0' aria-hidden='true' />
+    </button>
   );
 }
