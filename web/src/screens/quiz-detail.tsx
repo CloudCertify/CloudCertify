@@ -36,6 +36,7 @@ import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
 import { drillStartErrorMessage } from '@/http/drill-start-error';
 import { isWholeQuizMix } from '@/lib/whole-quiz-mix';
+import { QuizDetailPrototype } from './quiz-detail-prototype';
 
 // --- Helpers ---
 // The per-exam count comes from the quiz's own [min, max] range: a single number
@@ -49,7 +50,14 @@ function formatExamQuestionRange(
 }
 
 // --- Page ---
-export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
+export function QuizDetailPage({
+  quiz,
+  variant
+}: {
+  quiz: QuizDto;
+  /** PROTOTYPE (dev only): renders a practice-layout variant from quiz-detail-prototype.tsx. */
+  variant?: string;
+}) {
   const quizId = quiz.id!;
   const router = useRouter();
 
@@ -150,49 +158,8 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
     quiz.maxQuestions
   );
 
-  return (
-    <div className='flex min-h-dvh flex-col bg-background'>
-      <AppHeader anonymousActions={<AuthMenu />} />
-
-      <main id='main-content' tabIndex={-1} className='flex-1 container max-w-3xl mx-auto py-12 px-4 space-y-10'>
-        <PageBackLink href='/dashboard'>
-          {t.common.backToDashboard}
-        </PageBackLink>
-        <>
-            {/* Certification header */}
-            <div className='flex flex-col items-center text-center space-y-4'>
-              <div
-                className={`h-20 w-20 rounded-none border-2 border-black ${levelColor} flex items-center justify-center shadow-[4px_4px_0px_0px_#000]`}
-              >
-                {getLucideIcon(quiz.iconName, {
-                  className: `h-10 w-10 ${levelInk}`
-                })}
-              </div>
-              <h1 className='text-3xl md:text-4xl font-black text-black text-balance'>
-                {quiz.title}
-              </h1>
-              {quiz.description && (
-                <p className='text-black/70 font-medium max-w-xl text-pretty'>
-                  {quiz.description}
-                </p>
-              )}
-              <div className='flex justify-center gap-3 flex-wrap'>
-                {quiz.quizProvider && (
-                  <Badge className='bg-primary border-2 border-black text-white font-bold'>
-                    {t.providers[quiz.quizProvider as QuizProvider] ??
-                      quiz.quizProvider.toUpperCase()}
-                  </Badge>
-                )}
-                {quiz.quizLevel && (
-                  <Badge
-                    className={`${levelColor} border-2 border-black ${levelInk} font-bold`}
-                  >
-                    {t.levels[quiz.quizLevel] ?? capitalize(quiz.quizLevel)}
-                  </Badge>
-                )}
-              </div>
-            </div>
-
+  const emailField = (
+    <>
             {/* Shared email input — hidden for logged-in Users, whose
                 identity travels in the Bearer token instead */}
             {!isAuthenticated && (
@@ -239,6 +206,67 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
               )}
             </div>
             )}
+    </>
+  );
+
+  return (
+    <div className='flex min-h-dvh flex-col bg-background'>
+      <AppHeader anonymousActions={<AuthMenu />} />
+
+      <main id='main-content' tabIndex={-1} className='flex-1 container max-w-3xl mx-auto py-12 px-4 space-y-10'>
+        <PageBackLink href='/dashboard'>
+          {t.common.backToDashboard}
+        </PageBackLink>
+        <>
+            {/* Certification header */}
+            <div className='flex flex-col items-center text-center space-y-4'>
+              <div
+                className={`h-20 w-20 rounded-none border-2 border-black ${levelColor} flex items-center justify-center shadow-[4px_4px_0px_0px_#000]`}
+              >
+                {getLucideIcon(quiz.iconName, {
+                  className: `h-10 w-10 ${levelInk}`
+                })}
+              </div>
+              <h1 className='text-3xl md:text-4xl font-black text-black text-balance'>
+                {quiz.title}
+              </h1>
+              {quiz.description && (
+                <p className='text-black/70 font-medium max-w-xl text-pretty'>
+                  {quiz.description}
+                </p>
+              )}
+              <div className='flex justify-center gap-3 flex-wrap'>
+                {quiz.quizProvider && (
+                  <Badge className='bg-primary border-2 border-black text-white font-bold'>
+                    {t.providers[quiz.quizProvider as QuizProvider] ??
+                      quiz.quizProvider.toUpperCase()}
+                  </Badge>
+                )}
+                {quiz.quizLevel && (
+                  <Badge
+                    className={`${levelColor} border-2 border-black ${levelInk} font-bold`}
+                  >
+                    {t.levels[quiz.quizLevel] ?? capitalize(quiz.quizLevel)}
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {variant ? (
+              <QuizDetailPrototype
+                variant={variant}
+                quiz={quiz}
+                isAuthenticated={isAuthenticated}
+                emailField={emailField}
+                examQuestionCount={examQuestionCount}
+                isStartingExam={isStartingExam}
+                startingDrillId={startingDrillId}
+                onStartExam={handleStartExam}
+                onStartDrill={handleStartDrill}
+              />
+            ) : (
+            <>
+            {emailField}
 
             {/* Full simulation exam */}
             <section className='space-y-3'>
@@ -342,6 +370,8 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
                 </div>
                 )}
               </section>
+            )}
+            </>
             )}
         </>
       </main>
