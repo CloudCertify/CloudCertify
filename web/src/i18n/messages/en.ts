@@ -347,6 +347,15 @@ export const en = {
     notQuite: 'Not quite'
   },
 
+  shortcuts: {
+    select: 'select',
+    check: 'check',
+    continue: 'continue',
+    next: 'next',
+    finish: 'finish',
+    navigate: 'navigate'
+  },
+
   drill: {
     label: 'Built for you',
     composition: ({ missed, due, unseen, mastered }: DrillCompositionCounts) =>

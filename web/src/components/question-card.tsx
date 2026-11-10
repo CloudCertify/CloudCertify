@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
 import { Kbd } from '@/components/ui/kbd';
+import { ShortcutLegend } from '@/components/shortcut-legend';
 import { motion } from 'motion/react';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
 import { Pop } from '@/components/pop';
@@ -160,18 +161,23 @@ export function QuestionCard({
         <Button variant='outline' onClick={onPrev} disabled={isFirst} aria-keyshortcuts='ArrowLeft'>
           <ArrowLeft className='mr-2 h-4 w-4' />
           {t.common.previous}
-          <Kbd><ArrowLeft className='size-3' /></Kbd>
         </Button>
+        <ShortcutLegend
+          className='justify-center px-4'
+          items={[
+            { keys: [`1–${Math.min(answers.length, 9)}`], label: t.shortcuts.select },
+            { keys: [<CornerDownLeft key='enter' className='size-3' />], label: isLast ? t.shortcuts.finish : t.shortcuts.next },
+            { keys: [<ArrowLeft key='left' className='size-3' />, <ArrowRight key='right' className='size-3' />], label: t.shortcuts.navigate }
+          ]}
+        />
         {!isLast ? (
           <Button onClick={onNext} aria-keyshortcuts='Enter ArrowRight'>
             {t.common.next}
             <ArrowRight className='ml-2 h-4 w-4' />
-            <Kbd><CornerDownLeft className='size-3' /></Kbd>
           </Button>
         ) : (
           <Button onClick={onFinish} disabled={isSubmitting} aria-keyshortcuts='Enter'>
             {isSubmitting ? t.common.submitting : finishLabel}
-            <Kbd><CornerDownLeft className='size-3' /></Kbd>
           </Button>
         )}
       </CardFooter>

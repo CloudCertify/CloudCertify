@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
 import { Kbd } from '@/components/ui/kbd';
+import { ShortcutLegend } from '@/components/shortcut-legend';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
 import { Pop } from '@/components/pop';
 import { spring, useQuestionMotion } from '@/hooks/use-question-motion';
@@ -270,6 +271,17 @@ export function PracticeQuestionCard({
         )}
       </CardContent>
       <CardFooter className='flex justify-end border-t-2 border-black px-4 pt-6 sm:px-6'>
+        <ShortcutLegend
+          className='mr-auto pr-4'
+          items={
+            isRevealed
+              ? [{ keys: [<CornerDownLeft key='enter' className='size-3' />], label: t.shortcuts.continue }]
+              : [
+                  { keys: [`1–${Math.min(answers.length, 9)}`], label: t.shortcuts.select },
+                  { keys: [<CornerDownLeft key='enter' className='size-3' />], label: t.shortcuts.check }
+                ]
+          }
+        />
         {!isRevealed ? (
           // Busy stays focusable (aria-disabled): disabling the focused button drops focus to <body>.
           <Button
@@ -281,7 +293,6 @@ export function PracticeQuestionCard({
           >
             {isChecking && <LoaderCircle className='h-4 w-4 animate-spin' aria-hidden='true' />}
             {isChecking ? t.question.checking : t.question.check}
-            <Kbd><CornerDownLeft className='size-3' /></Kbd>
           </Button>
         ) : (
           <Button
@@ -305,7 +316,6 @@ export function PracticeQuestionCard({
                   : t.question.continue}
               {!isFinishing && <ArrowRight className='ml-2 h-4 w-4' />}
             </motion.span>
-            <Kbd><CornerDownLeft className='size-3' /></Kbd>
           </Button>
         )}
       </CardFooter>
