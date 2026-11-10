@@ -147,7 +147,7 @@ export function QuestionCard({
                   {answer.text}
                 </span>
                 {answerIndex < 9 && (
-                  <Kbd className={`ml-auto mt-0.5 ${isSelected ? 'text-white' : 'text-black'}`}>
+                  <Kbd className='ml-auto mt-0.5'>
                     {answerIndex + 1}
                   </Kbd>
                 )}
