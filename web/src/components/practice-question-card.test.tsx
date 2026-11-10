@@ -35,6 +35,7 @@ function renderCard(phase: 'answering' | 'revealed', { isChecking = false, onSel
       }
       onCheck={() => {}}
       onContinue={() => {}}
+      canCheck
       isChecking={isChecking}
       isFinishing={false}
       isLast={false}
@@ -62,12 +63,12 @@ describe('PracticeQuestionCard report control', () => {
     const onCheck = vi.fn();
     const props = {
       index: 0, total: 2, question, selectedIds: [10], onSelect: () => {}, onCheck,
-      onContinue: () => {}, isFinishing: false, isLast: false
+      onContinue: () => {}, canCheck: true, isFinishing: false, isLast: false
     };
     const { rerender } = render(<PracticeQuestionCard {...props} phase='answering' reveal={null} isChecking={false} />);
     const button = screen.getByRole('button', { name: 'Check' });
     button.focus();
-    rerender(<PracticeQuestionCard {...props} phase='answering' reveal={null} isChecking />);
+    rerender(<PracticeQuestionCard {...props} phase='answering' reveal={null} canCheck={false} isChecking />);
     // A disabled button would lose focus; a busy one must stay focusable but inert.
     expect(button).not.toBeDisabled();
     expect(button).toHaveFocus();

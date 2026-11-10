@@ -10,6 +10,7 @@ import { LanguageProvider } from '@/i18n/context';
 import { en } from '@/i18n/messages/en';
 import { pt } from '@/i18n/messages/pt';
 import { setCurrentLanguage } from '@/i18n/language';
+import { readPayload, rememberEmail } from '@/attempt/storage';
 
 const toastError = vi.hoisted(() => vi.fn());
 
@@ -113,7 +114,7 @@ describe('QuizDetailPage start flow', () => {
   });
 
   it('restores a saved email after mounting', () => {
-    sessionStorage.setItem('quiz-session-1', JSON.stringify({ email: 'saved@example.com' }));
+    rememberEmail(1, 'saved@example.com');
     const html = renderToString(
       <QueryClientProvider client={new QueryClient()}>
         <LanguageProvider>
@@ -213,8 +214,9 @@ describe('QuizDetailPage start flow', () => {
     expect(location.history).toEqual(['/quiz/1', '/quiz/1/drill/2/session']);
     expect(location.push).toHaveBeenCalledWith('/quiz/1/drill/2/session');
     expect(location.replace).not.toHaveBeenCalled();
-    expect(JSON.parse(sessionStorage.getItem('drill-session-1-2')!)).toEqual({
-      drillDetail: { id: 2, title: 'Cloud Concepts', submissionId: 9 },
+    expect(readPayload({ quizId: 1, drillId: 2 })).toEqual({
+      mode: 'practice',
+      detail: { id: 2, title: 'Cloud Concepts', submissionId: 9 },
       email: 'visitor@example.com'
     });
   });
@@ -282,7 +284,7 @@ describe('QuizDetailPage start flow', () => {
     await startDrillAsVisitor();
 
     await waitFor(() => {
-      expect(toastError).toHaveBeenCalledWith(en.quizDetail.startPracticeError);
+      expect(toastError).toHaveBeenCalledWith(en.attempt.startDrillError);
     });
   });
 });

@@ -265,8 +265,6 @@ export const en = {
     startDomainDrill: (domain: string) => `Start ${domain} Drill Mix`,
     startExam: 'Start an Exam',
     nextExam: 'Start the next Exam',
-    startExamError: 'Could not start the Exam. Please try again.',
-    startDrillError: 'Could not start the Drill. Please try again.',
     currentStanding: 'Current standing',
     byDomain: 'By Domain',
     latestSnapshot: 'Latest snapshot',
@@ -298,8 +296,6 @@ export const en = {
     emailLabel: 'Your email',
     emailPlaceholder: 'you@example.com',
     emailInvalid: 'Please enter a valid email address.',
-    startExamError: 'Failed to start the exam. Please try again.',
-    startPracticeError: 'Failed to start the drill. Please try again.',
     fullExamBody:
       "Full-length exam simulation. At the end you'll see your scaled score, whether you'd pass, and which domains need work.",
     mixTitle: 'Exam mix',
@@ -461,6 +457,18 @@ export const en = {
     ratedAs: (rating: string) => `You were: ${rating}`
   },
 
+  attempt: {
+    startExamError: 'Could not start the Exam. Please try again.',
+    startDrillError: 'Could not start the Drill. Please try again.',
+    unsavedAnswers:
+      'Some answers did not save. We are saving them again. Submit once they are saved.',
+    unsavedCount: (count: number) =>
+      count === 1 ? '1 answer is not saved yet.' : `${count} answers are not saved yet.`,
+    emptyTitle: 'No Questions to show',
+    emptyBody: 'This attempt came back without any Questions. Go back and start another one.',
+    verdict: (passed: boolean): string => (passed ? 'PASS' : 'FAIL')
+  },
+
   results: {
     quizTitle: 'Quiz results',
     practiceTitle: 'Drill results',
@@ -479,7 +487,6 @@ export const en = {
     restartQuiz: 'Restart Quiz',
     submitError:
       'Could not submit this attempt. It may already be finished. Use "Try Again" to start a new one.',
-    restartError: 'Could not start a new attempt. Please try again.',
     answerError: 'Could not save that answer. Check your connection and pick it again.',
     checkError: 'Could not check this answer. Please try again.',
     finishError: 'Could not finish this practice. Please try again.'

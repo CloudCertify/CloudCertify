@@ -2,15 +2,10 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Lock, RotateCcw, Shuffle, Target } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
 import { Footer } from '@/components/footer';
-import {
-  postQuizQuizIdStart,
-  postQuizQuizIdDrillsDrillIdStart
-} from '@/http/generated/api';
 import { DrawRule, type DrillDto, type QuizDto, type QuizProvider } from '@/http/generated/api.schemas';
 import { getLucideIcon } from '@/lib/quiz-icon';
 import { getLevelStyle } from '@/lib/quiz-level';
@@ -20,7 +15,8 @@ import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
-import { drillStartErrorMessage } from '@/http/drill-start-error';
+import { useStartAttempt } from '@/attempt/start';
+import { rememberedEmail } from '@/attempt/storage';
 import { isWholeQuizMix } from '@/lib/whole-quiz-mix';
 
 // --- Helpers ---
@@ -37,28 +33,19 @@ function formatExamQuestionRange(
 // --- Page ---
 export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
   const quizId = quiz.id!;
-  const router = useRouter();
-
   const { isAuthenticated } = useAuth();
   const { t } = useI18n();
   const emailSchema = z.email(t.quizDetail.emailInvalid);
 
   const [email, setEmail] = useState('');
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(`quiz-session-${quizId}`);
-      setEmail(raw ? JSON.parse(raw).email ?? '' : '');
-    } catch {
-      /* no saved session */
-    }
-  }, [quizId]);
+  useEffect(() => setEmail(rememberedEmail(quizId)), [quizId]);
   const [emailError, setEmailError] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
 
-  // Successful starts stay busy until navigation unmounts this page.
-  const [isStartingExam, setIsStartingExam] = useState(false);
-  const [startingDrillId, setStartingDrillId] = useState<number | null>(null);
-  const isStarting = isStartingExam || startingDrillId !== null;
+  const { starting, start } = useStartAttempt();
+  const isStartingExam = starting != null && starting.drillId == null;
+  const startingDrillId = starting?.drillId ?? null;
+  const isStarting = starting !== null;
 
   const validateEmail = (): boolean => {
     // Logged-in Users are identified by their Bearer token; no email needed.
@@ -75,56 +62,12 @@ export function QuizDetailPage({ quiz }: { quiz: QuizDto }) {
     return true;
   };
 
-  const handleStartExam = async () => {
+  const startFrom = (drillId?: number) => {
     if (isStarting || !validateEmail()) return;
-    setIsStartingExam(true);
-    try {
-      const response = await postQuizQuizIdStart(
-        quizId,
-        isAuthenticated ? {} : { email: email.trim() }
-      );
-      sessionStorage.setItem(
-        `quiz-session-${quizId}`,
-        JSON.stringify({
-          quizDetail: response.data,
-          email: isAuthenticated ? null : email.trim()
-        })
-      );
-      router.push(`/quiz/${quizId}/session`);
-    } catch {
-      toast.error(t.quizDetail.startExamError);
-      setIsStartingExam(false);
-    }
+    void start({ quizId, drillId }, isAuthenticated ? null : email.trim());
   };
-
-  const handleStartDrill = async (drill: DrillDto) => {
-    if (isStarting || !validateEmail()) return;
-    setStartingDrillId(drill.id);
-    try {
-      const response = await postQuizQuizIdDrillsDrillIdStart(
-        quizId,
-        drill.id,
-        isAuthenticated ? {} : { email: email.trim() }
-      );
-      sessionStorage.setItem(
-        `drill-session-${quizId}-${drill.id}`,
-        JSON.stringify({
-          drillDetail: response.data,
-          email: isAuthenticated ? null : email.trim()
-        })
-      );
-      router.push(`/quiz/${quizId}/drill/${drill.id}/session`);
-    } catch (error) {
-      toast.error(
-        drillStartErrorMessage(error, {
-          nothingToReview: t.drill.nothingToReview,
-          signInRequired: t.drill.signInRequired,
-          fallback: t.quizDetail.startPracticeError
-        })
-      );
-      setStartingDrillId(null);
-    }
-  };
+  const handleStartExam = () => startFrom();
+  const handleStartDrill = (drill: DrillDto) => startFrom(drill.id);
 
   const { bg: levelColor, ink: levelInk } = getLevelStyle(quiz.quizLevel);
   const drills = quiz.drills ?? [];

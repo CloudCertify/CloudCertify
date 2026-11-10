@@ -9,9 +9,7 @@ import {
   Target,
   TrendingUp
 } from 'lucide-react';
-import { toast } from 'sonner';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { AuthMenu } from '@/components/auth-menu';
 import { PageBackLink } from '@/components/page-back-link';
@@ -19,12 +17,10 @@ import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/auth/use-auth';
 import {
-  postQuizQuizIdDrillsDrillIdStart,
-  postQuizQuizIdStart,
   useGetMeProgress,
   useGetMeProgressQuizId
 } from '@/http/generated/api';
-import { drillStartErrorMessage } from '@/http/drill-start-error';
+import { useStartAttempt } from '@/attempt/start';
 import {
   DrawRule,
   type DomainStandingDto,
@@ -542,11 +538,12 @@ function MovementPanel({
 }
 
 export function ProgressPage() {
-  const router = useRouter();
   const { isAuthenticated } = useAuth();
   const { t } = useI18n();
   const [selectedQuizId, setSelectedQuizId] = useState<number | null>(null);
-  const [starting, setStarting] = useState<StartingTarget>(null);
+  const { starting: startingTarget, start } = useStartAttempt();
+  const starting: StartingTarget =
+    startingTarget == null ? null : startingTarget.drillId ?? 'exam';
 
   const progressList = useGetMeProgress({
     query: {
@@ -576,46 +573,12 @@ export function ProgressPage() {
       drill.domain === progress?.lead
   );
 
-  const startExam = async () => {
-    if (!selectedQuiz) return;
-    setStarting('exam');
-    try {
-      const response = await postQuizQuizIdStart(selectedQuiz.id, {});
-      sessionStorage.setItem(
-        `quiz-session-${selectedQuiz.id}`,
-        JSON.stringify({ quizDetail: response.data, email: null })
-      );
-      router.push(`/quiz/${selectedQuiz.id}/session`);
-    } catch {
-      toast.error(t.progress.startExamError);
-      setStarting(null);
-    }
+  const startExam = () => {
+    if (selectedQuiz) void start({ quizId: selectedQuiz.id }, null);
   };
 
-  const startDrill = async (drill: DrillDto) => {
-    if (!selectedQuiz) return;
-    setStarting(drill.id);
-    try {
-      const response = await postQuizQuizIdDrillsDrillIdStart(
-        selectedQuiz.id,
-        drill.id,
-        {}
-      );
-      sessionStorage.setItem(
-        `drill-session-${selectedQuiz.id}-${drill.id}`,
-        JSON.stringify({ drillDetail: response.data, email: null })
-      );
-      router.push(`/quiz/${selectedQuiz.id}/drill/${drill.id}/session`);
-    } catch (error) {
-      toast.error(
-        drillStartErrorMessage(error, {
-          nothingToReview: t.drill.nothingToReview,
-          signInRequired: t.drill.signInRequired,
-          fallback: t.progress.startDrillError
-        })
-      );
-      setStarting(null);
-    }
+  const startDrill = (drill: DrillDto) => {
+    if (selectedQuiz) void start({ quizId: selectedQuiz.id, drillId: drill.id }, null);
   };
 
   let content: ReactNode;

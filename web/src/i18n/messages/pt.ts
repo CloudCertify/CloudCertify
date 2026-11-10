@@ -249,8 +249,6 @@ export const pt: Messages = {
     startDomainDrill: (domain: string) => `Treinar ${domain}`,
     startExam: 'Iniciar um simulado',
     nextExam: 'Iniciar o próximo simulado',
-    startExamError: 'Não foi possível iniciar o simulado. Tente de novo.',
-    startDrillError: 'Não foi possível iniciar o treino. Tente de novo.',
     currentStanding: 'Desempenho atual',
     byDomain: 'Por domínio',
     latestSnapshot: 'Retrato mais recente',
@@ -283,8 +281,6 @@ export const pt: Messages = {
     emailLabel: 'Seu e-mail',
     emailPlaceholder: 'voce@exemplo.com',
     emailInvalid: 'Informe um endereço de e-mail válido.',
-    startExamError: 'Não foi possível iniciar o simulado. Tente de novo.',
-    startPracticeError: 'Não foi possível iniciar o treino. Tente de novo.',
     fullExamBody:
       'Simulado no formato da prova. No fim você vê sua pontuação escalada, se passaria e quais domínios precisam de atenção.',
     mixTitle: 'Mix da prova',
@@ -449,6 +445,18 @@ export const pt: Messages = {
     ratedAs: (rating: string) => `Você estava: ${rating}`
   },
 
+  attempt: {
+    startExamError: 'Não foi possível iniciar o simulado. Tente de novo.',
+    startDrillError: 'Não foi possível iniciar o treino. Tente de novo.',
+    unsavedAnswers:
+      'Algumas respostas não foram salvas. Estamos salvando de novo. Envie quando estiverem salvas.',
+    unsavedCount: (count: number) =>
+      count === 1 ? '1 resposta ainda não foi salva.' : `${count} respostas ainda não foram salvas.`,
+    emptyTitle: 'Nenhuma questão para mostrar',
+    emptyBody: 'Esta tentativa voltou sem questões. Volte e comece outra.',
+    verdict: (passed: boolean) => (passed ? 'APROVADO' : 'REPROVADO')
+  },
+
   results: {
     quizTitle: 'Resultado do simulado',
     practiceTitle: 'Resultado do treino',
@@ -471,7 +479,6 @@ export const pt: Messages = {
     restartQuiz: 'Refazer simulado',
     submitError:
       'Não foi possível enviar esta tentativa. Ela pode já estar finalizada. Use "Tentar de novo" para começar outra.',
-    restartError: 'Não foi possível iniciar uma nova tentativa. Tente de novo.',
     answerError:
       'Não foi possível salvar essa resposta. Verifique sua conexão e selecione de novo.',
     checkError: 'Não foi possível verificar esta resposta. Tente de novo.',

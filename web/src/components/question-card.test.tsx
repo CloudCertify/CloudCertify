@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { QuestionCard } from './question-card';
 import type { QuestionDto } from '@/http/generated/api.schemas';
+import { nextSelection } from '@/attempt/selection';
 
 const singleQuestion: QuestionDto = {
   id: 1,
@@ -30,7 +31,7 @@ type HarnessProps = {
   isLast?: boolean;
 };
 
-/** Renders the card with the same selection reducer the session pages use. */
+/** Renders the card with the same selection rule the attempt module uses. */
 function Harness({
   question,
   onPrev = () => {},
@@ -39,18 +40,8 @@ function Harness({
   isLast
 }: HarnessProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const selectCount = question.selectCount ?? 1;
-
-  const handleSelect = (answerId: number) => {
-    setSelectedIds(current => {
-      if (question.type === 'multiple_response') {
-        if (current.includes(answerId)) return current.filter(id => id !== answerId);
-        if (current.length >= selectCount) return current;
-        return [...current, answerId];
-      }
-      return [answerId];
-    });
-  };
+  const handleSelect = (answerId: number) =>
+    setSelectedIds(current => nextSelection(question, current, answerId));
 
   return (
     <QuestionCard
