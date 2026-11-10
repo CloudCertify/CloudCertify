@@ -12,6 +12,12 @@ public class SubmitQuizResponseDto
     public required bool Passed { get; set; }
 
     /// <summary>
+    /// The mark <see cref="ScaledScore"/> was compared against: the Exam's Scaled Score pass mark
+    /// (700, 720 or 750 by certification), or 70 for Practice.
+    /// </summary>
+    public required int PassingScore { get; set; }
+
+    /// <summary>
     /// Questions rated <see cref="Confidence.Guess"/> and answered correctly — what a raw score
     /// hides as a win. Counted from the persisted Recorded Answers; unrated answers are absent
     /// from both counts (ADR 0006).
@@ -41,6 +47,14 @@ public class QuizResultQuestionDto
 
     /// <summary>How sure the visitor was, shown in review beside the explanation. Null when unrated.</summary>
     public Confidence? Confidence { get; set; }
+
+    /// <summary>
+    /// The verdict stamped on this Question's Recorded Answer when it was committed, and the one
+    /// the Score counted (ADR 0007). False when the served Question was never answered. Read it
+    /// instead of re-deriving it from <see cref="QuizResultAnswerDto.IsCorrect"/>, which reflects
+    /// today's answer key.
+    /// </summary>
+    public required bool IsCorrect { get; set; }
 
     public required List<QuizResultAnswerDto> Answers { get; set; }
 }

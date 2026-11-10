@@ -8,8 +8,3 @@ public class SubmitQuizRequestDto
 {
     public int SubmissionId { get; set; }
 }
-public class QuizAnswer
-{
-    public int QuestionId { get; set; }
-    public List<int> AnswerIds { get; set; } = new();
-}

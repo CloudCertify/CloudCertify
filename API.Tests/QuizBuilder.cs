@@ -1,11 +1,10 @@
 using API.Entities;
-using API.Model.Request;
 
 namespace API.Tests;
 
 /// <summary>
-/// Builds <see cref="Question"/>/<see cref="Answer"/> graphs and user answers for
-/// grading tests, so each test states only the facts it cares about. Keeps the
+/// Builds <see cref="Question"/>/<see cref="Answer"/> graphs and Recorded Answers
+/// for grading tests, so each test states only the facts it cares about. Keeps the
 /// fragile entity-wiring (back-references, ids) in one place.
 /// </summary>
 internal static class QuizBuilder
@@ -20,15 +19,15 @@ internal static class QuizBuilder
         return new Question { Id = id, Domain = domain, Answers = answers, Explanation = explanation, Type = type };
     }
 
-    /// <summary>The user selecting <paramref name="answerIds"/> for question <paramref name="questionId"/>.</summary>
-    public static QuizAnswer Answer(int questionId, params int[] answerIds)
-    {
-        return new QuizAnswer { QuestionId = questionId, AnswerIds = answerIds.ToList() };
-    }
-
     /// <summary>A Recorded Answer already committed (Checked) for <paramref name="questionId"/>.</summary>
     public static RecordedAnswer Recorded(int questionId, params int[] answerIds)
     {
         return new RecordedAnswer { QuestionId = questionId, SelectedAnswerIds = answerIds.ToList() };
+    }
+
+    /// <summary>A Recorded Answer whose commit-time verdict was <paramref name="isCorrect"/> (ADR 0007).</summary>
+    public static RecordedAnswer Stamped(int questionId, bool isCorrect, params int[] answerIds)
+    {
+        return new RecordedAnswer { QuestionId = questionId, SelectedAnswerIds = answerIds.ToList(), IsCorrect = isCorrect };
     }
 }

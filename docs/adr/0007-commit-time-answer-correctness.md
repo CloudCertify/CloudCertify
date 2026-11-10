@@ -5,6 +5,8 @@
 - Related: ADR 0001 (server-authoritative attempts), ADR 0005 (Reports change
   Questions, never past scores), ADR 0006 (Recorded Answers on full Quizzes),
   ADR 0008 (the first consumer)
+- Amended: 2026-11-09, issue #103 (decision 3 reversed: the stamp is the input
+  to the score; see Amendment below)
 
 ## Context
 
@@ -26,10 +28,11 @@ is *correct*.
    answer is committed — at Check for a Subquiz, at answer-commit for a full
    Quiz, re-stamped on revision until Submit (ADR 0006).
 2. It is never recomputed afterwards. Nothing re-judges a stored Recorded Answer.
-3. Grading is unchanged. Strategies keep judging against `ServedQuestionIds` at
+3. ~~Grading is unchanged. Strategies keep judging against `ServedQuestionIds` at
    Submit, so an unanswered served Question still counts as wrong (ADR 0001) and
    the Scaled Score is untouched. `IsCorrect` is a record of what happened, not
-   an input to the score.
+   an input to the score.~~ Reversed by the 2026-11-09 amendment: grading reads
+   `IsCorrect`.
 4. No aggregate table. Per-visitor rollups stay derivable from Recorded Answers.
 
 ## Consequences
@@ -74,3 +77,30 @@ three-table join through the answer key.
   Cheap, but it stores an aggregate whose per-Question detail is the thing the
   learning signal actually needs — the wrong grain. A domain breakdown is a
   `GROUP BY Question.Domain` over this boolean.
+
+## Amendment (2026-11-09): the stamp is the input to the score
+
+Decision 3 gave every answer two verdicts: the stamp, read by Outcome, Recall,
+Standing, the Progress trend and the Mistakes draw, and a second judgement made
+at Submit against the answer key of that moment. Most of the time they agree.
+When a Report is resolved during someone's attempt, they don't: the Score counts
+the Question one way and the learning signal counts it the other, and an Exam's
+stored Scaled Score and its Progress point come from two definitions of correct.
+
+So grading now reads the stamp, and the answer key is no longer an input:
+
+- A served Question counts as correct only when its Recorded Answer's
+  `IsCorrect` is true. No Recorded Answer counts as wrong, which preserves ADR
+  0001. A null stamp counts as wrong too; the Outcome fold already treats it as
+  not proven.
+- `QuestionCorrectness` stays the only exact-match judge. It runs at commit
+  time (Check in Practice, answer-commit in an Exam, re-stamped on revision),
+  and nowhere else.
+- The Score, the Domain breakdown, the lucky-guess and misconception counts,
+  and the per-Question verdict in the results payload all come from that one
+  judgement. The web review list reads that verdict and stops deriving its own.
+
+ADR 0005's promise that resolving a Report never re-grades now covers an
+attempt in progress too: a key fix changes the Question for future attempts and
+leaves alone whatever an attempt has already recorded. Finished Submissions keep
+the Score they were given; nothing is re-graded or migrated.

@@ -31,7 +31,8 @@ public class RecordedAnswer
     /// Drill, at answer-commit in a full Quiz, re-stamped on revision until Submit — and never
     /// re-judged afterwards, so fixing a Question's answer key cannot rewrite what the visitor
     /// knew at the time (ADR 0007). Null only on answers recorded before this was stamped; those
-    /// are not backfilled. Never an input to a score: grading re-judges at Submit (ADR 0001).
+    /// are not backfilled. This is the input to the score: grading counts true as correct and false,
+    /// null or a missing Recorded Answer as wrong (ADR 0001, ADR 0007 as amended by issue #103).
     /// </summary>
     public bool? IsCorrect { get; set; }
 }

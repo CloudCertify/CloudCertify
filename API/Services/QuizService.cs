@@ -233,18 +233,10 @@ public class QuizService
              throw new InvalidOperationException($"Submission {submissionId} not found");
          }
 
-         // A Practice attempt is graded on the 0-100 scale, never the Scaled Score (ADR 0010).
-         SubmissionGrader.EnsureMode(submission, Mode.Exam);
-
-         var answers = submission.RecordedAnswers
-             .Select(r => new QuizAnswer { QuestionId = r.QuestionId, AnswerIds = r.SelectedAnswerIds })
-             .ToList();
-
-         var strategy = GradingStrategyFactory.GetStrategy(quiz);
-
-         // Lifecycle guards (ownership + finished) and the grade-and-map flow live in the shared
-         // grader so the Exam and Practice paths cannot diverge again (issue #12).
-         return await _submissionGrader.GradeAndFinish(submissionId, quizId, expectedDrillId: null, strategy, answers);
+         // Guards (ownership, Mode, finished) and grading live in the shared grader so the Exam and
+         // Practice paths cannot diverge again (issue #12). Mode.Exam keeps a Practice attempt off
+         // the Scaled Score (ADR 0010).
+         return await _submissionGrader.Finish(submission, quiz, Mode.Exam);
      }
 
      public async Task CreateQuiz(Quiz quiz)

@@ -15,16 +15,18 @@ namespace API.Services;
 /// </summary>
 public class DrillService
 {
-    public DrillService(IDrillRepository drillRepository, IQuestionRepository questionRepository, ISubmissionRepository submissionRepository, SubmissionGrader submissionGrader, TimeProvider timeProvider)
+    public DrillService(IDrillRepository drillRepository, IQuizRepository quizRepository, IQuestionRepository questionRepository, ISubmissionRepository submissionRepository, SubmissionGrader submissionGrader, TimeProvider timeProvider)
     {
         _timeProvider = timeProvider;
         _drillRepository = drillRepository;
+        _quizRepository = quizRepository;
         _questionRepository = questionRepository;
         _submissionRepository = submissionRepository;
         _submissionGrader = submissionGrader;
     }
 
     private readonly IDrillRepository _drillRepository;
+    private readonly IQuizRepository _quizRepository;
     private readonly IQuestionRepository _questionRepository;
     private readonly ISubmissionRepository _submissionRepository;
     private readonly SubmissionGrader _submissionGrader;
@@ -188,28 +190,19 @@ public class DrillService
     }
 
     /// <summary>
-    /// Finishes a Drill attempt: grades the accumulated Recorded Answers through the shared
-    /// grader and drill Grading Strategy against the served set, so unchecked served Questions
-    /// count as wrong (ADR 0001) and the Submission is marked Finished. The grade-and-finish flow
-    /// stays in the shared grader so Exam and Practice paths cannot diverge (issue #12).
+    /// Finishes a Drill attempt through the shared grader, which scores Practice as a 0-100
+    /// percentage over the served set from the verdicts stamped at Check, so unchecked served
+    /// Questions count as wrong (ADR 0001, ADR 0007) and the Submission is marked Finished. The
+    /// guards and grading stay in the shared grader so Exam and Practice cannot diverge (issue #12).
     /// </summary>
     public async Task<SubmitQuizResponseDto> FinishDrill(int quizId, int drillId, int submissionId)
     {
-        var submission = await _submissionRepository.GetById(submissionId);
+        var quiz = await _quizRepository.GetQuizById(quizId)
+            ?? throw new InvalidOperationException($"Quiz {quizId} not found");
+        var submission = await _submissionRepository.GetById(submissionId)
+            ?? throw new InvalidOperationException($"Submission {submissionId} not found");
 
-        if (submission == null)
-        {
-            throw new InvalidOperationException($"Submission {submissionId} not found");
-        }
-
-        var recordedAnswers = submission.RecordedAnswers
-            .Select(r => new QuizAnswer { QuestionId = r.QuestionId, AnswerIds = r.SelectedAnswerIds })
-            .ToList();
-
-        SubmissionGrader.EnsureMode(submission, Mode.Practice);
-
-        var strategy = GradingStrategyFactory.GetPracticeStrategy();
-        return await _submissionGrader.GradeAndFinish(submissionId, quizId, drillId, strategy, recordedAnswers);
+        return await _submissionGrader.Finish(submission, quiz, Mode.Practice, drillId);
     }
 
     /// <summary>
