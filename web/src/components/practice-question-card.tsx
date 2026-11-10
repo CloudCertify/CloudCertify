@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from 'react';
-import { ArrowRight, CheckCircle, LoaderCircle, XCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle, CornerDownLeft, LoaderCircle, XCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
+import { Kbd } from '@/components/ui/kbd';
+import { ShortcutLegend } from '@/components/shortcut-legend';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
 import { Pop } from '@/components/pop';
 import { spring, useQuestionMotion } from '@/hooks/use-question-motion';
@@ -198,6 +200,7 @@ export function PracticeQuestionCard({
                 role={isMultiResponse ? 'checkbox' : 'radio'}
                 aria-checked={isSelected}
                 aria-disabled={isDisabled || undefined}
+                aria-keyshortcuts={answerIndex < 9 ? String(answerIndex + 1) : undefined}
                 className={`p-4 rounded-none border-2 border-black ${optionClass} ${
                   isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
                 } flex items-start gap-3 transition-[translate,box-shadow,background-color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
@@ -217,6 +220,9 @@ export function PracticeQuestionCard({
                   )}
                 </div>
                 <span className={`font-medium ${textClass}`}>{answer.text}</span>
+                {answerIndex < 9 && (
+                  <Kbd className='ml-auto mt-0.5'>{answerIndex + 1}</Kbd>
+                )}
               </motion.div>
             );
           })}
@@ -265,6 +271,17 @@ export function PracticeQuestionCard({
         )}
       </CardContent>
       <CardFooter className='flex justify-end border-t-2 border-black px-4 pt-6 sm:px-6'>
+        <ShortcutLegend
+          className='mr-auto pr-4'
+          items={
+            isRevealed
+              ? [{ keys: [<CornerDownLeft key='enter' className='size-3' />], label: t.shortcuts.continue }]
+              : [
+                  { keys: [`1–${Math.min(answers.length, 9)}`], label: t.shortcuts.select },
+                  { keys: [<CornerDownLeft key='enter' className='size-3' />], label: t.shortcuts.check }
+                ]
+          }
+        />
         {!isRevealed ? (
           // Busy stays focusable (aria-disabled): disabling the focused button drops focus to <body>.
           <Button
@@ -272,6 +289,7 @@ export function PracticeQuestionCard({
             disabled={!canCheck}
             aria-disabled={isChecking || undefined}
             aria-busy={isChecking}
+            aria-keyshortcuts='Enter'
           >
             {isChecking && <LoaderCircle className='h-4 w-4 animate-spin' aria-hidden='true' />}
             {isChecking ? t.question.checking : t.question.check}
@@ -281,6 +299,7 @@ export function PracticeQuestionCard({
             onClick={() => !isFinishing && onContinue()}
             aria-disabled={isFinishing || undefined}
             aria-busy={isFinishing}
+            aria-keyshortcuts='Enter'
           >
             {isFinishing && <LoaderCircle className='h-4 w-4 animate-spin' aria-hidden='true' />}
             <motion.span

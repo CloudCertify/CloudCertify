@@ -332,6 +332,15 @@ export const pt: Messages = {
     notQuite: 'Quase lá'
   },
 
+  shortcuts: {
+    select: 'selecionar',
+    check: 'verificar',
+    continue: 'continuar',
+    next: 'próxima',
+    finish: 'finalizar',
+    navigate: 'navegar'
+  },
+
   drill: {
     label: 'Feito para você',
     composition: ({ missed, due, unseen, mastered }) =>
