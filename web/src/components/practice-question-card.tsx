@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from 'react';
-import { ArrowRight, CheckCircle, LoaderCircle, XCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle, CornerDownLeft, LoaderCircle, XCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
+import { Kbd } from '@/components/ui/kbd';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
 import { Pop } from '@/components/pop';
 import { spring, useQuestionMotion } from '@/hooks/use-question-motion';
@@ -198,6 +199,7 @@ export function PracticeQuestionCard({
                 role={isMultiResponse ? 'checkbox' : 'radio'}
                 aria-checked={isSelected}
                 aria-disabled={isDisabled || undefined}
+                aria-keyshortcuts={answerIndex < 9 ? String(answerIndex + 1) : undefined}
                 className={`p-4 rounded-none border-2 border-black ${optionClass} ${
                   isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
                 } flex items-start gap-3 transition-[translate,box-shadow,background-color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
@@ -217,6 +219,9 @@ export function PracticeQuestionCard({
                   )}
                 </div>
                 <span className={`font-medium ${textClass}`}>{answer.text}</span>
+                {answerIndex < 9 && (
+                  <Kbd className={`ml-auto mt-0.5 ${textClass}`}>{answerIndex + 1}</Kbd>
+                )}
               </motion.div>
             );
           })}
@@ -272,15 +277,18 @@ export function PracticeQuestionCard({
             disabled={!canCheck}
             aria-disabled={isChecking || undefined}
             aria-busy={isChecking}
+            aria-keyshortcuts='Enter'
           >
             {isChecking && <LoaderCircle className='h-4 w-4 animate-spin' aria-hidden='true' />}
             {isChecking ? t.question.checking : t.question.check}
+            <Kbd><CornerDownLeft className='size-3' /></Kbd>
           </Button>
         ) : (
           <Button
             onClick={() => !isFinishing && onContinue()}
             aria-disabled={isFinishing || undefined}
             aria-busy={isFinishing}
+            aria-keyshortcuts='Enter'
           >
             {isFinishing && <LoaderCircle className='h-4 w-4 animate-spin' aria-hidden='true' />}
             <motion.span
@@ -297,6 +305,7 @@ export function PracticeQuestionCard({
                   : t.question.continue}
               {!isFinishing && <ArrowRight className='ml-2 h-4 w-4' />}
             </motion.span>
+            <Kbd><CornerDownLeft className='size-3' /></Kbd>
           </Button>
         )}
       </CardFooter>

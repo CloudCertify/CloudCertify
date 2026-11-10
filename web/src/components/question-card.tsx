@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, CornerDownLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -11,6 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DifficultyBadge } from '@/components/difficulty-badge';
 import { Progress } from '@/components/ui/progress';
+import { Kbd } from '@/components/ui/kbd';
 import { motion } from 'motion/react';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
 import { Pop } from '@/components/pop';
@@ -123,6 +124,7 @@ export function QuestionCard({
                 role={isMultiResponse ? 'checkbox' : 'radio'}
                 aria-checked={isSelected}
                 aria-disabled={isDisabled || undefined}
+                aria-keyshortcuts={answerIndex < 9 ? String(answerIndex + 1) : undefined}
                 className={`p-4 rounded-none border-2 border-black ${
                   isSelected
                     ? 'bg-primary shadow-none translate-x-[2px] translate-y-[2px]'
@@ -144,24 +146,32 @@ export function QuestionCard({
                 >
                   {answer.text}
                 </span>
+                {answerIndex < 9 && (
+                  <Kbd className={`ml-auto mt-0.5 ${isSelected ? 'text-white' : 'text-black'}`}>
+                    {answerIndex + 1}
+                  </Kbd>
+                )}
               </div>
             );
           })}
         </motion.div>
       </CardContent>
       <CardFooter className='flex justify-between border-t-2 border-black px-4 pt-6 sm:px-6'>
-        <Button variant='outline' onClick={onPrev} disabled={isFirst}>
+        <Button variant='outline' onClick={onPrev} disabled={isFirst} aria-keyshortcuts='ArrowLeft'>
           <ArrowLeft className='mr-2 h-4 w-4' />
           {t.common.previous}
+          <Kbd><ArrowLeft className='size-3' /></Kbd>
         </Button>
         {!isLast ? (
-          <Button onClick={onNext}>
+          <Button onClick={onNext} aria-keyshortcuts='Enter ArrowRight'>
             {t.common.next}
             <ArrowRight className='ml-2 h-4 w-4' />
+            <Kbd><CornerDownLeft className='size-3' /></Kbd>
           </Button>
         ) : (
-          <Button onClick={onFinish} disabled={isSubmitting}>
+          <Button onClick={onFinish} disabled={isSubmitting} aria-keyshortcuts='Enter'>
             {isSubmitting ? t.common.submitting : finishLabel}
+            <Kbd><CornerDownLeft className='size-3' /></Kbd>
           </Button>
         )}
       </CardFooter>
