@@ -38,37 +38,42 @@ public class SubmissionGrader
         // Grade against the question set served at start, not whatever the client echoes back:
         // an unanswered served question stays in the denominator and counts as wrong (issue #11).
         var questions = await _questionRepository.GetQuestionsByIds(submission.ServedQuestionIds);
-        var recorded = submission.RecordedAnswers.ToDictionary(r => r.QuestionId);
-        var verdicts = questions.ToDictionary(q => q.Id, q => IsStampedCorrect(recorded, q.Id));
+        var served = ServedVerdict.ForEach(questions, submission.RecordedAnswers);
 
         var grading = ScoringRules.For(mode, quiz)
-            .Score(questions.Select(q => new GradedQuestion(q.Domain, verdicts[q.Id])).ToList());
+            .Score(served.Select(v => new GradedQuestion(v.Question.Domain, v.IsCorrect)).ToList());
 
         submission.Score = grading.ScaledScore;
         submission.Finished = true;
         await _submissionRepository.Update(submission);
 
-        return ToResponse(grading, questions, recorded, verdicts, submission.Language);
+        return ToResponse(grading, served, submission.Language);
     }
 
-    /// <summary>
-    /// The one definition of correct for grading: the stamp. No Recorded Answer (ADR 0001) or a
-    /// null stamp (answers committed before stamping shipped) counts as wrong, as the Outcome
-    /// fold already reads it.
-    /// </summary>
-    private static bool IsStampedCorrect(Dictionary<int, RecordedAnswer> recorded, int questionId) =>
-        recorded.TryGetValue(questionId, out var answer) && answer.IsCorrect == true;
+    /// <summary>One served Question and its Recorded Answer, null when it was never answered.</summary>
+    private record ServedVerdict(Question Question, RecordedAnswer? Recorded)
+    {
+        /// <summary>
+        /// The one definition of correct for grading: the stamp. No Recorded Answer (ADR 0001) or a
+        /// null stamp (answers committed before stamping shipped) counts as wrong, as the Outcome
+        /// fold already reads it.
+        /// </summary>
+        public bool IsCorrect => Recorded?.IsCorrect == true;
 
-    private static SubmitQuizResponseDto ToResponse(GradingResult grading, List<Question> questions,
-        Dictionary<int, RecordedAnswer> recorded, Dictionary<int, bool> verdicts, Language language)
+        public Confidence? Confidence => Recorded?.Confidence;
+
+        public static List<ServedVerdict> ForEach(List<Question> questions, List<RecordedAnswer> recordedAnswers)
+        {
+            var recorded = recordedAnswers.ToDictionary(r => r.QuestionId);
+            return questions.Select(q => new ServedVerdict(q, recorded.GetValueOrDefault(q.Id))).ToList();
+        }
+    }
+
+    private static SubmitQuizResponseDto ToResponse(GradingResult grading, List<ServedVerdict> served, Language language)
     {
         // Confidence is read back off the persisted Recorded Answers, never off the request:
         // the attempt is the source of truth for what was rated (ADR 0006). Unrated answers
         // fall through both counts.
-        var rated = questions
-            .Select(q => (confidence: recorded.GetValueOrDefault(q.Id)?.Confidence, isCorrect: verdicts[q.Id]))
-            .ToList();
-
         return new SubmitQuizResponseDto
         {
             Score = grading.ScaledScore,
@@ -77,18 +82,16 @@ public class SubmissionGrader
             ScaledScore = grading.ScaledScore,
             Passed = grading.Passed,
             PassingScore = grading.PassingScore,
-            LuckyGuessCount = rated.Count(r => r is { confidence: Confidence.Guess, isCorrect: true }),
-            MisconceptionCount = rated.Count(r => r is { confidence: Confidence.Confident, isCorrect: false }),
+            LuckyGuessCount = served.Count(v => v is { Confidence: Confidence.Guess, IsCorrect: true }),
+            MisconceptionCount = served.Count(v => v is { Confidence: Confidence.Confident, IsCorrect: false }),
             DomainBreakdown = grading.DomainBreakdown,
-            Questions = questions
-                .Select(q => ToResultQuestion(q, recorded.GetValueOrDefault(q.Id), verdicts[q.Id], language))
-                .ToList()
+            Questions = served.Select(v => ToResultQuestion(v, language)).ToList()
         };
     }
 
-    private static QuizResultQuestionDto ToResultQuestion(Question question, RecordedAnswer? recorded,
-        bool isCorrect, Language language)
+    private static QuizResultQuestionDto ToResultQuestion(ServedVerdict served, Language language)
     {
+        var (question, recorded) = served;
         var selected = recorded?.SelectedAnswerIds ?? [];
 
         // Result content follows the Submission's stored Language, never the current request
@@ -103,8 +106,8 @@ public class SubmissionGrader
             ServiceCategory = question.ServiceCategory,
             Services = question.Services,
             Explanation = LocalizedContent.Explanation(question, language),
-            Confidence = recorded?.Confidence,
-            IsCorrect = isCorrect,
+            Confidence = served.Confidence,
+            IsCorrect = served.IsCorrect,
             Answers = question.Answers
                 .Select(a => AnswerMapper.ToResultDto(a, selected.Contains(a.Id), language))
                 .ToList()

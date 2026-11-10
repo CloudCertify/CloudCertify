@@ -7,6 +7,7 @@ namespace API.Services.Grading;
 /// </summary>
 public class FlatScoring(int floor, int ceiling, int passingScore) : IScoringRule
 {
+    /// <inheritdoc />
     public GradingResult Score(IReadOnlyList<GradedQuestion> questions)
     {
         int correct = questions.Count(q => q.IsCorrect);

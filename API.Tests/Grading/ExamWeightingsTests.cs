@@ -39,24 +39,35 @@ public class ExamWeightingsTests
     }
 
     /// <summary>
-    /// Every Domain the question bank uses must be weighted: a name that drifted on either side
-    /// leaves those Questions scoring zero weight. Checked this way round because a bank may not
-    /// cover every guide Domain yet (AIF-C01 covers 2 of 5, see QuizCatalogSeeder). The banks are
-    /// gitignored (API/AGENTS.md), so this runs only in a checkout that has them; elsewhere it
-    /// has nothing to compare against and passes.
+    /// Banks that do not yet cover every guide Domain, so a weighted Domain may have no Questions.
+    /// Each stays unseeded until it does (see QuizCatalogSeeder); remove the row when it is filled.
+    /// </summary>
+    private static readonly Dictionary<string, string[]> KnownUncoveredDomains = new()
+    {
+        ["AIF-C01"] = ["Fundamentals of GenAI", "Applications of Foundation Models", "Guidelines for Responsible AI"],
+    };
+
+    /// <summary>
+    /// A weights row and its question bank must name the same Domains, so a misspelling on either
+    /// side cannot leave Questions scoring zero weight or a weight matching nothing. Only the
+    /// listed <see cref="KnownUncoveredDomains"/> may be missing from a bank.
+    /// The banks are gitignored (API/AGENTS.md) and cannot ship as fixtures, so this runs only in
+    /// a checkout that has them; elsewhere it has nothing to compare against and passes.
     /// </summary>
     [Theory]
     [MemberData(nameof(PublishedPassMarks))]
-    public void Row_WeightsEveryDomainTheQuestionBankUses(string slug, int passMark)
+    public void Row_NamesTheSameDomainsAsItsQuestionBank(string slug, int passMark)
     {
         _ = passMark;
         var bankDomains = LoadBankDomains(slug);
         if (bankDomains == null) return;
 
-        var unweighted = bankDomains.Except(ExamWeightings.BySlug[slug].DomainWeights.Keys).ToList();
+        var weighted = ExamWeightings.BySlug[slug].DomainWeights.Keys.ToHashSet();
+        var uncovered = KnownUncoveredDomains.GetValueOrDefault(slug, []);
 
-        Assert.True(unweighted.Count == 0,
-            $"{slug} question bank uses Domains its weights row does not name: [{string.Join(", ", unweighted)}]");
+        Assert.True(bankDomains.IsSubsetOf(weighted),
+            $"{slug} bank uses unweighted Domains: [{string.Join(", ", bankDomains.Except(weighted))}]");
+        Assert.Equal(weighted.Except(uncovered).Order(), bankDomains.Order());
     }
 
     private static HashSet<string>? LoadBankDomains(string slug)

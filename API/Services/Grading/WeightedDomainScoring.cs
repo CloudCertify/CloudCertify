@@ -8,6 +8,7 @@ namespace API.Services.Grading;
 /// <example><c>new WeightedDomainScoring(ExamWeightings.BySlug["SAA-C03"]).Score(questions)</c></example>
 public class WeightedDomainScoring(ExamWeighting weighting) : IScoringRule
 {
+    /// <inheritdoc />
     public GradingResult Score(IReadOnlyList<GradedQuestion> questions)
     {
         var breakdown = weighting.DomainWeights

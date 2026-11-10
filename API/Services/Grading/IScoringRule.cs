@@ -10,5 +10,10 @@ public record GradedQuestion(string? Domain, bool IsCorrect);
 /// <summary>Turns an attempt's graded Questions into a result. Picked by <see cref="ScoringRules.For"/>.</summary>
 public interface IScoringRule
 {
+    /// <summary>
+    /// Scores the served Questions of one attempt. Every served Question must be present, an
+    /// unanswered one as <c>IsCorrect: false</c>, so the denominator is the served count (ADR 0001).
+    /// </summary>
+    /// <example><c>rule.Score([new GradedQuestion("Security", IsCorrect: true)])</c></example>
     GradingResult Score(IReadOnlyList<GradedQuestion> questions);
 }
