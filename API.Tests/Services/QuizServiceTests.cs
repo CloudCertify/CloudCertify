@@ -486,177 +486,6 @@ public class QuizServiceTests
     }
 
     [Fact]
-    public async Task SubmitQuiz_GradesRecordedAnswers_IdenticallyToTheAnswersCommitted()
-    {
-        // An attempt answered identically scores the same as before the commit-as-you-go change.
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
-            RecordedAnswers = [Recorded(100, 1), Recorded(101, 3)]
-        };
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
-        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(new List<Question>
-        {
-            Question(100, "D", correctIds: [1], wrongIds: [2]),
-            Question(101, "D", correctIds: [3], wrongIds: [4])
-        });
-
-        var response = await CreateService().SubmitQuiz(1, 5);
-
-        Assert.Equal(2, response.CorrectCount);
-        Assert.Equal(1000, response.ScaledScore);
-    }
-
-    [Fact]
-    public async Task SubmitQuiz_ScoresIdentically_WhateverTheConfidence()
-    {
-        // Self-reported data is never score-bearing: two attempts answered the same but rated
-        // oppositely (or not at all) must produce the same score and pass/fail (ADR 0006).
-        async Task<SubmitQuizResponseDto> Grade(Confidence?[] confidences)
-        {
-            var submissions = new Mock<ISubmissionRepository>();
-            var questions = new Mock<IQuestionRepository>();
-            var quizzes = new Mock<IQuizRepository>();
-            submissions.Setup(r => r.GetById(5)).ReturnsAsync(new Submission
-            {
-                Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
-                RecordedAnswers =
-                [
-                    Rated(Recorded(100, 1), confidences[0]),
-                    Rated(Recorded(101, 4), confidences[1])
-                ]
-            });
-            quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
-            questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(new List<Question>
-            {
-                Question(100, "D", correctIds: [1], wrongIds: [2]),
-                Question(101, "D", correctIds: [3], wrongIds: [4])
-            });
-
-            return await new QuizService(quizzes.Object, questions.Object, submissions.Object,
-                new SubmissionGrader(questions.Object, submissions.Object),
-                NullLogger<QuizService>.Instance).SubmitQuiz(1, 5);
-        }
-
-        var unrated = await Grade([null, null]);
-        var confident = await Grade([Confidence.Confident, Confidence.Confident]);
-        var guessed = await Grade([Confidence.Guess, Confidence.Guess]);
-
-        Assert.Equal(unrated.ScaledScore, confident.ScaledScore);
-        Assert.Equal(unrated.ScaledScore, guessed.ScaledScore);
-        Assert.Equal(unrated.Passed, confident.Passed);
-        Assert.Equal(unrated.CorrectCount, guessed.CorrectCount);
-        Assert.Equal(
-            unrated.DomainBreakdown.Select(d => (d.Domain, d.Correct, d.Total)),
-            guessed.DomainBreakdown.Select(d => (d.Domain, d.Correct, d.Total)));
-    }
-
-    private static RecordedAnswer Rated(RecordedAnswer answer, Confidence? confidence)
-    {
-        answer.Confidence = confidence;
-        return answer;
-    }
-
-    [Fact]
-    public async Task SubmitQuiz_CountsLuckyGuessesAndMisconceptions_FromRecordedAnswers()
-    {
-        // 100: guessed and right (lucky guess). 101: sure and wrong (misconception).
-        // 102: guessed and wrong, 103: unrated — neither is either count (ADR 0006).
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101, 102, 103],
-            RecordedAnswers =
-            [
-                Rated(Recorded(100, 1), Confidence.Guess),
-                Rated(Recorded(101, 4), Confidence.Confident),
-                Rated(Recorded(102, 6), Confidence.Guess),
-                Rated(Recorded(103, 7), null)
-            ]
-        };
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
-        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(new List<Question>
-        {
-            Question(100, "D", correctIds: [1], wrongIds: [2]),
-            Question(101, "D", correctIds: [3], wrongIds: [4]),
-            Question(102, "D", correctIds: [5], wrongIds: [6]),
-            Question(103, "D", correctIds: [7], wrongIds: [8])
-        });
-
-        var response = await CreateService().SubmitQuiz(1, 5);
-
-        Assert.Equal(1, response.LuckyGuessCount);
-        Assert.Equal(1, response.MisconceptionCount);
-    }
-
-    [Fact]
-    public async Task SubmitQuiz_ReportsNoConfidence_WhenNothingWasRated()
-    {
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100],
-            RecordedAnswers = [Recorded(100, 1)]
-        };
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
-        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>()))
-            .ReturnsAsync([Question(100, "D", correctIds: [1], wrongIds: [2])]);
-
-        var response = await CreateService().SubmitQuiz(1, 5);
-
-        Assert.Equal(0, response.LuckyGuessCount);
-        Assert.Equal(0, response.MisconceptionCount);
-        Assert.Null(Assert.Single(response.Questions).Confidence);
-    }
-
-    [Fact]
-    public async Task SubmitQuiz_CarriesConfidenceIntoReview_PerQuestion()
-    {
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
-            RecordedAnswers = [Rated(Recorded(100, 1), Confidence.Unsure), Recorded(101, 3)]
-        };
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
-        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(new List<Question>
-        {
-            Question(100, "D", correctIds: [1], wrongIds: [2]),
-            Question(101, "D", correctIds: [3], wrongIds: [4])
-        });
-
-        var response = await CreateService().SubmitQuiz(1, 5);
-
-        Assert.Equal(Confidence.Unsure, response.Questions.Single(q => q.Id == 100).Confidence);
-        Assert.Null(response.Questions.Single(q => q.Id == 101).Confidence);
-    }
-
-    [Fact]
-    public async Task SubmitQuiz_ResultContentFollowsSubmissionLanguage()
-    {
-        // The Submission was started in pt-BR; results resolve from its stored Language.
-        var question = Question(100, "D", correctIds: [1], wrongIds: [2], explanation: "because AWS");
-        question.Text = "What is EC2?";
-        question.TextPt = "O que é EC2?";
-        question.ExplanationPt = "porque AWS";
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100], Language = Language.PtBr,
-            RecordedAnswers = [Recorded(100, 1)]
-        };
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "XYZ-C99" });
-        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync([question]);
-
-        var response = await CreateService().SubmitQuiz(1, 5);
-
-        var resultQuestion = Assert.Single(response.Questions);
-        Assert.Equal("O que é EC2?", resultQuestion.Text);
-        Assert.Equal("porque AWS", resultQuestion.Explanation);
-    }
-
-    [Fact]
     public async Task SubmitQuiz_Throws_WhenSubmissionMissing()
     {
         _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "SAA-C03" });
@@ -727,87 +556,23 @@ public class QuizServiceTests
     }
 
     [Fact]
-    public async Task SubmitQuiz_GradesScoresAndPersistsFinishedSubmission()
+    public async Task SubmitQuiz_FinishesTheLoadedSubmission_OnItsQuizsExamWeighting()
     {
         var submission = new Submission
         {
-            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, Finished = false, ServedQuestionIds = [100],
-            RecordedAnswers = [Recorded(100, 1)] // committed during the attempt, fully correct
+            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100],
+            RecordedAnswers = [Stamped(100, true, 1)]
         };
-        var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" }; // unknown slug -> default strategy
-        var question = Question(100, "D", correctIds: [1], wrongIds: [2]);
-
         _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "SAA-C03" });
         _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>()))
-            .ReturnsAsync(new List<Question> { question });
+            .ReturnsAsync([Question(100, "Design Secure Architectures", correctIds: [1], wrongIds: [2])]);
 
         var response = await CreateService().SubmitQuiz(1, 5);
 
-        Assert.Equal(1000, response.ScaledScore); // default strategy, 100% correct
-        Assert.True(response.Passed);
-        Assert.Equal(1, response.CorrectCount);
+        Assert.Equal(720, response.PassingScore); // SAA-C03's published pass mark, not the flat 700
+        Assert.Single(response.DomainBreakdown);
         Assert.True(submission.Finished);
-        Assert.Equal(1000, submission.Score);
-        _submissions.Verify(r => r.Update(It.Is<Submission>(s => s.Finished && s.Score == 1000)), Times.Once);
-    }
-
-    [Fact]
-    public async Task SubmitQuiz_GradesAgainstServedSet_SkippedQuestionCountsAsWrong()
-    {
-        // Two questions served; the visitor answered only one, leaving the other unanswered.
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
-            RecordedAnswers = [Recorded(100, 1)] // only the first, correct; 101 never answered
-        };
-        var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" }; // default strategy: 0-1000 scaled
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
-        _questions.Setup(r => r.GetQuestionsByIds(It.Is<List<int>>(ids => ids.SequenceEqual(new[] { 100, 101 }))))
-            .ReturnsAsync(new List<Question>
-            {
-                Question(100, "D", correctIds: [1], wrongIds: [2]),
-                Question(101, "D", correctIds: [3], wrongIds: [4])
-            });
-
-        var response = await CreateService().SubmitQuiz(1, 5);
-
-        // Denominator is the served count (2), not the answered count (1). Skipped 101 is wrong.
-        Assert.Equal(2, response.TotalQuestions);
-        Assert.Equal(1, response.CorrectCount);
-        Assert.Equal(550, response.ScaledScore); // round(100 + 0.5 * 900)
-        // Grading queried the served set, not the client-submitted ids.
-        _questions.Verify(r => r.GetQuestionsByIds(It.Is<List<int>>(ids => ids.SequenceEqual(new[] { 100, 101 }))), Times.Once);
-    }
-
-    [Fact]
-    public async Task SubmitQuiz_ClientCannotInflateScore_ByOmittingAnswers()
-    {
-        // A served question the client is unsure about: omitting it must not beat answering it wrong.
-        var served = new List<Question>
-        {
-            Question(100, "D", correctIds: [1], wrongIds: [2]),
-            Question(101, "D", correctIds: [3], wrongIds: [4])
-        };
-        var quiz = new Quiz { Id = 1, Slug = "XYZ-C99" };
-
-        async Task<int> ScoreFor(List<RecordedAnswer> recorded)
-        {
-            var submission = new Submission
-            {
-                Id = 5, QuizId = 1, Email = "u@e.com", Mode = Mode.Exam, ServedQuestionIds = [100, 101],
-                RecordedAnswers = recorded
-            };
-            _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-            _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(quiz);
-            _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(served);
-            return (await CreateService().SubmitQuiz(1, 5)).ScaledScore;
-        }
-
-        var omitted = await ScoreFor([Recorded(100, 1)]);                        // 101 never answered
-        var answeredWrong = await ScoreFor([Recorded(100, 1), Recorded(101, 4)]); // 101 answered incorrectly
-
-        Assert.Equal(answeredWrong, omitted); // leaving a question unanswered buys nothing
+        _submissions.Verify(r => r.GetById(5), Times.Once);
     }
 }

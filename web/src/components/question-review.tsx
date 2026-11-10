@@ -35,9 +35,10 @@ export function QuestionReview({
       </h3>
       <Accordion type='single' collapsible className='w-full'>
         {questions.map((question, index) => {
-          const isCorrect = question.answers.every(a =>
-            a.isCorrect ? a.wasSelected : !a.wasSelected
-          );
+          // The verdict stamped when the answer was committed, the one the Score
+          // counted. The per-Answer flags reflect today's key, which may have
+          // changed since (ADR 0007).
+          const { isCorrect } = question;
 
           return (
             <AccordionItem key={question.id} value={`question-${question.id}`}>

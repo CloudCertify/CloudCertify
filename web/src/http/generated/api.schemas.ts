@@ -300,6 +300,7 @@ export interface QuizResultQuestionDto {
   /** @nullable */
   explanation?: string | null;
   confidence?: Confidence | null;
+  isCorrect: boolean;
   answers: QuizResultAnswerDto[];
 }
 
@@ -339,6 +340,7 @@ export interface SubmitQuizResponseDto {
   correctCount: number;
   scaledScore: number;
   passed: boolean;
+  passingScore: number;
   luckyGuessCount: number;
   misconceptionCount: number;
   domainBreakdown: DomainResult[];

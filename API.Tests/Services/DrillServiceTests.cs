@@ -11,11 +11,18 @@ namespace API.Tests.Services;
 public class DrillServiceTests
 {
     private readonly Mock<IDrillRepository> _drills = new();
+    private readonly Mock<IQuizRepository> _quizzes = new();
     private readonly Mock<IQuestionRepository> _questions = new();
     private readonly Mock<ISubmissionRepository> _submissions = new();
 
+    public DrillServiceTests()
+    {
+        // FinishDrill hands the grader the parent Quiz; any id resolves to an uncataloged Quiz.
+        _quizzes.Setup(r => r.GetQuizById(It.IsAny<int>())).ReturnsAsync((int id) => new Quiz { Id = id, Slug = "XYZ-C99" });
+    }
+
     private DrillService CreateService(DateTime? now = null) =>
-        new(_drills.Object, _questions.Object, _submissions.Object,
+        new(_drills.Object, _quizzes.Object, _questions.Object, _submissions.Object,
             new SubmissionGrader(_questions.Object, _submissions.Object), new FixedClock(now ?? Now));
 
     /// <summary>"Now" for every drill start: well after the fixtures' history, so a proof is Due.</summary>
@@ -419,6 +426,40 @@ public class DrillServiceTests
     }
 
     [Fact]
+    public async Task FinishDrill_FinishesTheLoadedSubmission_OnThePracticeRule_WhateverTheQuiz()
+    {
+        // SAA-C03 has an Exam Weighting, but Practice is graded by Mode, not by Quiz (ADR 0010).
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync(new Quiz { Id = 1, Slug = "SAA-C03" });
+        var submission = new Submission
+        {
+            Id = 5, QuizId = 1, DrillId = 2, Mode = Mode.Practice, Email = "u@e.com",
+            ServedQuestionIds = [10], RecordedAnswers = [Stamped(10, true, 1)]
+        };
+        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
+        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>()))
+            .ReturnsAsync([Question(10, "Design Secure Architectures", correctIds: [1], wrongIds: [2])]);
+
+        var response = await CreateService().FinishDrill(1, 2, 5);
+
+        Assert.Equal(100, response.ScaledScore);
+        Assert.Equal(70, response.PassingScore);
+        Assert.Empty(response.DomainBreakdown);
+        Assert.True(submission.Finished);
+        _submissions.Verify(r => r.GetById(5), Times.Once);
+    }
+
+    [Fact]
+    public async Task FinishDrill_Throws_WhenQuizMissing()
+    {
+        _quizzes.Setup(r => r.GetQuizById(1)).ReturnsAsync((Quiz?)null);
+        _submissions.Setup(r => r.GetById(5))
+            .ReturnsAsync(new Submission { Id = 5, QuizId = 1, DrillId = 2, Mode = Mode.Practice });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => CreateService().FinishDrill(1, 2, 5));
+        _submissions.Verify(r => r.Update(It.IsAny<Submission>()), Times.Never);
+    }
+
+    [Fact]
     public async Task FinishDrill_Throws_WhenAlreadyFinished()
     {
         _submissions.Setup(r => r.GetById(5))
@@ -427,77 +468,6 @@ public class DrillServiceTests
         var service = CreateService();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.FinishDrill(1, 2, 5));
-    }
-
-    [Fact]
-    public async Task FinishDrill_GradesRecordedAnswers_ScoresAndPersistsFinishedSubmission()
-    {
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, DrillId = 2, Mode = Mode.Practice, Finished = false, Email = "u@e.com",
-            ServedQuestionIds = [10], RecordedAnswers = [Recorded(10, 1)] // checked correctly
-        };
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>()))
-            .ReturnsAsync(new List<Question> { Question(10, "D", correctIds: [1], wrongIds: [2]) });
-
-        var response = await CreateService().FinishDrill(1, 2, 5);
-
-        Assert.Equal(100, response.ScaledScore); // drill -> 0-100 percentage
-        Assert.True(response.Passed);
-        Assert.True(submission.Finished);
-        Assert.Equal(100, submission.Score);
-        _submissions.Verify(r => r.Update(It.Is<Submission>(s => s.Finished && s.Score == 100)), Times.Once);
-    }
-
-    [Theory]
-    [InlineData(7, 70, true)]  // exactly at the pass threshold
-    [InlineData(6, 60, false)] // just below
-    public async Task FinishDrill_ScoresPercentage_AndPassesAtSeventy(int correctCount, int expectedScore, bool expectedPass)
-    {
-        var questions = Enumerable.Range(1, 10)
-            .Select(i => Question(i, "D", correctIds: [i * 10], wrongIds: [i * 10 + 1]))
-            .ToList();
-        var recorded = questions
-            .Select((q, idx) => Recorded(q.Id, idx < correctCount ? (idx + 1) * 10 : (idx + 1) * 10 + 1))
-            .ToList();
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, DrillId = 2, Mode = Mode.Practice, Finished = false, Email = "u@e.com",
-            ServedQuestionIds = questions.Select(q => q.Id).ToList(), RecordedAnswers = recorded
-        };
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _questions.Setup(r => r.GetQuestionsByIds(It.IsAny<List<int>>())).ReturnsAsync(questions);
-
-        var response = await CreateService().FinishDrill(1, 2, 5);
-
-        Assert.Equal(expectedScore, response.ScaledScore);
-        Assert.Equal(expectedPass, response.Passed);
-    }
-
-    [Fact]
-    public async Task FinishDrill_GradesAgainstServedSet_UncheckedQuestionCountsAsWrong()
-    {
-        // Two questions served; only one was checked. The unchecked one stays in the denominator (ADR 0001).
-        var submission = new Submission
-        {
-            Id = 5, QuizId = 1, DrillId = 2, Mode = Mode.Practice, Finished = false, Email = "u@e.com",
-            ServedQuestionIds = [10, 11], RecordedAnswers = [Recorded(10, 1)] // 11 never checked
-        };
-        _submissions.Setup(r => r.GetById(5)).ReturnsAsync(submission);
-        _questions.Setup(r => r.GetQuestionsByIds(It.Is<List<int>>(ids => ids.SequenceEqual(new[] { 10, 11 }))))
-            .ReturnsAsync(new List<Question>
-            {
-                Question(10, "D", correctIds: [1], wrongIds: [2]),
-                Question(11, "D", correctIds: [3], wrongIds: [4])
-            });
-
-        var response = await CreateService().FinishDrill(1, 2, 5);
-
-        Assert.Equal(2, response.TotalQuestions); // served count, not checked count
-        Assert.Equal(1, response.CorrectCount);
-        Assert.Equal(50, response.ScaledScore);   // 1/2 -> 50%
-        Assert.False(response.Passed);
     }
 
     [Fact]

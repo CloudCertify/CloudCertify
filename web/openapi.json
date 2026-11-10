@@ -1392,6 +1392,7 @@
           "id",
           "text",
           "type",
+          "isCorrect",
           "answers"
         ],
         "type": "object",
@@ -1434,6 +1435,9 @@
           },
           "confidence": {
             "$ref": "#/components/schemas/Confidence"
+          },
+          "isCorrect": {
+            "type": "boolean"
           },
           "answers": {
             "type": "array",
@@ -1529,6 +1533,7 @@
           "correctCount",
           "scaledScore",
           "passed",
+          "passingScore",
           "luckyGuessCount",
           "misconceptionCount",
           "domainBreakdown",
@@ -1554,6 +1559,10 @@
           },
           "passed": {
             "type": "boolean"
+          },
+          "passingScore": {
+            "type": "integer",
+            "format": "int32"
           },
           "luckyGuessCount": {
             "type": "integer",

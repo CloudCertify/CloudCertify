@@ -12,6 +12,7 @@ const question = (
   text: `Q${id}`,
   type: 'multiple_choice',
   confidence,
+  isCorrect: false,
   answers: [],
 });
 

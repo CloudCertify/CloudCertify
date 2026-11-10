@@ -89,7 +89,8 @@ follows the Mode: in Practice a Recorded Answer is committed at Check
 and is immutable, because a Check is final; in an Exam it is committed as
 the visitor answers and stays revisable until Submit, because the Navigator
 allows returning to any Question. Either way, the accumulated Recorded Answers
-are what the attempt's final score is computed from.
+are what the attempt's final score is computed from: grading counts the stamped
+correctness, never the current answer key (ADR 0007).
 _Avoid_: Response, Choice, Pick
 
 **Confidence**:
@@ -243,7 +244,15 @@ that would turn recall into recognition.
 _Avoid_: Breakdown, Stats, Mix report
 
 **Grading Strategy**:
-The per-Quiz rule for turning answered Questions into a result. CLF-C02 Exam uses
-Domain-weighted scaled scoring; Practice uses flat percentage; everything
-else uses a default percentage-on-the-1000-scale fallback.
+The rule for turning an attempt's stamped Recorded Answers into a result, picked
+from Mode and Quiz. Practice is always a flat 0-100 percentage (pass ≥ 70). An
+Exam on a cataloged certification uses Domain-weighted scaled scoring from that
+certification's Exam Weighting; any other Exam uses the flat 100-1000 band
+(pass ≥ 700).
 _Avoid_: Scorer, Grader, Marker
+
+**Exam Weighting**:
+One certification's published scoring as data: its content-Domain weights
+(summing to 100%), its passing Scaled Score (700, 720 or 750) and the exam guide
+it comes from, keyed by Quiz slug. Adding a certification adds one row.
+_Avoid_: Blueprint, Scorecard
