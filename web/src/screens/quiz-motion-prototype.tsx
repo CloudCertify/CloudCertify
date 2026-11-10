@@ -11,6 +11,7 @@ import { ConfidenceRating } from '@/components/confidence-rating';
 import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { useI18n } from '@/i18n/use-i18n';
 import type { Confidence, QuestionDto } from '@/http/generated/api.schemas';
+import { nextSelection, requiredCount } from '@/attempt/selection';
 
 // Development preview of the production components, with local sample answers.
 const SAMPLES: { question: QuestionDto; correct: number[]; explanation: string }[] = [
@@ -52,10 +53,7 @@ export function QuizMotionPrototypePage() {
   function select(id: number) {
     setAnswers(previous => {
       const current = previous[index] ?? [];
-      const next = sample.question.type === 'multiple_response'
-        ? current.includes(id) ? current.filter(value => value !== id) : current.length < (sample.question.selectCount ?? 2) ? [...current, id] : current
-        : [id];
-      return { ...previous, [index]: next };
+      return { ...previous, [index]: nextSelection(sample.question, current, id) };
     });
     setRatings(previous => { const next = { ...previous }; delete next[index]; return next; });
   }
@@ -90,7 +88,7 @@ export function QuizMotionPrototypePage() {
               {selectedIds.length > 0 && <ConfidenceRating value={ratings[index] ?? null} onRate={value => setRatings(previous => ({ ...previous, [index]: value }))} />}
             </>
           ) : (
-            <PracticeQuestionCard {...common} phase={phase} reveal={phase === 'revealed' ? { isCorrect: correct, correctAnswerIds: sample.correct, selectedAnswerIds: selectedIds, explanation: sample.explanation } : null} onCheck={() => setPhase('revealed')} onContinue={advance} isChecking={false} isFinishing={false} isLast={index === SAMPLES.length - 1} />
+            <PracticeQuestionCard {...common} phase={phase} reveal={phase === 'revealed' ? { isCorrect: correct, correctAnswerIds: sample.correct, selectedAnswerIds: selectedIds, explanation: sample.explanation } : null} onCheck={() => setPhase('revealed')} onContinue={advance} canCheck={selectedIds.length === requiredCount(sample.question)} isChecking={false} isFinishing={false} isLast={index === SAMPLES.length - 1} />
           )}
         </div>
         <ConfirmFinishDialog open={confirmOpen} unansweredCount={SAMPLES.filter((_, i) => !answers[i]?.length).length} onCancel={() => setConfirmOpen(false)} onConfirm={() => { setConfirmOpen(false); setFinished(true); }} />

@@ -45,6 +45,8 @@ type PracticeQuestionCardProps = {
   reveal: CheckAnswerResponseDto | null;
   onCheck: () => void;
   onContinue: () => void;
+  /** Whether Check is allowed now; the attempt module decides (required count reached). */
+  canCheck: boolean;
   /** Network in flight for the Check call. */
   isChecking: boolean;
   /** Network in flight for the finish call (last question's Continue). */
@@ -69,6 +71,7 @@ export function PracticeQuestionCard({
   reveal,
   onCheck,
   onContinue,
+  canCheck,
   isChecking,
   isFinishing,
   isLast,
@@ -81,8 +84,6 @@ export function PracticeQuestionCard({
   const isMultiResponse = question.type === 'multiple_response';
   const selectCount = question.selectCount ?? 1;
   const isRevealed = phase === 'revealed';
-  // Story #6: Check stays disabled until exactly the required number is picked.
-  const canCheck = selectedIds.length === selectCount;
 
   const correctIds = reveal?.correctAnswerIds ?? [];
   const revealedSelectedIds = reveal?.selectedAnswerIds ?? [];
@@ -286,7 +287,7 @@ export function PracticeQuestionCard({
           // Busy stays focusable (aria-disabled): disabling the focused button drops focus to <body>.
           <Button
             onClick={() => !isChecking && onCheck()}
-            disabled={!canCheck}
+            disabled={!canCheck && !isChecking}
             aria-disabled={isChecking || undefined}
             aria-busy={isChecking}
             aria-keyshortcuts='Enter'

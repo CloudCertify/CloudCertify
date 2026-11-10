@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,196 +23,31 @@ import { Footer } from '@/components/footer';
 import { AppHeader } from '@/components/app-header';
 import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
-import { toast } from 'sonner';
-import {
-  postQuizQuizIdAnswer,
-  postQuizQuizIdStart,
-  postQuizQuizIdSubmit
-} from '@/http/generated/api';
-import type {
-  Confidence,
-  QuizDetailDto,
-  QuizResultQuestionDto,
-  DomainResult
-} from '@/http/generated/api.schemas';
-
-// Full-quiz attempts report an AWS-style scaled score (100–1000); pass is server-decided.
-const PASSING_SCALED_SCORE = 700;
-
-type SessionData = {
-  quizDetail: QuizDetailDto;
-  email: string | null;
-};
-
-type Phase = 'quiz' | 'results';
+import { AttemptEmpty } from '@/components/attempt-empty';
+import { useAttempt } from '@/attempt/use-attempt';
 
 export function QuizSessionPage() {
   const params = useParams<{ id: string }>();
   const quizId = Number(params.id);
-  const router = useRouter();
   const { t } = useI18n();
+  const attempt = useAttempt({ quizId });
 
-  const [sessionData, setSessionData] = useState<SessionData | null>(null);
-  const [phase, setPhase] = useState<Phase>('quiz');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<Record<number, number[]>>({});
-  // Confidence is optional and never gates Submit, so an unrated question is simply absent here.
-  const [confidences, setConfidences] = useState<Record<number, Confidence>>({});
-  const [scaledScore, setScaledScore] = useState<number | null>(null);
-  const [passed, setPassed] = useState(false);
-  const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
-  const [correctCount, setCorrectCount] = useState<number | null>(null);
-  const [domainBreakdown, setDomainBreakdown] = useState<DomainResult[]>([]);
-  // Server-counted from the persisted Recorded Answers, never recomputed from the
-  // in-memory ratings above: the attempt is the source of truth (ADR 0006).
-  const [luckyGuessCount, setLuckyGuessCount] = useState(0);
-  const [misconceptionCount, setMisconceptionCount] = useState(0);
-  const [resultQuestions, setResultQuestions] = useState<QuizResultQuestionDto[] | null>(
-    null
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRestarting, setIsRestarting] = useState(false);
-  const [confirmFinishOpen, setConfirmFinishOpen] = useState(false);
+  if (attempt.status === 'loading' || attempt.payload == null) return null;
 
-  useEffect(() => {
-    const raw = sessionStorage.getItem(`quiz-session-${quizId}`);
-    if (!raw) {
-      router.push(`/quiz/${quizId}`);
-      return;
-    }
-    try {
-      setSessionData(JSON.parse(raw));
-    } catch {
-      router.push(`/quiz/${quizId}`);
-    }
-  }, [quizId, router]);
+  if (attempt.status === 'empty') return <AttemptEmpty quizId={quizId} />;
 
-  if (!sessionData) return null;
-
-  const { quizDetail, email } = sessionData;
-  const questions = quizDetail.questions ?? [];
+  const quizDetail = attempt.payload.detail;
+  const { questions, currentIndex, currentQuestion, result } = attempt;
   const questionsCount = questions.length;
-  const currentQuestion = questions[currentIndex];
 
-  // Every selection is committed to the server as a Recorded Answer, so the attempt —
-  // not the browser — is the source of truth at Submit (ADR 0006). Re-answering a
-  // Question overwrites its previous commit; nothing about correctness comes back.
-  const commitAnswer = (
-    questionId: number,
-    answerIds: number[],
-    confidence: Confidence | null
-  ) => {
-    postQuizQuizIdAnswer(quizId, {
-      submissionId: quizDetail.submissionId,
-      questionId,
-      answerIds,
-      confidence
-    }).catch(() => toast.error(t.results.answerError));
-  };
-
-  // Rating rides along with the answer it describes; the latest commit wins (ADR 0006).
-  const handleRate = (confidence: Confidence) => {
-    const qId = currentQuestion?.id;
-    if (qId == null) return;
-    setConfidences(prev => ({ ...prev, [qId]: confidence }));
-    commitAnswer(qId, userAnswers[qId] ?? [], confidence);
-  };
-
-  const handleAnswerSelect = (answerId: number) => {
-    if (currentQuestion.id == null) return;
-    const qId = currentQuestion.id!;
-    const type = currentQuestion.type;
-    const selectCount = currentQuestion.selectCount ?? 1;
-
-    const current = userAnswers[qId] ?? [];
-    const next =
-      type === 'multiple_response'
-        ? current.includes(answerId)
-          ? current.filter(id => id !== answerId)
-          : current.length >= selectCount
-            ? current
-            : [...current, answerId]
-        : [answerId];
-
-    // Nothing changed (selection capped, or the same single choice re-picked): don't commit,
-    // and above all don't drop a Confidence the visitor already gave for this same answer.
-    if (next.length === current.length && next.every(id => current.includes(id))) return;
-
-    setUserAnswers(prev => ({ ...prev, [qId]: next }));
-    // A new answer invalidates the old rating: changing the answer means re-rating it.
-    setConfidences(prev => {
-      const remaining = { ...prev };
-      delete remaining[qId];
-      return remaining;
-    });
-    commitAnswer(qId, next, null);
-  };
-
-  const unansweredCount = questions.filter(
-    q => q.id == null || (userAnswers[q.id]?.length ?? 0) === 0
-  ).length;
-
-  // Submission is final and Finish is reachable from anywhere (Navigator,
-  // persistent button, Enter on the last question) — always confirm.
-  const handleFinishRequest = () => setConfirmFinishOpen(true);
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      // No answers in the body: the server grades the Recorded Answers it collected (ADR 0006).
-      const res = await postQuizQuizIdSubmit(quizId, {
-        submissionId: quizDetail.submissionId
-      });
-      setScaledScore(res.data.scaledScore);
-      setPassed(res.data.passed);
-      setTotalQuestions(res.data.totalQuestions);
-      setCorrectCount(res.data.correctCount);
-      setDomainBreakdown(res.data.domainBreakdown ?? []);
-      setLuckyGuessCount(res.data.luckyGuessCount);
-      setMisconceptionCount(res.data.misconceptionCount);
-      setResultQuestions(res.data.questions);
-      setPhase('results');
-    } catch {
-      // A finished submission can't be re-graded (server-authoritative, issue #12):
-      // surface it instead of silently re-enabling the button on a dead-ended attempt.
-      toast.error(t.results.submitError);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleTryAgain = async () => {
-    setIsRestarting(true);
-    try {
-      const res = await postQuizQuizIdStart(quizId, { email });
-      const newData: SessionData = { quizDetail: res.data, email };
-      sessionStorage.setItem(`quiz-session-${quizId}`, JSON.stringify(newData));
-      setSessionData(newData);
-      setCurrentIndex(0);
-      setUserAnswers({});
-      setConfidences({});
-      setScaledScore(null);
-      setPassed(false);
-      setTotalQuestions(null);
-      setCorrectCount(null);
-      setDomainBreakdown([]);
-      setLuckyGuessCount(0);
-      setMisconceptionCount(0);
-      setResultQuestions(null);
-      setPhase('quiz');
-    } catch {
-      toast.error(t.results.restartError);
-    } finally {
-      setIsRestarting(false);
-    }
-  };
-
-  if (phase === 'results') {
+  if (attempt.status === 'finished' && result) {
+    const { scaledScore, passed } = result;
     // Scaled score runs 100–1000; map onto the 0–100 progress bar.
     const barValue =
       scaledScore != null
         ? Math.max(0, Math.min(100, Math.round(((scaledScore - 100) / 900) * 100)))
         : 0;
+    const domainBreakdown = result.domainBreakdown ?? [];
 
     return (
       <div className='flex min-h-dvh flex-col bg-background'>
@@ -239,11 +73,13 @@ export function QuizSessionPage() {
                 </div>
 
                 <Badge className={passed ? 'bg-success' : 'bg-destructive'}>
-                  {t.results.passingScore(passed, String(PASSING_SCALED_SCORE))}
+                  {result.passingScore == null
+                    ? t.attempt.verdict(passed)
+                    : t.results.passingScore(passed, String(result.passingScore))}
                 </Badge>
 
                 <p className='text-xl font-bold text-black'>
-                  {t.results.scoreLine(correctCount ?? 0, totalQuestions ?? 0)}
+                  {t.results.scoreLine(result.correctCount, result.totalQuestions)}
                 </p>
 
                 <div className='w-full max-w-md mt-4'>
@@ -291,16 +127,16 @@ export function QuizSessionPage() {
               )}
 
               <ConfidenceSummary
-                luckyGuessCount={luckyGuessCount}
-                misconceptionCount={misconceptionCount}
-                questions={resultQuestions ?? []}
+                luckyGuessCount={result.luckyGuessCount}
+                misconceptionCount={result.misconceptionCount}
+                questions={result.questions}
               />
 
-              <QuestionReview questions={resultQuestions ?? []} />
+              <QuestionReview questions={result.questions} />
             </CardContent>
             <CardFooter className='flex flex-col sm:flex-row gap-4 justify-between border-t-2 border-black pt-6'>
-              <Button variant='outline' onClick={handleTryAgain} disabled={isRestarting}>
-                {isRestarting ? t.common.starting : t.common.tryAgain}
+              <Button variant='outline' onClick={attempt.restart} disabled={attempt.restarting}>
+                {attempt.restarting ? t.common.starting : t.common.tryAgain}
               </Button>
               <Button asChild>
                 <Link href='/dashboard'>{t.common.backToDashboard}</Link>
@@ -323,51 +159,45 @@ export function QuizSessionPage() {
         <div className='relative flex items-start justify-center gap-0 pt-12 lg:gap-6 lg:pt-0'>
           <QuestionNavigator
             currentIndex={currentIndex}
-            answered={questions.map(
-              q => q.id != null && (userAnswers[q.id]?.length ?? 0) > 0
-            )}
+            answered={attempt.answered}
             // The visitor's own "come back to this": a Guess or Unsure rating.
             needsReview={questions.map(
-              q => q.id != null && needsReview(confidences[q.id])
+              q => q.id != null && needsReview(attempt.confidences[q.id])
             )}
-            onJump={setCurrentIndex}
+            onJump={attempt.goTo}
           />
           <div className='min-w-0 max-w-4xl flex-1 space-y-6'>
             <QuestionCard
               index={currentIndex}
               total={questionsCount}
-              question={currentQuestion}
+              question={currentQuestion!}
               meta={<Badge>{quizDetail.title}</Badge>}
-              selectedIds={
-                currentQuestion?.id != null ? userAnswers[currentQuestion.id] ?? [] : []
-              }
-              onSelect={handleAnswerSelect}
-              onPrev={() => setCurrentIndex(i => i - 1)}
-              onNext={() => setCurrentIndex(i => i + 1)}
-              onFinish={handleFinishRequest}
+              selectedIds={attempt.selectedIds}
+              onSelect={attempt.select}
+              onPrev={() => attempt.goTo(currentIndex - 1)}
+              onNext={() => attempt.goTo(currentIndex + 1)}
+              onFinish={attempt.requestSubmit}
               finishLabel={t.question.finishQuiz}
-              isSubmitting={isSubmitting}
+              isSubmitting={attempt.submitting}
             />
-            {currentQuestion?.id != null &&
-              (userAnswers[currentQuestion.id]?.length ?? 0) > 0 && (
-                <ConfidenceRating
-                  value={confidences[currentQuestion.id] ?? null}
-                  onRate={handleRate}
-                />
+            {attempt.selectedIds.length > 0 && (
+              <ConfidenceRating value={attempt.confidence} onRate={attempt.rate} />
+            )}
+            <div className='flex items-center justify-end gap-4'>
+              {attempt.unsavedCount > 0 && (
+                <p role='status' className='text-sm font-bold text-black/70'>
+                  {t.attempt.unsavedCount(attempt.unsavedCount)}
+                </p>
               )}
-            <div className='flex justify-end'>
-              <Button onClick={handleFinishRequest} disabled={isSubmitting}>
-                {isSubmitting ? t.common.submitting : t.question.finishQuiz}
+              <Button onClick={attempt.requestSubmit} disabled={attempt.submitting}>
+                {attempt.submitting ? t.common.submitting : t.question.finishQuiz}
               </Button>
             </div>
             <ConfirmFinishDialog
-              open={confirmFinishOpen}
-              unansweredCount={unansweredCount}
-              onConfirm={() => {
-                setConfirmFinishOpen(false);
-                handleSubmit();
-              }}
-              onCancel={() => setConfirmFinishOpen(false)}
+              open={attempt.confirmingSubmit}
+              unansweredCount={attempt.unansweredCount}
+              onConfirm={attempt.confirmSubmit}
+              onCancel={attempt.cancelSubmit}
             />
           </div>
         </div>
