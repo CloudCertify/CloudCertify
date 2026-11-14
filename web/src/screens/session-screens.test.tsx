@@ -50,6 +50,7 @@ function given(payload: StartPayload, state: Partial<Attempt>) {
     confidence: null,
     phase: 'answering',
     checkResponse: null,
+    outcomes: [null],
     canCheck: false,
     answered: [false],
     unansweredCount: 1,
@@ -110,7 +111,7 @@ describe('session screens', () => {
     given(exam, { unsavedCount: 2 });
     render(<QuizSessionPage />);
     expect(screen.getByText(question.text)).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent(en.attempt.unsavedCount(2));
+    expect(screen.getByText(en.attempt.unsavedCount(2))).toHaveAttribute('role', 'status');
   });
 
   it('Exam: shows the pass mark the server graded against', () => {
@@ -129,7 +130,7 @@ describe('session screens', () => {
   it('Practice: follows the server verdict, not a score band', () => {
     given(drill, { status: 'finished', result: { ...result, score: 90, passed: false, passingScore: 95 } });
     render(<DrillSessionPage />);
-    expect(screen.getByText('90%').parentElement).toHaveStyle({ backgroundColor: '#e23b48' });
-    expect(screen.getByText(en.results.passingScore(false, '95%'))).toBeInTheDocument();
+    expect(screen.getByLabelText('90%')).toBeInTheDocument();
+    expect(screen.getByText(en.results.passingScore(false, '95%'))).toHaveClass('bg-destructive');
   });
 });

@@ -17,10 +17,11 @@ export type StartPayload =
   | { mode: 'practice'; detail: DrillDetailDto; email: string | null };
 
 /**
- * The server's finish or Submit response, held whole. `passingScore` arrives with
- * the grading spec (#103); until then the views show only the server's verdict.
+ * The server's finish or Submit response, held whole. `passingScore` is optional here
+ * though the API now always sends it: a result stored before the grading spec (#103)
+ * has none, and the views then show only the server's verdict.
  */
-export type SubmitResponse = SubmitQuizResponseDto & { passingScore?: number | null };
+export type SubmitResponse = Omit<SubmitQuizResponseDto, 'passingScore'> & { passingScore?: number | null };
 
 /** Everything a reload needs to put the visitor back where they were. */
 export type AttemptProgress = {

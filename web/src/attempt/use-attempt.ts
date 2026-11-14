@@ -224,6 +224,8 @@ export function useAttempt({ quizId, drillId }: AttemptTarget) {
       currentQuestion?.id == null ? null : state.confidences[currentQuestion.id] ?? null,
     phase: phaseOf(state, currentQuestion?.id),
     checkResponse,
+    /** Practice, per Question in order: checked right, checked wrong, or not checked yet. */
+    outcomes: questions.map(q => (q.id == null ? null : state.checks[q.id]?.isCorrect ?? null)),
     canCheck: canCheck(state),
     answered,
     unansweredCount: answered.filter(a => !a).length,

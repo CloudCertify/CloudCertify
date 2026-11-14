@@ -1,10 +1,14 @@
 import type { Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { Archivo } from 'next/font/google';
 import { Providers } from '@/providers';
 import { ServiceWorkerRegistration } from '@/pwa/service-worker-registration';
 import { getRequestLanguage } from '@/i18n/server';
 import { publicMetadata, rootMetadata } from '@/seo/metadata';
 import '@/index.css';
+
+// One family, with width as a second axis: questions run condensed, results expanded.
+const archivo = Archivo({ subsets: ['latin'], axes: ['wdth'], display: 'swap' });
 
 export async function generateMetadata() {
   const { title, description } = publicMetadata('/', await getRequestLanguage());
@@ -16,7 +20,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const language = await getRequestLanguage();
   return (
     <html lang={language}>
-      <body>
+      <body className={archivo.className}>
         <Providers initialLanguage={language}>{children}</Providers>
         <ServiceWorkerRegistration />
       </body>

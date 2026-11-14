@@ -1,24 +1,18 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { QuestionCard } from '@/components/question-card';
-import { QuestionNavigator } from '@/components/question-navigator';
 import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { QuestionReview } from '@/components/question-review';
-import { ConfidenceSummary } from '@/components/confidence-summary';
-import { ConfidenceRating } from '@/components/confidence-rating';
+import { ConfidenceSummary, findingOf, type ConfidenceFinding } from '@/components/confidence-summary';
+import { confidenceHeight, ExamStrip, type StripCell } from '@/components/exam-strip';
+import { ScoreCount } from '@/components/score-count';
 import { needsReview } from '@/lib/confidence';
+import { cue } from '@/lib/cue';
+import { cn } from '@/lib/utils';
 import { Footer } from '@/components/footer';
 import { AppHeader } from '@/components/app-header';
 import { PageBackLink } from '@/components/page-back-link';
@@ -31,6 +25,20 @@ export function QuizSessionPage() {
   const quizId = Number(params.id);
   const { t } = useI18n();
   const attempt = useAttempt({ quizId });
+  const finished = attempt.status === 'finished';
+  const [spot, setSpot] = useState<ConfidenceFinding | null>(null);
+  // The Question a tap on the results strip asked for, and the one open in the review.
+  const [target, setTarget] = useState<{ index: number } | null>(null);
+  const [reviewing, setReviewing] = useState<number | null>(null);
+  // Results open on the strip as the visitor left it; then the verdict colours sweep in.
+  const [graded, setGraded] = useState(false);
+
+  useEffect(() => {
+    if (!finished) return setGraded(false);
+    cue('finish');
+    const frame = requestAnimationFrame(() => setGraded(true));
+    return () => cancelAnimationFrame(frame);
+  }, [finished]);
 
   if (attempt.status === 'loading' || attempt.payload == null) return null;
 
@@ -38,111 +46,102 @@ export function QuizSessionPage() {
 
   const quizDetail = attempt.payload.detail;
   const { questions, currentIndex, currentQuestion, result } = attempt;
-  const questionsCount = questions.length;
 
-  if (attempt.status === 'finished' && result) {
+  if (finished && result) {
     const { scaledScore, passed } = result;
-    // Scaled score runs 100–1000; map onto the 0–100 progress bar.
-    const barValue =
-      scaledScore != null
-        ? Math.max(0, Math.min(100, Math.round(((scaledScore - 100) / 900) * 100)))
-        : 0;
     const domainBreakdown = result.domainBreakdown ?? [];
+    const cells: StripCell[] = result.questions.map(question => ({
+      height: confidenceHeight(question.confidence),
+      tone: !graded ? (needsReview(question.confidence) ? 'revisit' : 'answered') : question.isCorrect ? 'correct' : 'wrong',
+      dim: spot != null && findingOf(question) !== spot
+    }));
+    const afterStrip = 0.3 + cells.length * 0.02;
 
     return (
-      <div className='flex min-h-dvh flex-col bg-background'>
+      <div className='flex min-h-dvh flex-col bg-background text-black'>
         <AppHeader />
-        <main id='main-content' tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        <main id='main-content' tabIndex={-1} className='mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-12'>
           <PageBackLink href='/dashboard' className='mb-6'>
             {t.common.backToDashboard}
           </PageBackLink>
-          <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
-            <CardHeader className='text-center border-b-2 border-black pb-6'>
-              <CardTitle className='text-2xl md:text-3xl font-black text-black'>
-                {t.results.quizTitle}
-              </CardTitle>
-              <p className='text-black/70 font-medium mt-2'>{quizDetail.title}</p>
-            </CardHeader>
-            <CardContent className='space-y-8 py-8'>
-              <div className='flex flex-col items-center justify-center space-y-4'>
-                <div
-                  className='h-32 w-32 rounded-none border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
-                  style={{ backgroundColor: passed ? '#15a06e' : '#e23b48' }}
-                >
-                  <span className='text-4xl font-black text-white'>{scaledScore}</span>
-                </div>
+          <h1 className='text-lg font-black'>
+            {t.results.quizTitle}
+            <span className='font-medium text-black/60'>, {quizDetail.title}</span>
+          </h1>
 
-                <Badge className={passed ? 'bg-success' : 'bg-destructive'}>
-                  {result.passingScore == null
-                    ? t.attempt.verdict(passed)
-                    : t.results.passingScore(passed, String(result.passingScore))}
-                </Badge>
+          {/* Once a finding is singled out the change is instant: the sweep is for the first reveal only. */}
+          <ExamStrip
+            cells={cells}
+            stagger={spot == null}
+            current={reviewing ?? undefined}
+            onJump={index => setTarget({ index })}
+            label={t.review.stripLabel}
+            valueText={i => t.review.stripQuestion(i + 1, result.questions[i]?.isCorrect === true)}
+            className='mt-6 h-28 sm:h-48'
+          />
+          <p className='mt-2 text-sm font-medium text-black/60'>
+            {t.results.stripLegend} {t.results.stripHint}
+          </p>
 
-                <p className='text-xl font-bold text-black'>
-                  {t.results.scoreLine(result.correctCount, result.totalQuestions)}
-                </p>
+          <div className='mt-6 sm:mt-8'>
+            <ScoreCount value={scaledScore} from={100} delay={afterStrip} />
+          </div>
+          <p className={cn('mt-4 inline-block border-2 border-black px-3 py-1 font-black', passed ? 'bg-success' : 'bg-destructive')}>
+            {result.passingScore == null
+              ? t.attempt.verdict(passed)
+              : t.results.passingScore(passed, String(result.passingScore))}
+          </p>
+          <p className='mt-4 max-w-[30ch] text-2xl font-extrabold leading-tight font-stretch-[88%] sm:text-3xl'>
+            {t.results.scoreLine(result.correctCount, result.totalQuestions)}.
+          </p>
 
-                <div className='w-full max-w-md mt-4'>
-                  <Progress
-                    value={barValue}
-                    className={passed ? 'bg-success/20' : 'bg-destructive/20'}
-                    indicatorClassName={passed ? 'bg-success' : 'bg-destructive'}
-                  />
-                </div>
+          <div className='mt-8 flex flex-col gap-4 sm:flex-row'>
+            <Button size='lg' asChild>
+              <a href='#question-review'>{t.results.reviewQuestions}</a>
+            </Button>
+            <Button size='lg' variant='outline' asChild>
+              <Link href='/dashboard'>{t.common.backToDashboard}</Link>
+            </Button>
+            <Button size='lg' variant='outline' onClick={attempt.restart} disabled={attempt.restarting}>
+              {attempt.restarting ? t.common.starting : t.common.tryAgain}
+            </Button>
+          </div>
+
+          <div className='mt-10 space-y-8'>
+            <ConfidenceSummary
+              luckyGuessCount={result.luckyGuessCount}
+              misconceptionCount={result.misconceptionCount}
+              questions={result.questions}
+              spot={spot}
+              onSpot={setSpot}
+            />
+
+            {domainBreakdown.length > 0 && (
+              <div className='space-y-3'>
+                <h2 className='text-xl font-black'>{t.results.domainBreakdown}</h2>
+                <dl className='border-t-2 border-black'>
+                  {domainBreakdown.map(domain => {
+                    const pct = domain.total > 0 ? Math.round((domain.correct / domain.total) * 100) : 0;
+                    return (
+                      <div key={domain.domain} className='grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1.5 border-b-2 border-black py-3 sm:grid-cols-[14rem_1fr_auto]'>
+                        <dt className='font-bold'>{domain.domain}</dt>
+                        <dd className='order-last col-span-2 h-3 border-2 border-black bg-white sm:order-none sm:col-span-1' aria-hidden='true'>
+                          <div className='h-full bg-success' style={{ width: `${pct}%` }} />
+                        </dd>
+                        <dd className='text-sm font-bold tabular-nums text-black/70'>
+                          {t.results.domainStats(domain.correct, domain.total, pct, Math.round(domain.weight * 100))}
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
               </div>
+            )}
 
-              {domainBreakdown.length > 0 && (
-                <div className='space-y-3'>
-                  <h3 className='text-xl font-black text-black'>
-                    {t.results.domainBreakdown}
-                  </h3>
-                  <div className='space-y-2'>
-                    {domainBreakdown.map(domain => {
-                      const pct =
-                        domain.total > 0
-                          ? Math.round((domain.correct / domain.total) * 100)
-                          : 0;
-                      return (
-                        <div
-                          key={domain.domain}
-                          className='rounded-none border-2 border-black p-3'
-                        >
-                          <div className='flex items-center justify-between mb-2'>
-                            <span className='font-bold text-black'>{domain.domain}</span>
-                            <span className='text-sm font-bold text-black/70'>
-                              {t.results.domainStats(
-                                domain.correct,
-                                domain.total,
-                                pct,
-                                Math.round(domain.weight * 100)
-                              )}
-                            </span>
-                          </div>
-                          <Progress value={pct} />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <ConfidenceSummary
-                luckyGuessCount={result.luckyGuessCount}
-                misconceptionCount={result.misconceptionCount}
-                questions={result.questions}
-              />
-
-              <QuestionReview questions={result.questions} />
-            </CardContent>
-            <CardFooter className='flex flex-col sm:flex-row gap-4 justify-between border-t-2 border-black pt-6'>
-              <Button variant='outline' onClick={attempt.restart} disabled={attempt.restarting}>
-                {attempt.restarting ? t.common.starting : t.common.tryAgain}
-              </Button>
-              <Button asChild>
-                <Link href='/dashboard'>{t.common.backToDashboard}</Link>
-              </Button>
-            </CardFooter>
-          </Card>
+            <div id='question-review' className='scroll-mt-20'>
+              <QuestionReview questions={result.questions} heading={t.review.reviewHeading} target={target} onOpenChange={setReviewing} />
+            </div>
+          </div>
         </main>
         <Footer />
       </div>
@@ -150,59 +149,38 @@ export function QuizSessionPage() {
   }
 
   return (
-    <div className='flex min-h-dvh flex-col bg-background'>
-      <AppHeader languageLocked />
-      <main id='main-content' tabIndex={-1} className='container mx-auto flex-1 max-w-7xl px-4 py-12'>
-        <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
-          {t.common.back}
-        </PageBackLink>
-        <div className='relative flex items-start justify-center gap-0 pt-12 lg:gap-6 lg:pt-0'>
-          <QuestionNavigator
-            currentIndex={currentIndex}
-            answered={attempt.answered}
-            // The visitor's own "come back to this": a Guess or Unsure rating.
-            needsReview={questions.map(
-              q => q.id != null && needsReview(attempt.confidences[q.id])
-            )}
-            onJump={attempt.goTo}
-          />
-          <div className='min-w-0 max-w-4xl flex-1 space-y-6'>
-            <QuestionCard
-              index={currentIndex}
-              total={questionsCount}
-              question={currentQuestion!}
-              meta={<Badge>{quizDetail.title}</Badge>}
-              selectedIds={attempt.selectedIds}
-              onSelect={attempt.select}
-              onPrev={() => attempt.goTo(currentIndex - 1)}
-              onNext={() => attempt.goTo(currentIndex + 1)}
-              onFinish={attempt.requestSubmit}
-              finishLabel={t.question.finishQuiz}
-              isSubmitting={attempt.submitting}
-            />
-            {attempt.selectedIds.length > 0 && (
-              <ConfidenceRating value={attempt.confidence} onRate={attempt.rate} />
-            )}
-            <div className='flex items-center justify-end gap-4'>
-              {attempt.unsavedCount > 0 && (
-                <p role='status' className='text-sm font-bold text-black/70'>
-                  {t.attempt.unsavedCount(attempt.unsavedCount)}
-                </p>
-              )}
-              <Button onClick={attempt.requestSubmit} disabled={attempt.submitting}>
-                {attempt.submitting ? t.common.submitting : t.question.finishQuiz}
-              </Button>
-            </div>
-            <ConfirmFinishDialog
-              open={attempt.confirmingSubmit}
-              unansweredCount={attempt.unansweredCount}
-              onConfirm={attempt.confirmSubmit}
-              onCancel={attempt.cancelSubmit}
-            />
-          </div>
-        </div>
-      </main>
-      <Footer />
-    </div>
+    <>
+      <QuestionCard
+        index={currentIndex}
+        total={questions.length}
+        question={currentQuestion!}
+        selectedIds={attempt.selectedIds}
+        onSelect={attempt.select}
+        onPrev={() => attempt.goTo(currentIndex - 1)}
+        onNext={() => attempt.goTo(currentIndex + 1)}
+        onFinish={attempt.requestSubmit}
+        finishLabel={t.question.finishQuiz}
+        isSubmitting={attempt.submitting}
+        answered={attempt.answered}
+        confidences={questions.map(question => (question.id == null ? null : attempt.confidences[question.id]))}
+        onJump={attempt.goTo}
+        confidence={attempt.confidence}
+        onRate={attempt.rate}
+        exitHref={`/quiz/${quizId}`}
+        notice={
+          attempt.unsavedCount > 0 && (
+            <p role='status' className='text-sm font-bold text-black/70'>
+              {t.attempt.unsavedCount(attempt.unsavedCount)}
+            </p>
+          )
+        }
+      />
+      <ConfirmFinishDialog
+        open={attempt.confirmingSubmit}
+        unansweredCount={attempt.unansweredCount}
+        onConfirm={attempt.confirmSubmit}
+        onCancel={attempt.cancelSubmit}
+      />
+    </>
   );
 }

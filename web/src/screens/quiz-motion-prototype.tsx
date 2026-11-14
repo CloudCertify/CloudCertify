@@ -2,97 +2,145 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AppHeader } from '@/components/app-header';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { QuestionCard } from '@/components/question-card';
-import { PracticeQuestionCard, type PracticePhase } from '@/components/practice-question-card';
-import { ConfidenceRating } from '@/components/confidence-rating';
+import { PracticeQuestionCard } from '@/components/practice-question-card';
 import { ConfirmFinishDialog } from '@/components/confirm-finish-dialog';
 import { useI18n } from '@/i18n/use-i18n';
-import type { Confidence, QuestionDto } from '@/http/generated/api.schemas';
+import type { Confidence, QuizResultQuestionDto } from '@/http/generated/api.schemas';
 import { nextSelection, requiredCount } from '@/attempt/selection';
+import { sessionPath, writePayload, writeProgress, type AttemptTarget } from '@/attempt/storage';
+import { SAMPLES, type Sample } from './quiz-motion-samples';
 
-// Development preview of the production components, with local sample answers.
-const SAMPLES: { question: QuestionDto; correct: number[]; explanation: string }[] = [
-  {
-    question: { id: 1, type: 'multiple_choice', selectCount: 1, difficulty: 'medium', text: 'You need to run containers without managing servers or clusters. Which AWS service should you use?', answers: [{ id: 11, text: 'Amazon EC2 with an Auto Scaling group' }, { id: 12, text: 'AWS Fargate' }, { id: 13, text: 'Amazon EKS on self-managed nodes' }, { id: 14, text: 'Amazon Elastic Block Store' }] },
-    correct: [12], explanation: 'AWS Fargate manages the compute for your containers. You define the application and its resource needs; AWS handles the underlying servers.'
-  },
-  {
-    question: { id: 2, type: 'multiple_response', selectCount: 2, difficulty: 'medium', text: 'An application must stay available if one Availability Zone fails. Which TWO choices improve its resilience?', answers: [{ id: 21, text: 'Distribute application instances across multiple Availability Zones' }, { id: 22, text: 'Place all application instances in a single subnet' }, { id: 23, text: 'Use a load balancer to route traffic to healthy instances' }, { id: 24, text: 'Store all application state on one instance’s local disk' }] },
-    correct: [21, 23], explanation: 'Multiple Availability Zones remove a single-zone dependency. A load balancer can direct requests to the healthy instances that remain.'
-  },
-  {
-    question: { id: 3, type: 'multiple_choice', selectCount: 1, difficulty: 'easy', text: 'Which service would you use to store unstructured objects such as images, videos, and backups?', answers: [{ id: 31, text: 'Amazon RDS' }, { id: 32, text: 'Amazon S3' }, { id: 33, text: 'Amazon ElastiCache' }, { id: 34, text: 'Amazon Route 53' }] },
-    correct: [32], explanation: 'Amazon S3 is object storage. It stores unstructured data such as images, video, documents, and backups.'
-  }
-];
+// Development preview of the production attempt components, graded locally from
+// sample questions: 15 for a Drill, 65 for an Exam (the samples, cycled with fresh ids).
+// Finishing hands the locally graded result to the real session route, so the real
+// results screens show it. No API call is made; Try Again there would make one.
+function questionsFor(exam: boolean): Sample[] {
+  return Array.from({ length: exam ? 65 : SAMPLES.length }, (_, i) => {
+    const source = SAMPLES[i % SAMPLES.length];
+    const shift = (i + 1) * 10 - source.question.id! * 10;
+    return {
+      ...source,
+      question: { ...source.question, id: i + 1, answers: source.question.answers!.map(answer => ({ ...answer, id: answer.id! + shift })) },
+      correct: source.correct.map(id => id + shift)
+    };
+  });
+}
 
 export function QuizMotionPrototypePage() {
+  const exam = useSearchParams().get('mode') === 'exam';
+  // Keyed by Mode: a Drill and an Exam share nothing, however the Mode was switched.
+  return <Preview key={String(exam)} exam={exam} />;
+}
+
+function Preview({ exam }: { exam: boolean }) {
   const { t } = useI18n();
   const router = useRouter();
-  const parameters = new URLSearchParams(useSearchParams());
-  const exam = parameters.get('mode') === 'exam';
+  const samples = questionsFor(exam);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number[]>>({});
   const [ratings, setRatings] = useState<Record<number, Confidence>>({});
-  const [phase, setPhase] = useState<PracticePhase>('answering');
-  const [finished, setFinished] = useState(false);
+  const [checked, setChecked] = useState<Record<number, boolean>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const sample = SAMPLES[index];
+  const sample = samples[index];
   const selectedIds = answers[index] ?? [];
-  const correct = selectedIds.length === sample.correct.length && selectedIds.every(id => sample.correct.includes(id));
+  const isRight = (i: number) => {
+    const picked = answers[i] ?? [];
+    return picked.length === samples[i].correct.length && picked.every(id => samples[i].correct.includes(id));
+  };
 
-  function reset() { setIndex(0); setAnswers({}); setRatings({}); setPhase('answering'); setFinished(false); }
-  function changeMode(nextExam: boolean) {
-    parameters.set('mode', nextExam ? 'exam' : 'practice');
-    router.replace(`/prototype/quiz-motion?${parameters}`);
-    reset();
-  }
-  function select(id: number) {
-    setAnswers(previous => {
-      const current = previous[index] ?? [];
-      return { ...previous, [index]: nextSelection(sample.question, current, id) };
+
+  /** Store this attempt as finished, the way the attempt module would, and open its results. */
+  function finish() {
+    const target: AttemptTarget = exam ? { quizId: 0 } : { quizId: 0, drillId: 0 };
+    const questions: QuizResultQuestionDto[] = samples.map((item, i) => ({
+      id: item.question.id!,
+      text: item.question.text ?? '',
+      type: item.question.type!,
+      domain: item.domain,
+      explanation: item.explanation,
+      confidence: exam ? ratings[i] ?? null : null,
+      isCorrect: isRight(i),
+      answers: item.question.answers!.map(answer => ({ id: answer.id!, text: answer.text, isCorrect: item.correct.includes(answer.id!), wasSelected: (answers[i] ?? []).includes(answer.id!) }))
+    }));
+    const correctCount = questions.filter(item => item.isCorrect).length;
+    const score = Math.round((correctCount / questions.length) * 100);
+    const scaledScore = 100 + Math.round((correctCount / questions.length) * 900);
+    const domains = [...new Set(samples.map(item => item.domain))];
+    const detail = { id: 0, title: exam ? 'AWS Cloud Practitioner' : 'Exam mix', questions: samples.map(item => item.question) };
+    writePayload(target, exam ? { mode: 'exam', detail, email: null } : { mode: 'practice', detail: { ...detail, domain: null, drawRule: 'drill_mix', composition: { missed: 3, due: 2, unseen: 10, mastered: 0 } }, email: null });
+    writeProgress(target, {
+      submissionId: null,
+      currentIndex: samples.length - 1,
+      selections: {},
+      confidences: {},
+      checks: {},
+      reported: [],
+      unsaved: [],
+      result: {
+        score,
+        scaledScore,
+        passed: exam ? scaledScore >= 700 : score >= 70,
+        passingScore: exam ? 700 : 70,
+        totalQuestions: questions.length,
+        correctCount,
+        luckyGuessCount: questions.filter(item => item.confidence === 'guess' && item.isCorrect).length,
+        misconceptionCount: questions.filter(item => item.confidence === 'confident' && !item.isCorrect).length,
+        domainBreakdown: domains.map(domain => {
+          const inDomain = questions.filter(item => item.domain === domain);
+          return { domain, total: inDomain.length, correct: inDomain.filter(item => item.isCorrect).length, weight: inDomain.length / questions.length };
+        }),
+        questions
+      }
     });
+    router.push(sessionPath(target));
+  }
+  const changeMode = (nextExam: boolean) => router.replace(`/prototype/quiz-motion?mode=${nextExam ? 'exam' : 'practice'}`);
+  function select(id: number) {
+    setAnswers(previous => ({ ...previous, [index]: nextSelection(sample.question, previous[index] ?? [], id) }));
     setRatings(previous => { const next = { ...previous }; delete next[index]; return next; });
   }
-  function advance() {
-    if (index === SAMPLES.length - 1) setFinished(true);
-    else { setIndex(value => value + 1); setPhase('answering'); }
-  }
-  const meta = <Badge>AWS Solutions Architect</Badge>;
-  const common = { index, total: SAMPLES.length, question: sample.question, meta, selectedIds, onSelect: select };
+  const common = { index, total: samples.length, question: sample.question, selectedIds, onSelect: select, exitHref: '/quiz' };
+  const modes = (
+    <div className='fixed right-2 top-1/2 z-50 flex -translate-y-1/2 flex-col gap-2' aria-label='Preview controls'>
+      <Button size='sm' variant={exam ? 'outline' : 'default'} aria-pressed={!exam} onClick={() => changeMode(false)}>Practice</Button>
+      <Button size='sm' variant={exam ? 'default' : 'outline'} aria-pressed={exam} onClick={() => changeMode(true)}>Exam</Button>
+    </div>
+  );
 
   return (
-    <div className='min-h-dvh bg-background'>
-      <AppHeader languageLocked />
-      <main id="main-content" tabIndex={-1} className='mx-auto max-w-4xl px-4 py-8 md:py-12'>
-        <div className='mb-6 flex flex-wrap items-center justify-between gap-4'>
-          <div><h1 className='text-xl font-black'>Quiz interaction preview</h1><p className='mt-1 text-sm text-black/60'>The existing quiz components, using sample questions.</p></div>
-          <div className='flex flex-wrap gap-2' aria-label='Preview controls'>
-            <Button size='sm' variant={exam ? 'outline' : 'default'} aria-pressed={!exam} onClick={() => changeMode(false)}>Practice</Button>
-            <Button size='sm' variant={exam ? 'default' : 'outline'} aria-pressed={exam} onClick={() => changeMode(true)}>Exam</Button>
-          </div>
-        </div>
-        <div className='space-y-5'>
-          {finished ? (
-            <div className='border-4 border-black bg-white p-8'>
-              <h2 className='text-2xl font-black'>{exam ? t.results.quizTitle : 'Practice complete'}</h2>
-              <p className='mt-3 mb-6'>{t.results.scoreLine(SAMPLES.filter((item, i) => answers[i]?.length === item.correct.length && answers[i].every(id => item.correct.includes(id))).length, SAMPLES.length)}</p>
-              <Button onClick={reset}>{t.common.tryAgain}</Button>
-            </div>
-          ) : exam ? (
-            <>
-              <QuestionCard {...common} onPrev={() => setIndex(value => Math.max(0, value - 1))} onNext={() => setIndex(value => Math.min(SAMPLES.length - 1, value + 1))} onFinish={() => setConfirmOpen(true)} finishLabel={t.question.finishQuiz} isSubmitting={false} />
-              {selectedIds.length > 0 && <ConfidenceRating value={ratings[index] ?? null} onRate={value => setRatings(previous => ({ ...previous, [index]: value }))} />}
-            </>
-          ) : (
-            <PracticeQuestionCard {...common} phase={phase} reveal={phase === 'revealed' ? { isCorrect: correct, correctAnswerIds: sample.correct, selectedAnswerIds: selectedIds, explanation: sample.explanation } : null} onCheck={() => setPhase('revealed')} onContinue={advance} canCheck={selectedIds.length === requiredCount(sample.question)} isChecking={false} isFinishing={false} isLast={index === SAMPLES.length - 1} />
-          )}
-        </div>
-        <ConfirmFinishDialog open={confirmOpen} unansweredCount={SAMPLES.filter((_, i) => !answers[i]?.length).length} onCancel={() => setConfirmOpen(false)} onConfirm={() => { setConfirmOpen(false); setFinished(true); }} />
-      </main>
-    </div>
+    <>
+      {exam ? (
+        <QuestionCard
+          {...common}
+          onPrev={() => setIndex(value => Math.max(0, value - 1))}
+          onNext={() => setIndex(value => Math.min(samples.length - 1, value + 1))}
+          onFinish={() => setConfirmOpen(true)}
+          finishLabel={t.question.finishQuiz}
+          isSubmitting={false}
+          answered={samples.map((_, i) => (answers[i]?.length ?? 0) > 0)}
+          confidences={samples.map((_, i) => ratings[i])}
+          onJump={setIndex}
+          confidence={ratings[index] ?? null}
+          onRate={value => setRatings(previous => ({ ...previous, [index]: value }))}
+        />
+      ) : (
+        <PracticeQuestionCard
+          {...common}
+          phase={index in checked ? 'revealed' : 'answering'}
+          reveal={index in checked ? { isCorrect: checked[index], correctAnswerIds: sample.correct, selectedAnswerIds: selectedIds, explanation: sample.explanation } : null}
+          onCheck={() => setChecked(previous => ({ ...previous, [index]: isRight(index) }))}
+          onContinue={() => (index === samples.length - 1 ? finish() : setIndex(value => value + 1))}
+          canCheck={selectedIds.length === requiredCount(sample.question)}
+          isChecking={false}
+          isFinishing={false}
+          isLast={index === samples.length - 1}
+          outcomes={samples.map((_, i) => checked[i] ?? null)}
+        />
+      )}
+      <ConfirmFinishDialog open={confirmOpen} unansweredCount={samples.filter((_, i) => !answers[i]?.length).length} onCancel={() => setConfirmOpen(false)} onConfirm={() => { setConfirmOpen(false); finish(); }} />
+      {modes}
+    </>
   );
 }

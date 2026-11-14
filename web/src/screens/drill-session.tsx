@@ -1,17 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { DrillColumns, runLengths } from '@/components/drill-columns';
+import { ScoreCount } from '@/components/score-count';
 import { PracticeQuestionCard } from '@/components/practice-question-card';
 import { QuestionReview } from '@/components/question-review';
 import { DrillBanner } from '@/components/drill-banner';
@@ -20,8 +14,10 @@ import { Footer } from '@/components/footer';
 import { AppHeader } from '@/components/app-header';
 import { PageBackLink } from '@/components/page-back-link';
 import { useI18n } from '@/i18n/use-i18n';
+import { cue } from '@/lib/cue';
+import { cn } from '@/lib/utils';
 import { isWholeQuizMix } from '@/lib/whole-quiz-mix';
-import type { DrillDetailDto } from '@/http/generated/api.schemas';
+import { DrawRule, type DrillDetailDto } from '@/http/generated/api.schemas';
 import { AttemptEmpty } from '@/components/attempt-empty';
 import { useAttempt } from '@/attempt/use-attempt';
 
@@ -31,6 +27,12 @@ export function DrillSessionPage() {
   const drillId = Number(params.drillId);
   const { t } = useI18n();
   const attempt = useAttempt({ quizId, drillId });
+  const finished = attempt.status === 'finished';
+
+  // The run just ended: one closing cue (silent on a reload, which is no gesture).
+  useEffect(() => {
+    if (finished) cue('finish');
+  }, [finished]);
 
   if (attempt.status === 'loading' || attempt.payload == null) return null;
 
@@ -42,106 +44,92 @@ export function DrillSessionPage() {
   const drillTitle = isWholeQuizMix(drillDetail) ? t.quizDetail.mixTitle : drillDetail.title;
   const questionsCount = questions.length;
 
-  if (attempt.status === 'finished' && result) {
+  if (finished && result) {
     const { passed, score: percentage } = result;
+    // The verdict the Score counted, not today's key (ADR 0007).
+    const outcomes = result.questions.map(question => question.isCorrect);
+    const longestRun = Math.max(0, ...runLengths(outcomes));
+    // The columns finish rising first; the number answers them.
+    const afterColumns = 0.35 + outcomes.length * 0.05;
 
     return (
-      <div className='flex min-h-dvh flex-col bg-background'>
+      <div className='flex min-h-dvh flex-col bg-background text-black'>
         <AppHeader />
-        <main id='main-content' tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
+        <main id='main-content' tabIndex={-1} className='mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-12'>
           <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
             {t.common.backToCertification}
           </PageBackLink>
-          <Card className='w-full border-4 border-black shadow-[8px_8px_0px_0px_#000]'>
-            <CardHeader className='text-center border-b-2 border-black pb-6'>
-              <CardTitle className='text-2xl md:text-3xl font-black text-black'>
-                {t.results.practiceTitle}
-              </CardTitle>
-              <p className='text-black/70 font-medium mt-1'>
-                {drillTitle}
-              </p>
-              {drillDetail.domain && (
-                <div className='flex justify-center mt-2'>
-                  <Badge
-                    variant='outline'
-                    className='border-2 border-black font-bold'
-                  >
-                    {drillDetail.domain}
-                  </Badge>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent className='space-y-8 py-8'>
-              <div className='flex flex-col items-center space-y-4'>
-                <div
-                  className='h-32 w-32 rounded-none border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_#000]'
-                  // The server's verdict decides the colour, never a band of our own.
-                  style={{ backgroundColor: passed ? '#15a06e' : '#e23b48' }}
-                >
-                  <span className='text-5xl font-black text-white'>
-                    {percentage}%
-                  </span>
-                </div>
-                <Badge className={passed ? 'bg-success' : 'bg-destructive'}>
-                  {result.passingScore == null
-                    ? t.attempt.verdict(passed)
-                    : t.results.passingScore(passed, `${result.passingScore}%`)}
-                </Badge>
-                <p className='text-xl font-bold text-black'>
-                  {t.results.scoreLine(result.correctCount, result.totalQuestions)}
-                </p>
-                <div className='w-full max-w-md'>
-                  <Progress value={percentage} />
-                </div>
-              </div>
+          <h1 className='text-lg font-black'>
+            {t.results.practiceTitle}
+            <span className='font-medium text-black/60'>, {drillTitle}</span>
+          </h1>
 
-              {/* After the Check the same fact is a reward, not a prime (issue #53): over the
-                  review it lands as a win, and an anonymous visitor sees the pitch here too. */}
-              <DrillBanner
-                composition={drillDetail.composition}
-                drawRule={drillDetail.drawRule}
-                questionCount={questionsCount}
-                place='review'
-              />
+          <DrillColumns outcomes={outcomes} current={-1} replay className='mt-6 h-28 border-b-4 sm:h-48' />
 
-              <QuestionReview
-                questions={result.questions}
-                heading={t.review.reviewHeading}
-                renderReportControl={question =>
-                  drillDetail.submissionId == null ? null : (
-                    <ReportQuestionControl
-                      submissionId={drillDetail.submissionId}
-                      questionId={question.id}
-                      reported={reported.includes(question.id)}
-                      onReported={attempt.markReported}
-                      suggestable={{
-                        text: question.text,
-                        answers: question.answers.map(answer => ({
-                          id: answer.id,
-                          text: answer.text ?? '',
-                          isCorrect: answer.isCorrect
-                        }))
-                      }}
-                    />
-                  )
-                }
-              />
-            </CardContent>
-            <CardFooter className='flex flex-col sm:flex-row gap-4 justify-between border-t-2 border-black pt-6'>
-              <Button
-                variant='outline'
-                onClick={attempt.restart}
-                disabled={attempt.restarting}
-              >
-                {attempt.restarting ? t.common.starting : t.common.tryAgain}
-              </Button>
-              <Button asChild>
-                <Link href={`/quiz/${quizId}`}>
-                  {t.common.backToCertification}
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
+          <div className='mt-6 sm:mt-8'>
+            <ScoreCount value={percentage} suffix='%' delay={afterColumns} />
+          </div>
+          <p
+            // The server's verdict decides the colour, never a band of our own.
+            className={cn('mt-4 inline-block border-2 border-black px-3 py-1 font-black', passed ? 'bg-success' : 'bg-destructive')}
+          >
+            {result.passingScore == null
+              ? t.attempt.verdict(passed)
+              : t.results.passingScore(passed, `${result.passingScore}%`)}
+          </p>
+          <p className='mt-4 max-w-[30ch] text-2xl font-extrabold leading-tight font-stretch-[88%] sm:text-3xl'>
+            {t.results.scoreLine(result.correctCount, result.totalQuestions)}.
+            {longestRun > 1 && ` ${t.results.longestRun(longestRun)}`}
+          </p>
+          {/* Only a Drill Mix built from the visitor's own history brings misses back, and it
+              promises no particular mix: the draw has its own seats and cooldown. */}
+          {drillDetail.drawRule === DrawRule.drill_mix && drillDetail.composition && result.correctCount < result.totalQuestions && (
+            <p className='mt-3 max-w-[46ch] text-lg font-medium text-black/70'>{t.results.missedReturn}</p>
+          )}
+
+          <div className='mt-8 flex flex-col gap-4 sm:flex-row'>
+            {/* Focused on arrival, so Enter starts the next one. */}
+            <Button size='lg' autoFocus onClick={attempt.restart} disabled={attempt.restarting}>
+              {attempt.restarting ? t.common.starting : t.results.nextDrill}
+            </Button>
+            <Button size='lg' variant='outline' asChild>
+              <Link href={`/quiz/${quizId}`}>{t.common.backToCertification}</Link>
+            </Button>
+          </div>
+
+          <div className='mt-10 space-y-8'>
+            {/* After the Check the same fact is a reward, not a prime (issue #53): over the
+                review it lands as a win, and an anonymous visitor sees the pitch here too. */}
+            <DrillBanner
+              composition={drillDetail.composition}
+              drawRule={drillDetail.drawRule}
+              questionCount={questionsCount}
+              place='review'
+            />
+
+            <QuestionReview
+              questions={result.questions}
+              heading={t.review.reviewHeading}
+              renderReportControl={question =>
+                drillDetail.submissionId == null ? null : (
+                  <ReportQuestionControl
+                    submissionId={drillDetail.submissionId}
+                    questionId={question.id}
+                    reported={reported.includes(question.id)}
+                    onReported={attempt.markReported}
+                    suggestable={{
+                      text: question.text,
+                      answers: question.answers.map(answer => ({
+                        id: answer.id,
+                        text: answer.text ?? '',
+                        isCorrect: answer.isCorrect
+                      }))
+                    }}
+                  />
+                )
+              }
+            />
+          </div>
         </main>
         <Footer />
       </div>
@@ -149,68 +137,62 @@ export function DrillSessionPage() {
   }
 
   return (
-    <div className='flex min-h-dvh flex-col bg-background'>
-      <AppHeader languageLocked />
-      <main id='main-content' tabIndex={-1} className='flex-1 container max-w-4xl mx-auto py-12 px-4'>
-        <PageBackLink href={`/quiz/${quizId}`} className='mb-6'>
-          {t.common.back}
-        </PageBackLink>
-        {/* Only before the first answer: once the drill is under way the slot has said its
-            piece, and repeating it would just be noise. */}
-        {currentIndex === 0 && attempt.phase !== 'checked' && (
+    <PracticeQuestionCard
+      index={currentIndex}
+      total={questionsCount}
+      question={currentQuestion}
+      selectedIds={attempt.selectedIds}
+      onSelect={attempt.select}
+      phase={attempt.phase === 'checked' ? 'revealed' : 'answering'}
+      reveal={reveal}
+      onCheck={attempt.check}
+      onContinue={attempt.proceed}
+      canCheck={attempt.canCheck}
+      isChecking={attempt.phase === 'checking'}
+      isFinishing={attempt.submitting}
+      isLast={attempt.isLast}
+      outcomes={attempt.outcomes}
+      exitHref={`/quiz/${quizId}`}
+      // Only before the first answer: once the drill is under way the slot has said its
+      // piece, and repeating it would just be noise.
+      banner={
+        currentIndex === 0 && attempt.phase !== 'checked' && (
           <DrillBanner
             composition={drillDetail.composition}
             drawRule={drillDetail.drawRule}
             questionCount={questionsCount}
           />
-        )}
-        <PracticeQuestionCard
-          index={currentIndex}
-          total={questionsCount}
-          question={currentQuestion}
-          meta={<Badge>{drillTitle}</Badge>}
-          selectedIds={attempt.selectedIds}
-          onSelect={attempt.select}
-          phase={attempt.phase === 'checked' ? 'revealed' : 'answering'}
-          reveal={reveal}
-          onCheck={attempt.check}
-          onContinue={attempt.proceed}
-          canCheck={attempt.canCheck}
-          isChecking={attempt.phase === 'checking'}
-          isFinishing={attempt.submitting}
-          isLast={attempt.isLast}
-          reportControl={
-            currentQuestion.id != null &&
-            drillDetail.submissionId != null && (
-              <ReportQuestionControl
-                submissionId={drillDetail.submissionId}
-                questionId={currentQuestion.id}
-                reported={reported.includes(currentQuestion.id)}
-                onReported={attempt.markReported}
-                // The key only exists after the Check, which is also the only
-                // moment this control is rendered (issue #41).
-                suggestable={
-                  reveal == null
-                    ? undefined
-                    : {
-                        text: currentQuestion.text ?? '',
-                        answers: (currentQuestion.answers ?? [])
-                          .filter(answer => answer.id != null)
-                          .map(answer => ({
-                            id: answer.id!,
-                            text: answer.text ?? '',
-                            isCorrect: (reveal.correctAnswerIds ?? []).includes(
-                              answer.id!
-                            )
-                          }))
-                      }
-                }
-              />
-            )
-          }
-        />
-      </main>
-      <Footer />
-    </div>
+        )
+      }
+      reportControl={
+        currentQuestion.id != null &&
+        drillDetail.submissionId != null && (
+          <ReportQuestionControl
+            submissionId={drillDetail.submissionId}
+            questionId={currentQuestion.id}
+            reported={reported.includes(currentQuestion.id)}
+            onReported={attempt.markReported}
+            // The key only exists after the Check, which is also the only
+            // moment this control is rendered (issue #41).
+            suggestable={
+              reveal == null
+                ? undefined
+                : {
+                    text: currentQuestion.text ?? '',
+                    answers: (currentQuestion.answers ?? [])
+                      .filter(answer => answer.id != null)
+                      .map(answer => ({
+                        id: answer.id!,
+                        text: answer.text ?? '',
+                        isCorrect: (reveal.correctAnswerIds ?? []).includes(
+                          answer.id!
+                        )
+                      }))
+                  }
+            }
+          />
+        )
+      }
+    />
   );
 }

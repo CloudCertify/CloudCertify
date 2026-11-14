@@ -320,12 +320,16 @@ export const pt: Messages = {
     counter: (index: number, total: number) => `Questão ${index} de ${total}`,
     selectAnswers: (count: number) => `Selecione ${count} respostas`,
     finishQuiz: 'Finalizar simulado',
+    finish: 'Finalizar',
     check: 'Verificar',
     checking: 'Verificando...',
     continue: 'Continuar',
     finishPractice: 'Finalizar treino',
     finishing: 'Finalizando...',
-    notQuite: 'Quase lá'
+    notQuite: 'Quase lá',
+    correctStreak: (count: number) => `Correto, ${count} seguidas`,
+    answerIs: (answer: string) => `Resposta: ${answer}`,
+    streak: (count: number) => (count === 1 ? '1 acerto seguido' : `${count} acertos seguidos`)
   },
 
   shortcuts: {
@@ -368,16 +372,7 @@ export const pt: Messages = {
   },
 
   navigator: {
-    open: 'Abrir navegador de questões',
-    openTitle: (index: number, total: number) =>
-      `Abrir navegador de questões, questão ${index} de ${total}`,
-    close: 'Fechar navegador de questões',
-    title: 'Questões',
     landmark: 'Navegador de questões',
-    answeredCount: (answered: number, total: number) =>
-      `${answered} de ${total} respondidas`,
-    reviewCount: (count: number) =>
-      count === 1 ? '1 para revisar' : `${count} para revisar`,
     questionLabel: (index: number, answered: boolean, needsReview = false) =>
       `Questão ${index}${answered ? ', respondida' : ', não respondida'}${
         needsReview ? ', marcada para revisar' : ''
@@ -434,6 +429,13 @@ export const pt: Messages = {
   },
 
   review: {
+    all: 'Todas',
+    wrong: 'Erradas',
+    right: 'Certas',
+    verdict: (correct: boolean) => (correct ? 'Correta' : 'Incorreta'),
+    rowLabel: (index: number) => `Questão ${index}:`,
+    stripLabel: 'Questões do simulado',
+    stripQuestion: (index: number, correct: boolean) => `Questão ${index}, ${correct ? 'correta' : 'incorreta'}`,
     summaryHeading: 'Resumo das questões',
     reviewHeading: 'Revisão das questões',
     questionLabel: (index: number, text: string) => `Questão ${index}: ${text}`,
@@ -454,7 +456,9 @@ export const pt: Messages = {
       count === 1 ? '1 resposta ainda não foi salva.' : `${count} respostas ainda não foram salvas.`,
     emptyTitle: 'Nenhuma questão para mostrar',
     emptyBody: 'Esta tentativa voltou sem questões. Volte e comece outra.',
-    verdict: (passed: boolean) => (passed ? 'APROVADO' : 'REPROVADO')
+    verdict: (passed: boolean) => (passed ? 'APROVADO' : 'REPROVADO'),
+    leave: 'Sair',
+    mute: 'Silenciar som'
   },
 
   results: {
@@ -469,6 +473,12 @@ export const pt: Messages = {
     luckyGuessesHint: 'Você chutou e acertou. Ainda vale estudar.',
     misconceptions: 'Conceitos errados',
     misconceptionsHint: 'Você tinha certeza e errou. Comece por aqui.',
+    longestRun: (count: number) => `Maior sequência: ${count}.`,
+    missedReturn: 'O que você errou volta em mixes futuros.',
+    nextDrill: 'Começar próximo treino',
+    reviewQuestions: 'Revisar questões',
+    stripHint: 'Toque numa coluna para abrir a questão.',
+    stripLegend: 'A altura mostra sua confiança. Verde é acerto, vermelho é erro.',
     domainBreakdown: 'Detalhe por domínio',
     domainStats: (
       correct: number,
