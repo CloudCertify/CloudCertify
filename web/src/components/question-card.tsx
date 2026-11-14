@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { AttemptFrame, AttemptQuestion, dockButton, focusRing, press } from '@/components/attempt-frame';
+import { AttemptReview } from '@/components/attempt-review';
 import { ConfidenceRating } from '@/components/confidence-rating';
 import { confidenceHeight, ExamStrip, type StripCell } from '@/components/exam-strip';
 import { ShortcutLegend } from '@/components/shortcut-legend';
@@ -72,6 +73,7 @@ export function QuestionCard({
   // Content slides in from the direction of travel.
   const [previous, setPrevious] = useState(index);
   const [direction, setDirection] = useState<1 | -1>(1);
+  const [reviewing, setReviewing] = useState(false);
   if (index !== previous) {
     setPrevious(index);
     setDirection(index > previous ? 1 : -1);
@@ -114,6 +116,8 @@ export function QuestionCard({
       : { height: 0, tone: 'empty' }
   );
 
+  const describe = (i: number) => t.navigator.questionLabel(i + 1, answered[i] === true, needsReview(confidences[i]));
+
   return (
     <AttemptFrame
       exitHref={exitHref}
@@ -123,7 +127,7 @@ export function QuestionCard({
           current={index}
           onJump={onJump}
           label={t.navigator.landmark}
-          valueText={i => t.navigator.questionLabel(i + 1, answered[i] === true, needsReview(confidences[i]))}
+          valueText={describe}
           className='h-[3.25rem] flex-1 sm:h-[4.5rem]'
         />
       }
@@ -169,12 +173,11 @@ export function QuestionCard({
         getOptionProps={getOptionProps}
         actions={
           // On the counter line, not beside the strip: there it took half the Navigator's
-          // width on a phone. On the last Question the dock's own button finishes.
-          !isLast && (
-            <button type='button' onClick={onFinish} disabled={isSubmitting} aria-label={finishLabel} className={cn('h-11 cursor-pointer text-sm font-black underline decoration-2 underline-offset-4 disabled:opacity-40', focusRing)}>
-              {t.question.finish}
-            </button>
-          )
+          // width on a phone. Finishing early goes through the review; on the last Question
+          // the dock's own button finishes.
+          <button type='button' onClick={() => setReviewing(true)} aria-haspopup='dialog' className={cn('h-11 cursor-pointer text-sm font-black underline decoration-2 underline-offset-4', focusRing)}>
+            {t.navigator.open}
+          </button>
         }
       />
       <ShortcutLegend
@@ -184,6 +187,17 @@ export function QuestionCard({
           { keys: [<CornerDownLeft key='enter' className='size-3' />], label: isLast ? t.shortcuts.finish : t.shortcuts.next },
           { keys: [<ArrowLeft key='left' className='size-3' />, <ArrowRight key='right' className='size-3' />], label: t.shortcuts.navigate }
         ]}
+      />
+      <AttemptReview
+        open={reviewing}
+        onClose={() => setReviewing(false)}
+        cells={cells}
+        current={index}
+        onJump={i => onJump?.(i)}
+        valueText={describe}
+        onFinish={onFinish}
+        finishLabel={finishLabel}
+        isSubmitting={isSubmitting}
       />
     </AttemptFrame>
   );

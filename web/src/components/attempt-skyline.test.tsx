@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
+import { act, fireEvent, render, renderHook, screen, within } from '@testing-library/react';
 import { en } from '@/i18n/messages/en';
 import { useSound } from '@/lib/cue';
 import type { QuestionDto } from '@/http/generated/api.schemas';
@@ -108,10 +108,29 @@ describe('ExamStrip as the Navigator', () => {
 describe('QuestionCard in an Exam', () => {
   const card = { total: 3, question, selectedIds: [], onSelect: () => {}, onPrev: () => {}, onNext: () => {}, finishLabel: 'Finish Quiz', isSubmitting: false };
 
-  it('describes the current Question on the Navigator and offers Finish away from the strip', () => {
-    const onFinish = vi.fn();
-    render(<QuestionCard {...card} index={1} onFinish={onFinish} onJump={() => {}} answered={[true, true, false]} confidences={[null, 'guess', null]} />);
+  it('describes the current Question on the Navigator', () => {
+    render(<QuestionCard {...card} index={1} onFinish={() => {}} onJump={() => {}} answered={[true, true, false]} confidences={[null, 'guess', null]} />);
     expect(screen.getByRole('slider', { name: en.navigator.landmark })).toHaveAttribute('aria-valuetext', en.navigator.questionLabel(2, true, true));
+  });
+
+  it('reviews the Exam: blank and to-revisit Questions are a tap away, and a tile jumps', () => {
+    const onJump = vi.fn();
+    render(<QuestionCard {...card} index={1} onFinish={() => {}} onJump={onJump} answered={[true, true, false]} confidences={[null, 'guess', null]} />);
+    fireEvent.click(screen.getByRole('button', { name: en.navigator.open }));
+    const review = within(screen.getByRole('dialog', { name: en.navigator.title }));
+    expect(review.getByRole('button', { name: new RegExp(`${en.navigator.toRevisit}\\s*1`) })).toBeEnabled();
+    fireEvent.click(review.getByRole('button', { name: new RegExp(`${en.navigator.blank}\\s*1`) }));
+    expect(review.queryByRole('button', { name: en.navigator.questionLabel(1, true) })).not.toBeInTheDocument();
+    fireEvent.click(review.getByRole('button', { name: en.navigator.questionLabel(3, false) }));
+    expect(onJump).toHaveBeenCalledWith(2);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('finishes early from the review', () => {
+    const onFinish = vi.fn();
+    render(<QuestionCard {...card} index={1} onFinish={onFinish} />);
+    expect(screen.queryByRole('button', { name: 'Finish Quiz' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: en.navigator.open }));
     fireEvent.click(screen.getByRole('button', { name: 'Finish Quiz' }));
     expect(onFinish).toHaveBeenCalledOnce();
   });

@@ -320,7 +320,6 @@ export const pt: Messages = {
     counter: (index: number, total: number) => `Questão ${index} de ${total}`,
     selectAnswers: (count: number) => `Selecione ${count} respostas`,
     finishQuiz: 'Finalizar simulado',
-    finish: 'Finalizar',
     check: 'Verificar',
     checking: 'Verificando...',
     continue: 'Continuar',
@@ -372,6 +371,12 @@ export const pt: Messages = {
   },
 
   navigator: {
+    open: 'Revisar',
+    title: 'Revisão',
+    close: 'Fechar revisão',
+    all: 'Todas',
+    blank: 'Em branco',
+    toRevisit: 'Para revisar',
     landmark: 'Navegador de questões',
     questionLabel: (index: number, answered: boolean, needsReview = false) =>
       `Questão ${index}${answered ? ', respondida' : ', não respondida'}${

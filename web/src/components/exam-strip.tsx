@@ -19,8 +19,8 @@ const TONE: Record<StripCell['tone'], string> = {
   wrong: 'bg-destructive'
 };
 
-/** A loupe tile carries the column's colour, with a number that stays readable on it. */
-const TILE_TONE: Record<StripCell['tone'], string> = {
+/** A numbered tile (loupe, review) carries the column's colour, with a number that stays readable on it. */
+export const TILE_TONE: Record<StripCell['tone'], string> = {
   empty: 'bg-white text-black',
   answered: 'bg-primary text-white',
   revisit: 'bg-secondary text-black',
