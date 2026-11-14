@@ -56,6 +56,7 @@ const result: SubmitQuizResponseDto = {
   totalQuestions: 3,
   correctCount: 2,
   scaledScore: 720,
+  passingScore: 700,
   passed: true,
   luckyGuessCount: 0,
   misconceptionCount: 0,

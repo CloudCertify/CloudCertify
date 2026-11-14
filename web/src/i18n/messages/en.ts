@@ -335,12 +335,16 @@ export const en = {
     counter: (index: number, total: number) => `Question ${index} of ${total}`,
     selectAnswers: (count: number) => `Select ${count} answers`,
     finishQuiz: 'Finish Quiz',
+    finish: 'Finish',
     check: 'Check',
     checking: 'Checking...',
     continue: 'Continue',
     finishPractice: 'Finish drill',
     finishing: 'Finishing...',
-    notQuite: 'Not quite'
+    notQuite: 'Not quite',
+    correctStreak: (count: number) => `Correct, ${count} in a row`,
+    answerIs: (answer: string) => `Answer: ${answer}`,
+    streak: (count: number) => `${count} right in a row`
   },
 
   shortcuts: {
@@ -383,16 +387,7 @@ export const en = {
   },
 
   navigator: {
-    open: 'Open question navigator',
-    openTitle: (index: number, total: number) =>
-      `Open question navigator, question ${index} of ${total}`,
-    close: 'Close question navigator',
-    title: 'Questions',
     landmark: 'Question navigator',
-    answeredCount: (answered: number, total: number) =>
-      `${answered} of ${total} answered`,
-    reviewCount: (count: number) =>
-      count === 1 ? '1 to revisit' : `${count} to revisit`,
     questionLabel: (index: number, answered: boolean, needsReview = false) =>
       `Question ${index}${answered ? ', answered' : ', unanswered'}${
         needsReview ? ', marked to revisit' : ''
@@ -446,6 +441,13 @@ export const en = {
   },
 
   review: {
+    all: 'All',
+    wrong: 'Wrong',
+    right: 'Right',
+    verdict: (correct: boolean): string => (correct ? 'Correct' : 'Incorrect'),
+    rowLabel: (index: number) => `Question ${index}:`,
+    stripLabel: 'Exam questions',
+    stripQuestion: (index: number, correct: boolean) => `Question ${index}, ${correct ? 'correct' : 'incorrect'}`,
     summaryHeading: 'Question summary',
     reviewHeading: 'Question review',
     questionLabel: (index: number, text: string) => `Question ${index}: ${text}`,
@@ -466,7 +468,9 @@ export const en = {
       count === 1 ? '1 answer is not saved yet.' : `${count} answers are not saved yet.`,
     emptyTitle: 'No Questions to show',
     emptyBody: 'This attempt came back without any Questions. Go back and start another one.',
-    verdict: (passed: boolean): string => (passed ? 'PASS' : 'FAIL')
+    verdict: (passed: boolean): string => (passed ? 'PASS' : 'FAIL'),
+    leave: 'Leave',
+    mute: 'Mute sound'
   },
 
   results: {
@@ -481,6 +485,12 @@ export const en = {
     luckyGuessesHint: 'Guessed, and got it right. Worth studying anyway.',
     misconceptions: 'Misconceptions',
     misconceptionsHint: "You were sure, and you were wrong. Start here.",
+    longestRun: (count: number) => `Longest run: ${count}.`,
+    missedReturn: 'What you missed comes back in later mixes.',
+    nextDrill: 'Start next drill',
+    reviewQuestions: 'Review questions',
+    stripHint: 'Tap a column to open its question.',
+    stripLegend: 'Height is how sure you were. Green is right, red is wrong.',
     domainBreakdown: 'Domain breakdown',
     domainStats: (correct: number, total: number, pct: number, weight: number) =>
       `${correct}/${total} (${pct}%) · weight ${weight}%`,
