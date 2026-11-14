@@ -335,6 +335,7 @@ export const en = {
     counter: (index: number, total: number) => `Question ${index} of ${total}`,
     selectAnswers: (count: number) => `Select ${count} answers`,
     finishQuiz: 'Finish Quiz',
+    finish: 'Finish',
     check: 'Check',
     checking: 'Checking...',
     continue: 'Continue',
@@ -386,12 +387,6 @@ export const en = {
   },
 
   navigator: {
-    open: 'Review',
-    title: 'Review',
-    close: 'Close review',
-    all: 'All',
-    blank: 'Unanswered',
-    toRevisit: 'To revisit',
     landmark: 'Question navigator',
     questionLabel: (index: number, answered: boolean, needsReview = false) =>
       `Question ${index}${answered ? ', answered' : ', unanswered'}${
