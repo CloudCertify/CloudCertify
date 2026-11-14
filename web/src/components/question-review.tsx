@@ -53,9 +53,18 @@ export function QuestionReview({ questions, heading, renderReportControl, target
     if (target == null) return;
     setFilter('all');
     setOpen(String(target.index));
-    // After the row has opened, so the browser scrolls to where it ends up.
-    const frame = requestAnimationFrame(() => list.current?.querySelector(`[data-index="${target.index}"]`)?.scrollIntoView({ block: 'start' }));
-    return () => cancelAnimationFrame(frame);
+    // Rows opening and closing above it move it, so wait for them to settle first.
+    let cancelled = false;
+    const frame = requestAnimationFrame(() => {
+      const settling = list.current?.getAnimations?.({ subtree: true }).map(animation => animation.finished) ?? [];
+      void Promise.allSettled(settling).then(() => {
+        if (!cancelled) list.current?.querySelector(`[data-index="${target.index}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      });
+    });
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
   }, [target]);
 
   return (
