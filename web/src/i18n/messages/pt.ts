@@ -429,6 +429,13 @@ export const pt: Messages = {
   },
 
   review: {
+    all: 'Todas',
+    wrong: 'Erradas',
+    right: 'Certas',
+    verdict: (correct: boolean) => (correct ? 'Correta' : 'Incorreta'),
+    rowLabel: (index: number) => `Questão ${index}:`,
+    stripLabel: 'Questões do simulado',
+    stripQuestion: (index: number, correct: boolean) => `Questão ${index}, ${correct ? 'correta' : 'incorreta'}`,
     summaryHeading: 'Resumo das questões',
     reviewHeading: 'Revisão das questões',
     questionLabel: (index: number, text: string) => `Questão ${index}: ${text}`,
@@ -469,6 +476,8 @@ export const pt: Messages = {
     longestRun: (count: number) => `Maior sequência: ${count}.`,
     missedReturn: 'O que você errou volta em mixes futuros.',
     nextDrill: 'Começar próximo treino',
+    reviewQuestions: 'Revisar questões',
+    stripHint: 'Toque numa coluna para abrir a questão.',
     stripLegend: 'A altura mostra sua confiança. Verde é acerto, vermelho é erro.',
     domainBreakdown: 'Detalhe por domínio',
     domainStats: (

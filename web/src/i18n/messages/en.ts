@@ -441,6 +441,13 @@ export const en = {
   },
 
   review: {
+    all: 'All',
+    wrong: 'Wrong',
+    right: 'Right',
+    verdict: (correct: boolean): string => (correct ? 'Correct' : 'Incorrect'),
+    rowLabel: (index: number) => `Question ${index}:`,
+    stripLabel: 'Exam questions',
+    stripQuestion: (index: number, correct: boolean) => `Question ${index}, ${correct ? 'correct' : 'incorrect'}`,
     summaryHeading: 'Question summary',
     reviewHeading: 'Question review',
     questionLabel: (index: number, text: string) => `Question ${index}: ${text}`,
@@ -481,6 +488,8 @@ export const en = {
     longestRun: (count: number) => `Longest run: ${count}.`,
     missedReturn: 'What you missed comes back in later mixes.',
     nextDrill: 'Start next drill',
+    reviewQuestions: 'Review questions',
+    stripHint: 'Tap a column to open its question.',
     stripLegend: 'Height is how sure you were. Green is right, red is wrong.',
     domainBreakdown: 'Domain breakdown',
     domainStats: (correct: number, total: number, pct: number, weight: number) =>

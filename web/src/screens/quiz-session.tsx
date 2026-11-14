@@ -27,6 +27,9 @@ export function QuizSessionPage() {
   const attempt = useAttempt({ quizId });
   const finished = attempt.status === 'finished';
   const [spot, setSpot] = useState<ConfidenceFinding | null>(null);
+  // The Question a tap on the results strip asked for, and the one open in the review.
+  const [target, setTarget] = useState<{ index: number } | null>(null);
+  const [reviewing, setReviewing] = useState<number | null>(null);
   // Results open on the strip as the visitor left it; then the verdict colours sweep in.
   const [graded, setGraded] = useState(false);
 
@@ -67,8 +70,18 @@ export function QuizSessionPage() {
           </h1>
 
           {/* Once a finding is singled out the change is instant: the sweep is for the first reveal only. */}
-          <ExamStrip cells={cells} stagger={spot == null} className='mt-6 h-28 sm:h-48' />
-          <p className='mt-2 text-sm font-medium text-black/60'>{t.results.stripLegend}</p>
+          <ExamStrip
+            cells={cells}
+            stagger={spot == null}
+            current={reviewing ?? undefined}
+            onJump={index => setTarget({ index })}
+            label={t.review.stripLabel}
+            valueText={i => t.review.stripQuestion(i + 1, result.questions[i]?.isCorrect === true)}
+            className='mt-6 h-28 sm:h-48'
+          />
+          <p className='mt-2 text-sm font-medium text-black/60'>
+            {t.results.stripLegend} {t.results.stripHint}
+          </p>
 
           <div className='mt-6 sm:mt-8'>
             <ScoreCount value={scaledScore} from={100} delay={afterStrip} />
@@ -84,6 +97,9 @@ export function QuizSessionPage() {
 
           <div className='mt-8 flex flex-col gap-4 sm:flex-row'>
             <Button size='lg' asChild>
+              <a href='#question-review'>{t.results.reviewQuestions}</a>
+            </Button>
+            <Button size='lg' variant='outline' asChild>
               <Link href='/dashboard'>{t.common.backToDashboard}</Link>
             </Button>
             <Button size='lg' variant='outline' onClick={attempt.restart} disabled={attempt.restarting}>
@@ -122,7 +138,9 @@ export function QuizSessionPage() {
               </div>
             )}
 
-            <QuestionReview questions={result.questions} />
+            <div id='question-review' className='scroll-mt-20'>
+              <QuestionReview questions={result.questions} heading={t.review.reviewHeading} target={target} onOpenChange={setReviewing} />
+            </div>
           </div>
         </main>
         <Footer />
