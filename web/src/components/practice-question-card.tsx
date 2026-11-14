@@ -1,27 +1,14 @@
-import { useRef, type ReactNode } from 'react';
-import { ArrowRight, CheckCircle, CornerDownLeft, LoaderCircle, XCircle } from 'lucide-react';
-import { motion } from 'motion/react';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { DifficultyBadge } from '@/components/difficulty-badge';
-import { Progress } from '@/components/ui/progress';
-import { Kbd } from '@/components/ui/kbd';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { CornerDownLeft, Flame, LoaderCircle } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import { AttemptFrame, AttemptQuestion, dockButton, focusRing, press } from '@/components/attempt-frame';
+import { DrillColumns } from '@/components/drill-columns';
 import { ShortcutLegend } from '@/components/shortcut-legend';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
-import { Pop } from '@/components/pop';
-import { spring, useQuestionMotion } from '@/hooks/use-question-motion';
 import { useI18n } from '@/i18n/use-i18n';
-import type {
-  CheckAnswerResponseDto,
-  QuestionDto
-} from '@/http/generated/api.schemas';
+import { cue } from '@/lib/cue';
+import { cn } from '@/lib/utils';
+import type { CheckAnswerResponseDto, QuestionDto } from '@/http/generated/api.schemas';
 
 /**
  * Per-question state in the Check→Continue practice flow (issue #27 / ADR 0002):
@@ -35,8 +22,6 @@ type PracticeQuestionCardProps = {
   index: number;
   total: number;
   question: QuestionDto;
-  /** Right-side badges (drill title, domain, …). */
-  meta?: ReactNode;
   /** Answer ids the user has currently selected for this question. */
   selectedIds: number[];
   onSelect: (answerId: number) => void;
@@ -53,6 +38,12 @@ type PracticeQuestionCardProps = {
   isFinishing: boolean;
   /** True on the last question, so Continue finishes the drill. */
   isLast: boolean;
+  /** Per Question, in order: checked right, checked wrong, or not checked yet. */
+  outcomes?: (boolean | null)[];
+  /** Where the leave control goes. */
+  exitHref?: string;
+  /** Shown above the Question: the Drill's make-up, before the first answer. */
+  banner?: ReactNode;
   /**
    * Report control for this Question. Rendered only in the revealed state — a
    * Report hangs off a Check (issue #41), so it must not be reachable before.
@@ -60,11 +51,14 @@ type PracticeQuestionCardProps = {
   reportControl?: ReactNode;
 };
 
+/**
+ * A Drill in progress, full screen. Check and Continue are one button in one place;
+ * on Check the dock around it takes the verdict's colour and says what was right.
+ */
 export function PracticeQuestionCard({
   index,
   total,
   question,
-  meta,
   selectedIds,
   onSelect,
   phase,
@@ -75,251 +69,147 @@ export function PracticeQuestionCard({
   isChecking,
   isFinishing,
   isLast,
+  outcomes = Array.from({ length: total }, () => null),
+  exitHref = '/quiz',
+  banner,
   reportControl
 }: PracticeQuestionCardProps) {
   const { t } = useI18n();
-  const { ref, reduce, enter } = useQuestionMotion(index);
-  const feedbackRef = useRef<HTMLDivElement>(null);
-  const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
-  const isMultiResponse = question.type === 'multiple_response';
-  const selectCount = question.selectCount ?? 1;
-  const isRevealed = phase === 'revealed';
-
-  const correctIds = reveal?.correctAnswerIds ?? [];
-  const revealedSelectedIds = reveal?.selectedAnswerIds ?? [];
+  const reduce = useReducedMotion();
   const answers = question.answers ?? [];
+  const revealed = phase === 'revealed' && reveal != null;
+  const busy = isChecking || isFinishing;
+  const correctText = answers
+    .filter(answer => answer.id != null && reveal?.correctAnswerIds.includes(answer.id))
+    .map(answer => answer.text)
+    .join(', ');
+
+  // Right answers in a row, ending at the latest Check.
+  let streak = 0;
+  for (let i = revealed ? index : index - 1; i >= 0 && outcomes[i]; i--) streak++;
+
+  // The verdict arrives from the network, not from the tap, so it is cued here.
+  const cued = useRef(reveal);
+  useEffect(() => {
+    if (reveal && reveal !== cued.current) cue(!reveal.isCorrect ? 'wrong' : streak >= 3 ? 'streak' : 'correct');
+    cued.current = reveal;
+  }, [reveal, streak]);
+
+  // A long Question may have been scrolled; the next one starts at its top.
+  useEffect(() => {
+    if (window.scrollY > 0) window.scrollTo({ top: 0 });
+  }, [index]);
+
+  const primary = () => {
+    if (revealed) {
+      if (!isFinishing) onContinue();
+    } else if (canCheck && !isChecking) {
+      onCheck();
+    }
+  };
 
   const { getOptionProps } = useQuizKeyboard({
     count: answers.length,
-    selectionEnabled: !isRevealed && !isChecking,
+    selectionEnabled: !revealed && !isChecking,
     onActivate: i => {
       const id = answers[i]?.id;
-      if (id != null) onSelect(id);
+      if (id != null) select(id);
     },
-    onPrimary: () => {
-      if (isRevealed) {
-        if (!isFinishing) onContinue();
-      } else if (canCheck && !isChecking) {
-        onCheck();
-      }
-    },
+    onPrimary: primary,
     resetKey: question.id
   });
 
+  function select(answerId: number) {
+    cue('select');
+    onSelect(answerId);
+  }
+
   return (
-    // Full-bleed on mobile: cancels the page's px-4 so the card gets the whole screen width.
-    <Card ref={ref} className='-mx-4 border-y-4 border-x-0 border-black shadow-none sm:mx-0 sm:w-full sm:border-x-4 sm:shadow-[8px_8px_0px_0px_#000]'>
-      <CardHeader className='border-b-2 border-black px-4 pb-6 sm:px-6'>
-        <div className='flex justify-between items-center mb-4 flex-wrap gap-2'>
-          <Badge variant='outline'>{t.question.counter(index + 1, total)}</Badge>
-          <div className='flex gap-2 flex-wrap'>
-            {meta}
-            <DifficultyBadge difficulty={question.difficulty} />
-          </div>
-        </div>
-        <motion.div key={question.id} {...enter()}>
-          <CardTitle className='text-xl md:text-2xl font-black text-black'>
-            {question.text}
-          </CardTitle>
-        </motion.div>
-        {isMultiResponse && (
-          <p className='text-sm font-bold text-black/60 mt-2'>
-            {t.question.selectAnswers(selectCount)}
-          </p>
-        )}
-        <div className='w-full mt-6'>
-          <Progress value={progress} />
-        </div>
-      </CardHeader>
-      <CardContent className='px-4 py-6 sm:px-6'>
-        <motion.div
-          key={question.id}
-          {...enter(0.05)}
-          className='space-y-3'
-          role={isMultiResponse ? 'group' : 'radiogroup'}
-          aria-label={question.text ?? undefined}
-        >
-          {answers.map((answer, answerIndex) => {
-            const id = answer.id;
-            const isSelected = id != null && selectedIds.includes(id);
-
-            // Reveal colouring: correct answers go green, wrong picks go red.
-            const isCorrectAnswer = id != null && correctIds.includes(id);
-            const isWrongPick =
-              id != null &&
-              revealedSelectedIds.includes(id) &&
-              !isCorrectAnswer;
-
-            const atCap = isMultiResponse && selectedIds.length >= selectCount;
-            // While answering, an unpicked option at the cap is disabled; once
-            // revealed, every option is locked.
-            const isDisabled = isRevealed || isChecking || (!isSelected && atCap);
-
-            // Light tinted reveal fills (consistent with QuestionReview) keep
-            // the answer text on a near-cream wash so it stays legible — a full
-            // saturated green/red fill muddies the text.
-            let optionClass: string;
-            let boxClass: string;
-            // Default span colour is black; only the selected blue tile needs white.
-            let textClass = 'text-black';
-            if (isRevealed && isCorrectAnswer) {
-              optionClass = 'bg-success/15 shadow-none';
-              boxClass = 'bg-success text-black';
-            } else if (isRevealed && isWrongPick) {
-              optionClass = 'bg-destructive/15 shadow-none';
-              boxClass = 'bg-destructive text-black';
-            } else if (isRevealed) {
-              optionClass = 'bg-white shadow-none opacity-55';
-              boxClass = 'bg-white';
-            } else if (isSelected) {
-              optionClass =
-                'bg-primary shadow-none translate-x-[2px] translate-y-[2px]';
-              boxClass = 'bg-white text-primary';
-              // Deep-blue tile: black text fails contrast, so go white.
-              textClass = 'text-white';
-            } else {
-              optionClass =
-                'bg-white hover:bg-background shadow-[4px_4px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none';
-              boxClass = 'bg-white';
-            }
-
-            return (
-              <motion.div
-                key={id}
-                {...getOptionProps(answerIndex)}
-                // Wrong picks shake; correct answers give a small nod.
-                animate={
-                  reduce || !isRevealed
-                    ? undefined
-                    : isWrongPick
-                      ? { x: [0, -6, 5, -3, 2, 0] }
-                      : isCorrectAnswer
-                        ? { scale: [1, 1.015, 1] }
-                        : undefined
-                }
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-                role={isMultiResponse ? 'checkbox' : 'radio'}
-                aria-checked={isSelected}
-                aria-disabled={isDisabled || undefined}
-                aria-keyshortcuts={answerIndex < 9 ? String(answerIndex + 1) : undefined}
-                className={`p-4 rounded-none border-2 border-black ${optionClass} ${
-                  isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
-                } flex items-start gap-3 transition-[translate,box-shadow,background-color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
-                onClick={() => !isDisabled && id != null && onSelect(id)}
-              >
-                <div
-                  className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${boxClass}`}
-                >
-                  {isRevealed ? (
-                    isCorrectAnswer ? (
-                      <Pop key='correct'><CheckCircle className='h-4 w-4' /></Pop>
-                    ) : isWrongPick ? (
-                      <Pop key='wrong'><XCircle className='h-4 w-4' /></Pop>
-                    ) : null
-                  ) : (
-                    isSelected && <Pop key='selected'><CheckCircle className='h-4 w-4' /></Pop>
-                  )}
-                </div>
-                <span className={`font-medium ${textClass}`}>{answer.text}</span>
-                {answerIndex < 9 && (
-                  <Kbd className='ml-auto mt-0.5'>{answerIndex + 1}</Kbd>
-                )}
-              </motion.div>
-            );
-          })}
-        </motion.div>
-
-        {isRevealed && (
-          <motion.div
-            ref={feedbackRef}
-            className='overflow-hidden'
-            initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            transition={spring}
-            // On phones the explanation opens below the fold; follow it.
-            onAnimationComplete={() =>
-              feedbackRef.current?.scrollIntoView?.({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' })
-            }
+    <AttemptFrame
+      exitHref={exitHref}
+      strip={<DrillColumns outcomes={outcomes} current={revealed ? -1 : index} className='h-9 flex-1 sm:h-14' />}
+      aside={
+        <p className={cn('flex min-w-11 items-center justify-end gap-1 pb-0.5 transition-opacity', streak === 0 && 'opacity-30')}>
+          <Flame className='size-5' strokeWidth={3} fill={streak >= 3 ? 'var(--secondary)' : 'none'} aria-hidden='true' />
+          <motion.span
+            key={streak}
+            className='text-xl font-black tabular-nums'
+            initial={reduce || streak === 0 ? false : { y: 10, scale: 1.6 }}
+            animate={{ y: 0, scale: 1 }}
+            transition={{ type: 'spring', duration: 0.4, bounce: 0.5 }}
+            aria-hidden='true'
           >
-            <div className='mt-6 rounded-none border-2 border-black bg-background'>
-              <div
-                className={`flex items-center gap-2 px-4 py-2 border-b-2 border-black ${
-                  reveal?.isCorrect ? 'bg-success' : 'bg-destructive'
-                }`}
+            {streak}
+          </motion.span>
+          <span className='sr-only'>{t.question.streak(streak)}</span>
+        </p>
+      }
+      dockTone={!revealed ? 'plain' : reveal.isCorrect ? 'correct' : 'wrong'}
+      dock={
+        <>
+          <div className='min-w-0 flex-1' aria-live='polite'>
+            {revealed ? (
+              <motion.div
+                className='overflow-hidden'
+                initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                transition={{ type: 'spring', duration: 0.3, bounce: 0.15 }}
               >
-                <Pop>
-                  {reveal?.isCorrect ? (
-                    <CheckCircle className='h-4 w-4 text-black' />
-                  ) : (
-                    <XCircle className='h-4 w-4 text-black' />
-                  )}
-                </Pop>
-                <p className='text-sm font-black text-black'>
-                  {reveal?.isCorrect ? t.common.correct : t.question.notQuite}
-                </p>
-              </div>
-              {reveal?.explanation && (
-                <p className='px-4 py-3 text-sm text-black/80'>
-                  {reveal.explanation}
-                </p>
-              )}
-            </div>
-          </motion.div>
-        )}
-
-        {isRevealed && reportControl && (
-          <div className='mt-4 flex justify-end'>{reportControl}</div>
-        )}
-      </CardContent>
-      <CardFooter className='flex justify-end border-t-2 border-black px-4 pt-6 sm:px-6'>
-        <ShortcutLegend
-          className='mr-auto pr-4'
-          items={
-            isRevealed
-              ? [{ keys: [<CornerDownLeft key='enter' className='size-3' />], label: t.shortcuts.continue }]
-              : [
+                {/* A long explanation scrolls inside the dock instead of pushing the button off a phone. */}
+                <div className='max-h-[40dvh] overflow-y-auto'>
+                  <p className='text-2xl font-black font-stretch-[112%] sm:text-3xl'>
+                    {!reveal.isCorrect ? t.question.notQuite : streak >= 2 ? t.question.correctStreak(streak) : t.common.correct}
+                  </p>
+                  {!reveal.isCorrect && correctText && <p className='mt-1 font-bold'>{t.question.answerIs(correctText)}</p>}
+                  {reveal.explanation && <p className='mt-1 max-w-[70ch] text-[0.9375rem] font-medium leading-snug'>{reveal.explanation}</p>}
+                  {reportControl && <div className='mt-2'>{reportControl}</div>}
+                </div>
+              </motion.div>
+            ) : (
+              <ShortcutLegend
+                items={[
                   { keys: [`1–${Math.min(answers.length, 9)}`], label: t.shortcuts.select },
                   { keys: [<CornerDownLeft key='enter' className='size-3' />], label: t.shortcuts.check }
-                ]
-          }
-        />
-        {!isRevealed ? (
-          // Busy stays focusable (aria-disabled): disabling the focused button drops focus to <body>.
-          <Button
-            onClick={() => !isChecking && onCheck()}
-            disabled={!canCheck && !isChecking}
-            aria-disabled={isChecking || undefined}
-            aria-busy={isChecking}
+                ]}
+              />
+            )}
+          </div>
+          {/* One button for Check and Continue: focus and the thumb stay where they were.
+              Busy stays focusable (aria-disabled): disabling a focused button drops focus to <body>. */}
+          <button
+            type='button'
+            onClick={primary}
+            disabled={!revealed && !canCheck && !isChecking}
+            aria-disabled={busy || undefined}
+            aria-busy={busy}
             aria-keyshortcuts='Enter'
+            className={cn(dockButton, press, focusRing, 'flex w-full items-center justify-center gap-2 px-10 sm:w-auto sm:min-w-52', revealed ? 'bg-white text-black' : 'bg-primary text-white')}
           >
-            {isChecking && <LoaderCircle className='h-4 w-4 animate-spin' aria-hidden='true' />}
-            {isChecking ? t.question.checking : t.question.check}
-          </Button>
-        ) : (
-          <Button
-            onClick={() => !isFinishing && onContinue()}
-            aria-disabled={isFinishing || undefined}
-            aria-busy={isFinishing}
-            aria-keyshortcuts='Enter'
-          >
-            {isFinishing && <LoaderCircle className='h-4 w-4 animate-spin' aria-hidden='true' />}
-            <motion.span
-              key='continue'
-              className='inline-flex items-center'
-              initial={reduce ? false : { y: 8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={spring}
-            >
-              {isFinishing
-                ? t.question.finishing
-                : isLast
-                  ? t.question.finishPractice
-                  : t.question.continue}
-              {!isFinishing && <ArrowRight className='ml-2 h-4 w-4' />}
-            </motion.span>
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
+            {busy && <LoaderCircle className='size-5 animate-spin' aria-hidden='true' />}
+            {isChecking
+              ? t.question.checking
+              : !revealed
+                ? t.question.check
+                : isFinishing
+                  ? t.question.finishing
+                  : isLast
+                    ? t.question.finishPractice
+                    : t.question.continue}
+          </button>
+        </>
+      }
+    >
+      {banner}
+      <AttemptQuestion
+        index={index}
+        total={total}
+        question={question}
+        selectedIds={selectedIds}
+        onSelect={select}
+        locked={isChecking}
+        reveal={revealed ? reveal : null}
+        getOptionProps={getOptionProps}
+      />
+    </AttemptFrame>
   );
 }

@@ -13,6 +13,9 @@ vi.mock('next/navigation', async () => {
   };
 });
 
+// next/font only exists inside the Next.js compiler.
+vi.mock('next/font/google', () => ({ Archivo: () => ({ className: 'font-archivo' }) }));
+
 vi.mock('next/link', async () => {
   const { createElement } = await import('react');
   const { navigation } = await import('./navigation');

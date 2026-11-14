@@ -1,32 +1,21 @@
-import type { ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle, CornerDownLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { DifficultyBadge } from '@/components/difficulty-badge';
-import { Progress } from '@/components/ui/progress';
-import { Kbd } from '@/components/ui/kbd';
+import { useEffect, useState, type ReactNode } from 'react';
+import { ArrowLeft, ArrowRight, CornerDownLeft } from 'lucide-react';
+import { AttemptFrame, AttemptQuestion, dockButton, focusRing, press } from '@/components/attempt-frame';
+import { ConfidenceRating } from '@/components/confidence-rating';
+import { confidenceHeight, ExamStrip, type StripCell } from '@/components/exam-strip';
 import { ShortcutLegend } from '@/components/shortcut-legend';
-import { motion } from 'motion/react';
 import { useQuizKeyboard } from '@/hooks/use-quiz-keyboard';
-import { Pop } from '@/components/pop';
-import { useQuestionMotion } from '@/hooks/use-question-motion';
 import { useI18n } from '@/i18n/use-i18n';
-import type { QuestionDto } from '@/http/generated/api.schemas';
+import { needsReview } from '@/lib/confidence';
+import { cue } from '@/lib/cue';
+import { cn } from '@/lib/utils';
+import type { Confidence, QuestionDto } from '@/http/generated/api.schemas';
 
 type QuestionCardProps = {
   /** Zero-based index of the current question. */
   index: number;
   total: number;
   question: QuestionDto;
-  /** Right-side badges (quiz title, domain, …). */
-  meta?: ReactNode;
   /** Answer ids the user has currently selected for this question. */
   selectedIds: number[];
   onSelect: (answerId: number) => void;
@@ -35,36 +24,74 @@ type QuestionCardProps = {
   onFinish: () => void;
   finishLabel: string;
   isSubmitting: boolean;
+  /** Per Question, in order: has at least one selected answer. Feeds the Navigator. */
+  answered?: boolean[];
+  /** Per Question, in order: its Confidence, when rated. Feeds the Navigator. */
+  confidences?: (Confidence | null | undefined)[];
+  /** Navigator jump. Without it the strip only shows progress. */
+  onJump?: (index: number) => void;
+  /** The current Question's Confidence. */
+  confidence?: Confidence | null;
+  /** Rating is offered when this is passed; it stays optional for the visitor. */
+  onRate?: (confidence: Confidence) => void;
+  /** Where the leave control goes. */
+  exitHref?: string;
+  /** A short notice in the dock, such as answers still saving. */
+  notice?: ReactNode;
 };
 
+/**
+ * An Exam in progress, full screen. Correctness is deferred to Submit, so nothing here
+ * says right or wrong: the strip is the Navigator, and the dock holds Confidence and
+ * the way back and forward.
+ */
 export function QuestionCard({
   index,
   total,
   question,
-  meta,
   selectedIds,
   onSelect,
   onPrev,
   onNext,
   onFinish,
   finishLabel,
-  isSubmitting
+  isSubmitting,
+  answered = [],
+  confidences = [],
+  onJump,
+  confidence = null,
+  onRate,
+  exitHref = '/quiz',
+  notice
 }: QuestionCardProps) {
   const { t } = useI18n();
-  const { ref, enter } = useQuestionMotion(index);
-  const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
   const isFirst = index === 0;
   const isLast = index >= total - 1;
-  const isMultiResponse = question.type === 'multiple_response';
-  const selectCount = question.selectCount ?? 1;
   const answers = question.answers ?? [];
+
+  // Content slides in from the direction of travel.
+  const [previous, setPrevious] = useState(index);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  if (index !== previous) {
+    setPrevious(index);
+    setDirection(index > previous ? 1 : -1);
+  }
+
+  useEffect(() => {
+    if (window.scrollY > 0) window.scrollTo({ top: 0 });
+  }, [index]);
+
+  const select = (answerId: number) => {
+    cue('select');
+    onSelect(answerId);
+  };
 
   const { getOptionProps } = useQuizKeyboard({
     count: answers.length,
     selectionEnabled: true,
     onActivate: i => {
       const id = answers[i]?.id;
-      if (id != null) onSelect(id);
+      if (id != null) select(id);
     },
     onPrimary: () => {
       if (isLast) {
@@ -73,114 +100,91 @@ export function QuestionCard({
         onNext();
       }
     },
-    onNavigate: direction => {
-      if (direction === -1 && !isFirst) onPrev();
-      if (direction === 1 && !isLast) onNext();
+    onNavigate: step => {
+      if (step === -1 && !isFirst) onPrev();
+      if (step === 1 && !isLast) onNext();
     },
     resetKey: question.id
   });
 
-  return (
-    // Full-bleed on mobile: cancels the page's px-4 so the card gets the whole screen width.
-    <Card ref={ref} className='-mx-4 border-y-4 border-x-0 border-black shadow-none sm:mx-0 sm:w-full sm:border-x-4 sm:shadow-[8px_8px_0px_0px_#000]'>
-      <CardHeader className='border-b-2 border-black px-4 pb-6 sm:px-6'>
-        <div className='flex justify-between items-center mb-4 flex-wrap gap-2'>
-          <Badge variant='outline'>{t.question.counter(index + 1, total)}</Badge>
-          <div className='flex gap-2 flex-wrap'>
-            {meta}
-            <DifficultyBadge difficulty={question.difficulty} />
-          </div>
-        </div>
-        <motion.div key={question.id} {...enter()}>
-          <CardTitle className='text-xl md:text-2xl font-black text-black'>
-            {question.text}
-          </CardTitle>
-        </motion.div>
-        {isMultiResponse && (
-          <p className='text-sm font-bold text-black/60 mt-2'>
-            {t.question.selectAnswers(question.selectCount ?? 2)}
-          </p>
-        )}
-        <div className='w-full mt-6'>
-          <Progress value={progress} />
-        </div>
-      </CardHeader>
-      <CardContent className='px-4 py-6 sm:px-6'>
-        <motion.div
-          key={question.id}
-          {...enter(0.05)}
-          className='space-y-3'
-          role={isMultiResponse ? 'group' : 'radiogroup'}
-          aria-label={question.text ?? undefined}
-        >
-          {answers.map((answer, answerIndex) => {
-            const isSelected = answer.id != null && selectedIds.includes(answer.id);
-            const atCap = isMultiResponse && selectedIds.length >= selectCount;
-            const isDisabled = !isSelected && atCap;
+  // Height is Confidence; amber is the visitor's own "come back to this".
+  const cells: StripCell[] = Array.from({ length: total }, (_, i) =>
+    answered[i]
+      ? { height: confidenceHeight(confidences[i]), tone: needsReview(confidences[i]) ? 'revisit' : 'answered' }
+      : { height: 0, tone: 'empty' }
+  );
 
-            return (
-              <div
-                key={answer.id}
-                {...getOptionProps(answerIndex)}
-                role={isMultiResponse ? 'checkbox' : 'radio'}
-                aria-checked={isSelected}
-                aria-disabled={isDisabled || undefined}
-                aria-keyshortcuts={answerIndex < 9 ? String(answerIndex + 1) : undefined}
-                className={`p-4 rounded-none border-2 border-black ${
-                  isSelected
-                    ? 'bg-primary shadow-none translate-x-[2px] translate-y-[2px]'
-                    : 'bg-white hover:bg-background shadow-[4px_4px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
-                } ${
-                  isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-                } flex items-start gap-3 transition-[translate,box-shadow,background-color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/40 focus-visible:ring-offset-2`}
-                onClick={() => !isDisabled && answer.id != null && onSelect(answer.id)}
-              >
-                <div
-                  className={`w-6 h-6 rounded-none flex items-center justify-center border-2 border-black mt-0.5 shrink-0 ${
-                    isSelected ? 'bg-black text-white' : 'bg-white'
-                  }`}
-                >
-                  {isSelected && <Pop><CheckCircle className='h-4 w-4' /></Pop>}
-                </div>
-                <span
-                  className={`font-medium ${isSelected ? 'text-white' : 'text-black'}`}
-                >
-                  {answer.text}
-                </span>
-                {answerIndex < 9 && (
-                  <Kbd className='ml-auto mt-0.5'>
-                    {answerIndex + 1}
-                  </Kbd>
-                )}
-              </div>
-            );
-          })}
-        </motion.div>
-      </CardContent>
-      <CardFooter className='flex justify-between border-t-2 border-black px-4 pt-6 sm:px-6'>
-        <Button variant='outline' onClick={onPrev} disabled={isFirst} aria-keyshortcuts='ArrowLeft'>
-          <ArrowLeft className='mr-2 h-4 w-4' />
-          {t.common.previous}
-        </Button>
-        <ShortcutLegend
-          className='justify-center px-4'
-          items={[
-            { keys: [`1–${Math.min(answers.length, 9)}`], label: t.shortcuts.select },
-            { keys: [<CornerDownLeft key='enter' className='size-3' />], label: isLast ? t.shortcuts.finish : t.shortcuts.next },
-            { keys: [<ArrowLeft key='left' className='size-3' />, <ArrowRight key='right' className='size-3' />], label: t.shortcuts.navigate }
-          ]}
+  return (
+    <AttemptFrame
+      exitHref={exitHref}
+      strip={
+        <ExamStrip
+          cells={cells}
+          current={index}
+          onJump={onJump}
+          label={t.navigator.landmark}
+          valueText={i => t.navigator.questionLabel(i + 1, answered[i] === true, needsReview(confidences[i]))}
+          className='h-[3.25rem] flex-1 sm:h-[4.5rem]'
         />
-        {!isLast ? (
-          <Button onClick={onNext} aria-keyshortcuts='Enter ArrowRight'>
-            {t.common.next}
-            <ArrowRight className='ml-2 h-4 w-4' />
-          </Button>
-        ) : (
-          <Button onClick={onFinish} disabled={isSubmitting} aria-keyshortcuts='Enter'>
-            {isSubmitting ? t.common.submitting : finishLabel}
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
+      }
+      aside={null}
+      dock={
+        <>
+          <div className='min-w-0 flex-1 space-y-2'>
+            {notice}
+            {/* Always in place, so answering never moves the buttons under the thumb. */}
+            {onRate && <ConfidenceRating value={confidence} onRate={onRate} disabled={selectedIds.length === 0} />}
+          </div>
+          <div className='flex gap-3'>
+            <button
+              type='button'
+              onClick={onPrev}
+              disabled={isFirst}
+              aria-label={t.common.previous}
+              aria-keyshortcuts='ArrowLeft'
+              className={cn(dockButton, press, focusRing, 'flex w-14 items-center justify-center bg-white')}
+            >
+              <ArrowLeft className='size-6' strokeWidth={3} aria-hidden='true' />
+            </button>
+            {!isLast ? (
+              <button type='button' onClick={onNext} aria-keyshortcuts='Enter ArrowRight' className={cn(dockButton, press, focusRing, 'flex-1 bg-primary px-10 text-white sm:min-w-52 sm:flex-none')}>
+                {t.common.next}
+              </button>
+            ) : (
+              <button type='button' onClick={onFinish} disabled={isSubmitting} aria-keyshortcuts='Enter' className={cn(dockButton, press, focusRing, 'flex-1 bg-primary px-10 text-white sm:min-w-52 sm:flex-none')}>
+                {isSubmitting ? t.common.submitting : finishLabel}
+              </button>
+            )}
+          </div>
+        </>
+      }
+    >
+      <AttemptQuestion
+        index={index}
+        total={total}
+        question={question}
+        direction={direction}
+        selectedIds={selectedIds}
+        onSelect={select}
+        getOptionProps={getOptionProps}
+        actions={
+          // On the counter line, not beside the strip: there it took half the Navigator's
+          // width on a phone. On the last Question the dock's own button finishes.
+          !isLast && (
+            <button type='button' onClick={onFinish} disabled={isSubmitting} aria-label={finishLabel} className={cn('h-11 cursor-pointer text-sm font-black underline decoration-2 underline-offset-4 disabled:opacity-40', focusRing)}>
+              {t.question.finish}
+            </button>
+          )
+        }
+      />
+      <ShortcutLegend
+        className='mt-8'
+        items={[
+          { keys: [`1–${Math.min(answers.length, 9)}`], label: t.shortcuts.select },
+          { keys: [<CornerDownLeft key='enter' className='size-3' />], label: isLast ? t.shortcuts.finish : t.shortcuts.next },
+          { keys: [<ArrowLeft key='left' className='size-3' />, <ArrowRight key='right' className='size-3' />], label: t.shortcuts.navigate }
+        ]}
+      />
+    </AttemptFrame>
   );
 }
