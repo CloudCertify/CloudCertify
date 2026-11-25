@@ -92,114 +92,93 @@ export const pt: Messages = {
   },
 
   home: {
-    heroBadge: 'Grátis, sem cartão e sem conta',
-    heroTitleLead: 'Passe na sua',
-    heroTitleCert: 'certificação',
-    heroTitleTail: 'de primeira',
-    heroTitleChipFirst: false,
+    heroBadge: 'Grátis, sem cartão',
+    heroTitleLead: 'Erre aqui,',
+    heroTitleTail: 'não na',
     heroSubtitle:
-      'Questões no estilo da prova, treinos focados por domínio e simulados completos de AWS, Google Cloud e Azure. Feito para te certificar, não para te vender nada.',
-    heroPrimaryCta: 'Começar a estudar',
-    heroSecondaryCta: 'Ver certificações',
-    heroMockQuestion:
-      'Qual serviço executa contêineres sem gerenciar servidores ou clusters?',
-    heroFreeSticker: ['100%', 'grátis'],
-    marquee: [
-      'AWS Certified',
-      'Google Cloud',
-      'Microsoft Azure',
-      'Simulados',
-      'Treinos por domínio',
-      'Passe de primeira'
-    ],
-    stats: {
-      questions: 'questões de prática',
-      paths: 'trilhas de certificação',
-      providers: 'provedores de nuvem',
-      price: 'para sempre, sem pegadinha'
-    },
-    roadmapEyebrow: 'A trilha',
-    roadmapTitle: 'Escolha seu caminho',
-    roadmapSubtitle:
-      'Comece pelas provas fundamentais e avance até as de especialidade, um provedor por vez.',
-    sampleTitle: 'Experimente uma questão',
-    sampleSubtitle:
-      'Como na prova: enunciados reais, alternativas plausíveis e feedback na hora.',
-    pricingTitle: 'Preço simples',
-    pricingSubtitle:
-      'Sem assinatura. Sem plano premium. Só treino gratuito para certificações em nuvem.',
-    pricingPeriod: '/ para sempre',
-    pricingNote: 'Sem pegadinha. Sério.',
-    pricingPerks: [
-      'Todas as questões de AWS, GCP e Azure',
-      'Modo simulado completo',
-      'Sem cartão de crédito'
-    ],
-    pricingCta: 'Começar a estudar agora',
-    featuresBadge: 'Por que CloudCertify',
-    featuresTitle: 'Focado na sua aprovação em certificações de nuvem',
-    featuresSubtitle:
-      'Feito para te ajudar a passar nas provas de certificação da AWS, Google Cloud e Azure.',
-    features: [
-      {
-        title: 'Banco de questões multicloud',
-        body: 'Centenas de questões de prática cobrindo as provas de certificação da AWS, Google Cloud e Azure.'
+      'Simulados gratuitos das provas AWS. Cada questão explica a resposta, e o resultado mostra quais você só acertou no chute.',
+    heroMockQuestion: 'Qual serviço executa contêineres sem gerenciar servidores ou clusters?',
+    heroSticker: ['100%', 'grátis'],
+    marquee: ['Grátis', 'Sem cartão', 'Provas AWS', 'Toda resposta explicada', 'Treinos por domínio', 'Simulados completos'],
+    resultTitle: 'Um resultado que mostra seus pontos cegos.',
+    resultSubtitle: 'Diga o quanto tem certeza de cada resposta, e o resultado mostra onde você estava confiante e errou.',
+    startCta: 'Começar a praticar',
+    browseCta: 'Ver as provas',
+    heroExample: 'Um resultado de exemplo do Cloud Practitioner, uma coluna para cada uma das 65 questões. Escolha uma coluna para ver como foi.',
+    heroColumn: (number: number, rating: 'confident' | 'unsure' | 'guess', right: boolean) =>
+      `Questão ${number}: você ${{ confident: 'tinha certeza', unsure: 'ficou na dúvida', guess: 'chutou' }[rating]} e ${right ? 'acertou' : 'errou'}.${
+        rating === 'confident' && !right ? ' Um conceito errado.' : rating === 'guess' && right ? ' Um chute certeiro.' : ''
+      }`,
+    drillTitle: 'Faça um treino.',
+    drillSubtitle:
+      'Quatro questões, verificadas uma a uma. Cada acerto sobe um degrau acima do anterior, então uma sequência vira uma escada.',
+    modesTitle: 'Dois jeitos de praticar.',
+    modeRows: ['Questões', 'Feedback', 'Nota', 'O que ele encontra'],
+    modes: {
+      drill: {
+        name: 'Treino',
+        rows: [
+          'Um conjunto curto, de um domínio ou misturando a prova inteira.',
+          'Verifique cada resposta e leia o porquê na hora.',
+          'Um percentual. 70 aprova.',
+          'Entre na conta, e as questões que você errou voltam nos próximos treinos.'
+        ]
       },
-      {
-        title: 'Cobertura dos conceitos de nuvem',
-        body: 'Conceitos, serviços, segurança e modelos de preço dos três principais provedores.'
-      },
-      {
-        title: 'Estudo focado na prova',
-        body: 'Questões alinhadas aos objetivos e formatos mais recentes das provas.'
+      exam: {
+        name: 'Simulado',
+        rows: [
+          'A prova completa, com a nota calculada pelo peso oficial de cada domínio.',
+          'Nada até você enviar.',
+          'Uma nota em escala de 100 a 1000.',
+          'Se você disser o quanto tem certeza, ele separa chutes certeiros de conceitos errados.'
+        ]
       }
-    ],
-    ctaCardTitle: 'Pronto para se certificar em nuvem?',
-    ctaCardBody:
-      'Dê hoje o primeiro passo rumo à sua certificação AWS, GCP ou Azure.',
+    },
+    roadmapTitle: 'Escolha sua prova.',
+    roadmapSubtitle:
+      'Comece pelas provas fundamentais e avance até as de especialidade. Azure e Google Cloud vêm depois da AWS.',
+    pricingTitle: 'Grátis. Tudo.',
+    pricingBody:
+      'Sem cartão e sem plano pago. Um email basta para praticar, sem criar conta. Entre na conta para guardar seu progresso e revisar as questões que errou.',
     sampleQuestions: [
       {
-        question:
-          'Qual serviço da AWS você usaria para executar contêineres sem gerenciar servidores ou clusters?',
-        options: ['Amazon ECS', 'Amazon EKS', 'AWS Fargate', 'AWS Lambda'],
-        category: 'AWS Solutions Architect',
-        difficulty: 'medium'
+        exam: 'DVA-C02',
+        question: 'Qual serviço executa código em resposta a eventos sem provisionar servidores?',
+        options: ['AWS Elastic Beanstalk', 'Amazon EC2', 'AWS Lambda', 'Amazon ECS'],
+        explanation:
+          'O Lambda executa sua função quando um evento chega, sem servidores para você gerenciar. Nos outros três ainda sobram instâncias ou contêineres para dimensionar.'
       },
       {
-        question:
-          'Qual serviço da AWS permite executar código sem provisionar ou gerenciar servidores?',
+        exam: 'CLF-C02',
+        question: 'No modelo de responsabilidade compartilhada, qual tarefa cabe ao cliente?',
         options: [
-          'AWS Elastic Beanstalk',
-          'Amazon EC2',
-          'AWS Lambda',
-          'Amazon ECS'
+          'Aplicar patches no hipervisor',
+          'Proteger os prédios dos data centers',
+          'Configurar as regras dos security groups',
+          'Trocar discos com falha'
         ],
-        category: 'AWS Developer',
-        difficulty: 'medium'
+        explanation:
+          'A AWS protege a infraestrutura que executa a nuvem. O que você configura dentro dela, incluindo os security groups, é seu.'
       },
       {
-        question:
-          'Qual serviço do Google Cloud é usado para armazenar objetos não estruturados, semelhante ao Amazon S3?',
-        options: [
-          'Cloud Filestore',
-          'Cloud SQL',
-          'Cloud Storage',
-          'Persistent Disk'
-        ],
-        category: 'Google Cloud',
-        difficulty: 'easy'
+        exam: 'SCS-C03',
+        question: 'Qual serviço registra as chamadas de API feitas em uma conta AWS para auditoria?',
+        options: ['Amazon CloudWatch', 'AWS CloudTrail', 'AWS Config', 'Amazon GuardDuty'],
+        explanation:
+          'O CloudTrail registra quem chamou qual API, quando e de onde. O CloudWatch coleta métricas e logs, e o Config acompanha a configuração dos recursos.'
       },
       {
+        exam: 'SAA-C03',
         question:
-          'Qual serviço do Azure oferece computação serverless para executar código orientado a eventos sem gerenciar infraestrutura?',
+          'Um banco de dados relacional precisa fazer failover automático para outra Zona de Disponibilidade. Qual opção oferece isso?',
         options: [
-          'Azure App Service',
-          'Azure Functions',
-          'Azure Logic Apps',
-          'Azure Container Instances'
+          'Uma réplica de leitura do Amazon RDS',
+          'Uma implantação Multi-AZ do Amazon RDS',
+          'Uma tabela global do Amazon DynamoDB',
+          'Um cluster do Amazon ElastiCache'
         ],
-        category: 'Azure',
-        difficulty: 'easy'
+        explanation:
+          'O Multi-AZ mantém uma réplica síncrona em espera em outra Zona de Disponibilidade e faz o failover sozinho. Réplicas de leitura servem para escalar leituras.'
       }
     ]
   },

@@ -77,18 +77,38 @@
   background-size: 22px 22px;
 }
 
+/*
+  Landing hero: the example Exam result arrives the way the real one does. The
+  columns stand up left to right in their mid-Exam colours, then the verdict
+  sweeps across. Both are CSS so the server-rendered page already holds the final state.
+*/
+@keyframes skyline-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes skyline-verdict {
+  from {
+    background-color: var(--before);
+  }
+}
+
+.skyline-col {
+  transform-origin: bottom;
+  animation:
+    skyline-rise 0.5s var(--ease-out) backwards,
+    skyline-verdict 0.25s linear backwards;
+  animation-delay: calc(var(--i) * 12ms), calc(1.3s + var(--i) * 20ms);
+}
+
 @keyframes marquee {
   to {
     transform: translateX(-50%);
   }
 }
 
-/*
-  Marquee track. Duration/direction come from inline CSS vars so they stay
-  configurable, but the `animation` itself lives in a class — that way the
-  reduced-motion override below can actually win (an inline `animation`
-  shorthand would beat any class and silently ignore the user's preference).
-*/
+/* The animation lives in a class so the reduced-motion override below can win. */
 .marquee-track {
   animation: marquee var(--marquee-duration, 28s) linear infinite;
   animation-direction: var(--marquee-direction, normal);
@@ -100,18 +120,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .marquee-track {
+  .marquee-track,
+  .skyline-col {
     animation: none;
-  }
-}
-
-@keyframes float-y {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
   }
 }
 

@@ -1,10 +1,10 @@
-import type { QuestionDifficulty } from '@/http/generated/api.schemas';
-
 type SampleQuestion = {
+  /** Code of the exam the question is typical of. */
+  exam: string;
   question: string;
   options: string[];
-  category: string;
-  difficulty: QuestionDifficulty;
+  /** Shown after Check, as in a Drill. */
+  explanation: string;
 };
 
 /** A Drill Composition with every count filled in: a missing count is a zero. */
@@ -106,118 +106,93 @@ export const en = {
   },
 
   home: {
-    heroBadge: 'Free, no card or account',
-    heroTitleLead: 'Pass your',
-    heroTitleCert: 'cert',
-    heroTitleTail: 'the first time.',
-    /**
-     * Where the rotating provider chip sits relative to `heroTitleCert`:
-     * "Pass your [AWS] cert" (EN) vs "Passe na sua certificação [AWS]" (PT).
-     */
-    heroTitleChipFirst: true,
+    heroBadge: 'Free, no card',
+    heroTitleLead: 'Miss it here,',
+    heroTitleTail: 'not on the',
     heroSubtitle:
-      'Real exam-style questions, focused domain drills and full-length simulations for AWS, Google Cloud and Azure. Built to get you certified, not to upsell you.',
-    heroPrimaryCta: 'Start learning',
-    heroSecondaryCta: 'Browse certifications',
-    heroMockQuestion:
-      'Which service runs containers without managing servers or clusters?',
-    heroFreeSticker: ['100%', 'free'],
-    marquee: [
-      'AWS Certified',
-      'Google Cloud',
-      'Microsoft Azure',
-      'Practice Exams',
-      'Domain Drills',
-      'Pass First Try'
-    ],
-    stats: {
-      questions: 'practice questions',
-      paths: 'certification paths',
-      providers: 'cloud providers',
-      price: 'forever, no upsell'
-    },
-    roadmapEyebrow: 'The roadmap',
-    roadmapTitle: 'Pick your path',
-    roadmapSubtitle:
-      'Start at the foundations and work up to the specialty exams, one provider at a time.',
-    sampleTitle: 'Try a question',
-    sampleSubtitle:
-      'The real thing: exam-style stems, plausible distractors, instant feedback.',
-    pricingTitle: 'Simple pricing',
-    pricingSubtitle:
-      'No subscriptions. No premium tiers. Just free cloud certification training.',
-    pricingPeriod: '/ forever',
-    pricingNote: 'No catches. Seriously.',
-    pricingPerks: [
-      'All AWS, GCP and Azure questions',
-      'Full exam simulation mode',
-      'No credit card required'
-    ],
-    pricingCta: 'Start learning now',
-    featuresBadge: 'Why CloudCertify',
-    featuresTitle: 'Focused on cloud certification success',
-    featuresSubtitle:
-      'Designed to help you pass certification exams across AWS, Google Cloud and Azure.',
-    features: [
-      {
-        title: 'Multi-cloud question bank',
-        body: 'Hundreds of practice questions covering AWS, Google Cloud and Azure certification exams.'
+      'Free practice for the AWS exams. Every question explains its answer, and the result shows which ones you only got right by guessing.',
+    heroMockQuestion: 'Which service runs containers without managing servers or clusters?',
+    heroSticker: ['100%', 'free'],
+    marquee: ['Free', 'No card', 'AWS exams', 'Every answer explained', 'Drills by domain', 'Full practice exams'],
+    resultTitle: 'A result that shows your blind spots.',
+    resultSubtitle: 'Rate how sure you are as you answer, and your result shows the answers you were confident about and got wrong.',
+    startCta: 'Start practicing',
+    browseCta: 'See the exams',
+    heroExample: 'An example Cloud Practitioner result, one column for each of the 65 questions. Pick a column to see how it went.',
+    heroColumn: (number: number, rating: 'confident' | 'unsure' | 'guess', right: boolean) =>
+      `Question ${number}: you ${{ confident: 'were sure', unsure: 'were unsure', guess: 'guessed' }[rating]} and got it ${right ? 'right' : 'wrong'}.${
+        rating === 'confident' && !right ? ' A misconception.' : rating === 'guess' && right ? ' A lucky guess.' : ''
+      }`,
+    drillTitle: 'Try a drill.',
+    drillSubtitle:
+      'Four questions, checked one at a time. Each right answer stands a step taller than the last, so a streak builds a staircase.',
+    modesTitle: 'Two ways to practice.',
+    modeRows: ['Questions', 'Feedback', 'Score', 'What it finds'],
+    modes: {
+      drill: {
+        name: 'Drill',
+        rows: [
+          'A short set, from one exam domain or mixed across the exam.',
+          'Check each answer and read why, right away.',
+          'A percentage. 70 passes.',
+          'Sign in, and the questions you missed come back in later drills.'
+        ]
       },
-      {
-        title: 'Cloud concepts coverage',
-        body: 'Concepts, services, security and pricing models across all three major providers.'
-      },
-      {
-        title: 'Exam-focused learning',
-        body: 'Questions aligned with the latest exam objectives and question formats.'
+      exam: {
+        name: 'Exam',
+        rows: [
+          'The full exam, scored with the official weight of each domain.',
+          'Nothing until you submit.',
+          'A scaled score from 100 to 1000.',
+          'If you rate how sure you are, it separates lucky guesses from misconceptions.'
+        ]
       }
-    ],
-    ctaCardTitle: 'Ready to get cloud certified?',
-    ctaCardBody:
-      'Take the first step towards your AWS, GCP or Azure certification today.',
+    },
+    roadmapTitle: 'Pick your exam.',
+    roadmapSubtitle:
+      'Start at the foundations and work up to the specialty exams. Azure and Google Cloud come after AWS.',
+    pricingTitle: 'Free. All of it.',
+    pricingBody:
+      'No card and no paid tier. An email is enough to practice, with no account to create. Sign in to keep your progress and to review the questions you missed.',
     sampleQuestions: [
       {
-        question:
-          'Which AWS service would you use to run containers without managing servers or clusters?',
-        options: ['Amazon ECS', 'Amazon EKS', 'AWS Fargate', 'AWS Lambda'],
-        category: 'AWS Solutions Architect',
-        difficulty: 'medium'
+        exam: 'DVA-C02',
+        question: 'Which service runs code in response to events without provisioning servers?',
+        options: ['AWS Elastic Beanstalk', 'Amazon EC2', 'AWS Lambda', 'Amazon ECS'],
+        explanation:
+          'Lambda runs your function when an event arrives, with no servers for you to manage. The other three leave you with instances or containers to size.'
       },
       {
-        question:
-          'Which AWS service allows you to run code without provisioning or managing servers?',
+        exam: 'CLF-C02',
+        question: 'Under the shared responsibility model, which task belongs to the customer?',
         options: [
-          'AWS Elastic Beanstalk',
-          'Amazon EC2',
-          'AWS Lambda',
-          'Amazon ECS'
+          'Patching the hypervisor',
+          'Securing the data center buildings',
+          'Configuring security group rules',
+          'Replacing failed disks'
         ],
-        category: 'AWS Developer',
-        difficulty: 'medium'
+        explanation:
+          'AWS secures the infrastructure that runs the cloud. What you configure inside it, security groups included, is yours.'
       },
       {
-        question:
-          'Which Google Cloud service is used to store unstructured objects, similar to Amazon S3?',
-        options: [
-          'Cloud Filestore',
-          'Cloud SQL',
-          'Cloud Storage',
-          'Persistent Disk'
-        ],
-        category: 'Google Cloud',
-        difficulty: 'easy'
+        exam: 'SCS-C03',
+        question: 'Which service records the API calls made in an AWS account for auditing?',
+        options: ['Amazon CloudWatch', 'AWS CloudTrail', 'AWS Config', 'Amazon GuardDuty'],
+        explanation:
+          'CloudTrail logs who called which API, when and from where. CloudWatch collects metrics and logs, and Config tracks how resources are configured.'
       },
       {
+        exam: 'SAA-C03',
         question:
-          'Which Azure service provides serverless compute to run event-driven code without managing infrastructure?',
+          'A relational database must fail over automatically to another Availability Zone. Which option provides this?',
         options: [
-          'Azure App Service',
-          'Azure Functions',
-          'Azure Logic Apps',
-          'Azure Container Instances'
+          'An Amazon RDS read replica',
+          'An Amazon RDS Multi-AZ deployment',
+          'An Amazon DynamoDB global table',
+          'An Amazon ElastiCache cluster'
         ],
-        category: 'Azure',
-        difficulty: 'easy'
+        explanation:
+          'Multi-AZ keeps a synchronous standby in a second Availability Zone and fails over to it on its own. Read replicas exist to scale reads.'
       }
     ] as SampleQuestion[]
   },
