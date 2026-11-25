@@ -9,6 +9,8 @@ import { dockButton, focusRing, press } from '@/components/attempt-frame';
 import { CertificationRoadmap } from '@/components/certification-roadmap';
 import { DrillColumns, runLengths } from '@/components/drill-columns';
 import { Footer } from '@/components/footer';
+import { Marquee } from '@/components/marquee';
+import RotatingText from '@/components/RotatingText';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/i18n/use-i18n';
 import { cn } from '@/lib/utils';
@@ -19,6 +21,9 @@ const display = 'font-black leading-[0.9] font-stretch-[70%] text-balance';
 
 export function HomePage({ quizzes }: { quizzes: QuizDto[] }) {
   const { t } = useI18n();
+  // The exam codes on offer, read from titles like "AWS Certified Developer (DVA-C02)".
+  const found = quizzes.flatMap(quiz => (quiz.isAvailable && quiz.title?.match(/\(([A-Z]{3}-C\d+)\)/)?.[1]) || []);
+  const codes = found.length ? found : ['CLF-C02'];
 
   return (
     <div className='flex min-h-dvh flex-col bg-background text-black'>
@@ -35,22 +40,50 @@ export function HomePage({ quizzes }: { quizzes: QuizDto[] }) {
       />
 
       <main id='main-content' tabIndex={-1} className='flex-1'>
-        <section id='hero' className='border-b-2 border-black'>
-          <div className='container px-4 pb-12 pt-10 md:px-6 md:pb-20 md:pt-16'>
-            <div className='grid gap-8 lg:grid-cols-[1fr_24rem] lg:items-end lg:gap-16'>
-              <h1 className={cn('max-w-[17ch] text-[clamp(2.75rem,6.5vw,5.5rem)]', display)}>{t.home.heroTitle}</h1>
-              <div>
-                <p className='max-w-[46ch] text-lg font-medium leading-snug'>{t.home.heroSubtitle}</p>
-                <div className='mt-6 flex flex-col gap-3 sm:flex-row'>
-                  <Button asChild size='lg'>
-                    <Link href='/dashboard'>{t.home.startCta}</Link>
-                  </Button>
-                  <Button asChild size='lg' variant='outline'>
-                    <a href='#certifications'>{t.home.browseCta}</a>
-                  </Button>
-                </div>
+        <section id='hero' className='overflow-hidden bg-white bg-dotgrid'>
+          <div className='container grid items-center gap-14 px-4 py-12 md:px-6 md:py-20 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16'>
+            <div>
+              <p className='inline-block -rotate-1 border-2 border-black bg-secondary px-3 py-1 text-sm font-black shadow-[3px_3px_0px_0px_#000]'>
+                {t.home.heroBadge}
+              </p>
+              <h1 className={cn('mt-6 text-[clamp(3.25rem,8vw,6.5rem)]', display)}>
+                {t.home.heroTitleLead}
+                <span className='mt-2 flex flex-wrap items-center gap-x-[0.2em] gap-y-2'>
+                  {t.home.heroTitleTail}
+                  <span className='inline-block -rotate-1 border-2 border-black bg-primary px-[0.12em] pb-[0.04em] pt-[0.08em] text-white shadow-[6px_6px_0px_0px_#000]'>
+                    <RotatingText
+                      texts={codes}
+                      splitLevelClassName='overflow-hidden'
+                      staggerFrom='last'
+                      staggerDuration={0.025}
+                      initial={{ y: '100%' }}
+                      animate={{ y: 0 }}
+                      exit={{ y: '-120%' }}
+                      transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                      rotationInterval={2200}
+                    />
+                  </span>
+                </span>
+              </h1>
+              <p className='mt-7 max-w-[44ch] text-lg font-medium leading-snug'>{t.home.heroSubtitle}</p>
+              <div className='mt-7 flex flex-col gap-3 sm:flex-row'>
+                <Button asChild size='lg'>
+                  <Link href='/dashboard'>{t.home.startCta}</Link>
+                </Button>
+                <Button asChild size='lg' variant='outline'>
+                  <a href='#certifications'>{t.home.browseCta}</a>
+                </Button>
               </div>
             </div>
+            <HeroCluster codes={codes} />
+          </div>
+        </section>
+
+        <Marquee className='bg-secondary py-3' items={t.home.marquee} />
+
+        <section className='border-b-2 border-black'>
+          <div className='container px-4 py-14 md:px-6 md:py-24'>
+            <SectionHeading title={t.home.resultTitle} body={t.home.resultSubtitle} />
             <ExampleResult />
           </div>
         </section>
@@ -108,6 +141,44 @@ function SectionHeading({ title, body }: { title: string; body?: string }) {
   );
 }
 
+/* -------------------------------------------------------------- HERO CLUSTER */
+
+/** A checked Drill question as a tilted card, with stickers. A picture of the product, so hidden from readers. */
+function HeroCluster({ codes }: { codes: string[] }) {
+  const { t } = useI18n();
+  const sticker = 'absolute z-10 border-2 border-black px-3 py-1 font-black shadow-[4px_4px_0px_0px_#000]';
+
+  return (
+    <div className='relative mx-auto h-[23rem] w-full max-w-sm lg:max-w-md' aria-hidden='true'>
+      <div className='absolute inset-x-8 top-12 h-72 -rotate-6 border-2 border-black bg-secondary shadow-[8px_8px_0px_0px_#000]' />
+      <div className='absolute inset-x-0 top-2 -rotate-2 border-2 border-black bg-white p-5 shadow-[12px_12px_0px_0px_#000]'>
+        <span className='border-2 border-black bg-primary px-2 py-0.5 text-sm font-black text-white'>{codes[0]}</span>
+        <p className='mt-4 text-xl font-extrabold leading-tight font-stretch-[88%]'>{t.home.heroMockQuestion}</p>
+        <div className='mt-4 space-y-2.5'>
+          {['Amazon EC2', 'AWS Fargate', 'Amazon EKS'].map(option => {
+            const right = option === 'AWS Fargate';
+            return (
+              <div
+                key={option}
+                className={cn('flex items-center gap-3 border-2 border-black px-3 py-2 font-bold', right ? 'bg-success' : 'bg-white shadow-[3px_3px_0px_0px_#000]')}
+              >
+                <span className='flex size-5 items-center justify-center border-2 border-black bg-white'>{right && <Check className='size-3' strokeWidth={4} />}</span>
+                {option}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {codes[1] && <span className={cn(sticker, '-left-3 bottom-0 -rotate-6 bg-primary text-white')}>{codes[1]}</span>}
+      {codes[2] && <span className={cn(sticker, '-right-3 bottom-6 rotate-6 bg-white')}>{codes[2]}</span>}
+      <span className={cn(sticker, '-right-3 -top-4 flex size-20 rotate-12 flex-col items-center justify-center bg-secondary px-0 leading-tight')}>
+        <span className='text-xl font-stretch-[125%]'>{t.home.heroSticker[0]}</span>
+        {t.home.heroSticker[1]}
+      </span>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------ EXAMPLE RESULT */
 
 type Finding = 'lucky' | 'misconception';
@@ -158,7 +229,7 @@ function ExampleResult() {
   ];
 
   return (
-    <div className='mt-12 md:mt-20'>
+    <div>
       <div
         ref={strip}
         role='slider'

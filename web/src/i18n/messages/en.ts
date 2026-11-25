@@ -106,9 +106,16 @@ export const en = {
   },
 
   home: {
-    heroTitle: 'AWS practice exams that find your blind spots.',
+    heroBadge: 'Free, no card',
+    heroTitleLead: 'Miss it here,',
+    heroTitleTail: 'not on the',
     heroSubtitle:
-      'They are free. Rate how sure you are as you answer, and your result shows the answers you were confident about and got wrong.',
+      'Free practice for the AWS exams. Every question explains its answer, and the result shows which ones you only got right by guessing.',
+    heroMockQuestion: 'Which service runs containers without managing servers or clusters?',
+    heroSticker: ['100%', 'free'],
+    marquee: ['Free', 'No card', 'AWS exams', 'Every answer explained', 'Drills by domain', 'Full practice exams'],
+    resultTitle: 'A result that shows your blind spots.',
+    resultSubtitle: 'Rate how sure you are as you answer, and your result shows the answers you were confident about and got wrong.',
     startCta: 'Start practicing',
     browseCta: 'See the exams',
     heroExample: 'An example Cloud Practitioner result, one column for each of the 65 questions. Pick a column to see how it went.',

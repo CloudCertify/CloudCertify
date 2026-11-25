@@ -102,8 +102,25 @@
   animation-delay: calc(var(--i) * 12ms), calc(1.3s + var(--i) * 20ms);
 }
 
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* The animation lives in a class so the reduced-motion override below can win. */
+.marquee-track {
+  animation: marquee var(--marquee-duration, 28s) linear infinite;
+  animation-direction: var(--marquee-direction, normal);
+}
+
+.marquee-root:hover .marquee-track {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .marquee-track,
   .skyline-col {
     animation: none;
   }

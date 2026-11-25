@@ -31,7 +31,8 @@ describe('public screens with server data', () => {
     const container = document.createElement('div');
     container.innerHTML = renderToString(localized(<HomePage quizzes={quizzes} />));
 
-    expect(container.querySelector('h1')?.textContent).toBe(en.home.heroTitle);
+    expect(container.querySelector('h1')?.textContent).toContain(en.home.heroTitleLead);
+    expect(container.querySelector('h1')?.textContent).toContain('CLF-C02');
     expect(container.textContent).toContain('742');
     expect(container.textContent).toContain(en.results.scoreLine(47, 65));
     expect(container.querySelector('a[href="/quiz/1"]')).not.toBeNull();

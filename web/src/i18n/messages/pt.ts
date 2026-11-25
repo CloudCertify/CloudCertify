@@ -92,9 +92,16 @@ export const pt: Messages = {
   },
 
   home: {
-    heroTitle: 'Simulados AWS que mostram seus pontos cegos.',
+    heroBadge: 'Grátis, sem cartão',
+    heroTitleLead: 'Erre aqui,',
+    heroTitleTail: 'não na',
     heroSubtitle:
-      'São gratuitos. Diga o quanto tem certeza de cada resposta, e o resultado mostra onde você estava confiante e errou.',
+      'Simulados gratuitos das provas AWS. Cada questão explica a resposta, e o resultado mostra quais você só acertou no chute.',
+    heroMockQuestion: 'Qual serviço executa contêineres sem gerenciar servidores ou clusters?',
+    heroSticker: ['100%', 'grátis'],
+    marquee: ['Grátis', 'Sem cartão', 'Provas AWS', 'Toda resposta explicada', 'Treinos por domínio', 'Simulados completos'],
+    resultTitle: 'Um resultado que mostra seus pontos cegos.',
+    resultSubtitle: 'Diga o quanto tem certeza de cada resposta, e o resultado mostra onde você estava confiante e errou.',
     startCta: 'Começar a praticar',
     browseCta: 'Ver as provas',
     heroExample: 'Um resultado de exemplo do Cloud Practitioner, uma coluna para cada uma das 65 questões. Escolha uma coluna para ver como foi.',
