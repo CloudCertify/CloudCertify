@@ -83,9 +83,9 @@ export function CertificationRoadmap({ quizzes }: CertificationRoadmapProps) {
   }, [quizzes, provider]);
 
   return (
-    <div className='mx-auto max-w-5xl'>
+    <div className='max-w-5xl'>
       {/* Provider tabs */}
-      <div className='flex items-center justify-center gap-2 mb-10'>
+      <div className='flex items-center gap-2 mb-10'>
         <div role='group' aria-label={t.common.cloudProvider} className='inline-flex flex-wrap max-w-full items-center gap-2 rounded-none border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000]'>
           {PROVIDERS.map(p => {
             const isActive = provider === p.id;
